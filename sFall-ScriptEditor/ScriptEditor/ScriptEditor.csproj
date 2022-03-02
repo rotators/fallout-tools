@@ -1,0 +1,437 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F2211228-0028-4951-A423-302B66C5CB1B}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ScriptEditor</RootNamespace>
+    <AssemblyName>SfallScriptEditor</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <SignAssembly>False</SignAssembly>
+    <DelaySign>False</DelaySign>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+    <ApplicationIcon>Resources\Icon_1.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+    <NoStdLib>False</NoStdLib>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <RunCodeAnalysis>False</RunCodeAnalysis>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
+    <DebugSymbols>false</DebugSymbols>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>
+    </StartupObject>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Test|x86'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AboutBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutBox.Designer.cs">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CodeTranslation\DialogueParser.cs" />
+    <Compile Include="CodeTranslation\Macros.cs" />
+    <Compile Include="TextEditor.ManageParse.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CodeTranslation\ParserInternal.cs" />
+    <Compile Include="CodeTranslation\ParserExternal.cs" />
+    <Compile Include="DialogPreview.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DialogPreview.Designer.cs">
+      <DependentUpon>DialogPreview.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FileAssociation.cs" />
+    <Compile Include="NodeDiagram.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NodeDiagram.Designer.cs">
+      <DependentUpon>NodeDiagram.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProcForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProcForm.Designer.cs">
+      <DependentUpon>ProcForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SyntaxRules\HighlightProcedures.cs" />
+    <Compile Include="TextEditor.FunctionsControl.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextEditor.Utils.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextEditorUI\ColorTheme.cs" />
+    <Compile Include="TextEditorUI\CompiledStatus.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextEditorUI\CompleteList\AutoCompleteItem.cs" />
+    <Compile Include="BatchCompiler.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BatchCompiler.Designer.cs">
+      <DependentUpon>BatchCompiler.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CodeTranslation\Compiler.cs" />
+    <Compile Include="CodeTranslation\IParserInfo.cs" />
+    <Compile Include="CodeTranslation\Macro.cs" />
+    <Compile Include="CodeTranslation\Procedure.cs" />
+    <Compile Include="CodeTranslation\Reference.cs" />
+    <Compile Include="CodeTranslation\Variable.cs" />
+    <Compile Include="TextEditorUI\CommonDGV.cs" />
+    <Compile Include="TextEditorUI\DataGridViewEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TextEditorUI\DraggableTabControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="GoToLine.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="GoToLine.Designer.cs">
+      <DependentUpon>GoToLine.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Headers.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Headers.Designer.cs">
+      <DependentUpon>Headers.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SingleInstanceManager.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="CodeTranslation\ProgramInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RegisterScript.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RegisterScript.Designer.cs">
+      <DependentUpon>RegisterScript.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SearchForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SearchForm.Designer.cs">
+      <DependentUpon>SearchForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Settings.cs" />
+    <Compile Include="SettingsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingsDialog.Designer.cs">
+      <DependentUpon>SettingsDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextEditor.Designer.cs">
+      <DependentUpon>TextEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextEditorUI\Function\DialogFunctionsRules.cs" />
+    <Compile Include="TextEditorUI\Nodes\FlowchartTE.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="TextEditorUI\Nodes\FlowchartTE.Designer.cs">
+      <DependentUpon>FlowchartTE.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextEditorUI\Function\Functions.cs" />
+    <Compile Include="TextEditorUI\Nodes\TemplateNode.cs" />
+    <Compile Include="TextEditorUI\Function\FunctionsRules.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextEditorUI\Function\FunctionsRules.Designer.cs">
+      <DependentUpon>FunctionsRules.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PreviewRename.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PreviewRename.Designer.cs">
+      <DependentUpon>PreviewRename.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextEditorUI\ToolTips\TipPainter.cs" />
+    <Compile Include="TextEditorUI\HandlerProcedure.cs" />
+    <Compile Include="CodeTranslation\CodeFolder.cs" />
+    <Compile Include="TextEditorUI\Error.cs" />
+    <Compile Include="SyntaxRules\SyntaxFile.cs" />
+    <Compile Include="TextEditorUI\InputBox.cs" />
+    <Compile Include="TextEditorUI\Function\UserFunction.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TextEditorUI\Function\UserFunction.Designer.cs">
+      <DependentUpon>UserFunction.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextEditorUtilities\MessageFile.cs" />
+    <Compile Include="TextEditorUI\ProgressBar.cs" />
+    <Compile Include="TextEditorUI\TabInfo.cs" />
+    <Compile Include="MessageEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MessageEditor.Designer.cs">
+      <DependentUpon>MessageEditor.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TextEditorUI\ToolTips\ToolTipRequest.cs" />
+    <Compile Include="TextEditorUtilities\MessageStructure.cs" />
+    <Compile Include="TextEditorUtilities\Refactor.cs" />
+    <Compile Include="TextEditorUtilities\UndatFile.cs" />
+    <Compile Include="TextEditorUtilities\Utilities.cs" />
+    <Compile Include="TextEditorUI\WorkerArgs.cs" />
+    <Compile Include="TextEditorUI\CompleteList\AutoComplete.cs">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AboutBox.resx">
+      <DependentUpon>AboutBox.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="BatchCompiler.resx">
+      <DependentUpon>BatchCompiler.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DialogPreview.resx">
+      <DependentUpon>DialogPreview.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GoToLine.resx">
+      <DependentUpon>GoToLine.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Headers.resx">
+      <DependentUpon>Headers.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NodeDiagram.resx">
+      <DependentUpon>NodeDiagram.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProcForm.resx">
+      <DependentUpon>ProcForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RegisterScript.resx">
+      <DependentUpon>RegisterScript.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SearchForm.resx">
+      <DependentUpon>SearchForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingsDialog.resx">
+      <DependentUpon>SettingsDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TextEditor.resx">
+      <DependentUpon>TextEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MessageEditor.resx">
+      <DependentUpon>MessageEditor.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TextEditorUI\Nodes\FlowchartTE.resx">
+      <DependentUpon>FlowchartTE.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TextEditorUI\Function\UserFunction.resx">
+      <DependentUpon>UserFunction.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TextEditorUI\Function\FunctionsRules.resx">
+      <DependentUpon>FunctionsRules.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PreviewRename.resx">
+      <DependentUpon>PreviewRename.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Descriptions\Functions.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Descriptions\Functions_rus.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Descriptions\ProcHandlers.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Descriptions\ProcHandlers_rus.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <EmbeddedResource Include="Descriptions\UserFunctions.ini" />
+    <None Include="Resources\mcpp.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\usercomp.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\wcc.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="SyntaxRules\msgd_SyntaxRules.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="SyntaxRules\msg_SyntaxRules.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="SyntaxRules\ssld_SyntaxRules.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="SyntaxRules\ssl_SyntaxRules.xshd">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="SyntaxRules\ssl+_SyntaxRules.xshd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Resources\KeepWindowOff.png" />
+    <None Include="Resources\KeepWindowOn.png" />
+    <None Include="Resources\UtilityText.ico" />
+    <None Include="Resources\icon_fcd.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\type_icon\macros.bmp" />
+    <None Include="Resources\type_icon\opcode.bmp" />
+    <None Include="Resources\type_icon\procedure.bmp" />
+    <None Include="Resources\type_icon\variable.bmp" />
+    <None Include="Resources\compiled_dark.png" />
+    <None Include="Resources\compiled.png" />
+    <Content Include="SyntaxRules\User_SyntaxRules.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>Клиентский профиль .NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Установщик Windows 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Icon_1.ico" />
+    <None Include="Resources\icon_ssl.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Descriptions\opcodes_rus.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\icon_int.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\icon_msg.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Content Include="Resources\newScript.txt" />
+    <None Include="Descriptions\opcodes.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ICSharpCode.DiagramCanvas\ICSharpCode.DiagramCanvas.csproj">
+      <Project>{08F772A1-F0BE-433E-8B37-F6522953DB05}</Project>
+      <Name>ICSharpCode.DiagramCanvas</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ICSharpCode.TextEditor\ICSharpCode.TextEditor.csproj">
+      <Project>{2D18BE89-D210-49EB-A9DD-2246FBB3DF6D}</Project>
+      <Name>ICSharpCode.TextEditor</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'x86' ">
+    <BaseAddress>4194304</BaseAddress>
+    <RegisterForComInterop>False</RegisterForComInterop>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <StartAction>Project</StartAction>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <StartAction>Project</StartAction>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

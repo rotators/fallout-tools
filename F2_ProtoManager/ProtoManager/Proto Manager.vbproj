@@ -1,0 +1,425 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8DD3937C-D793-4E34-A305-087B6DFCF492}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>My.MyApplication</StartupObject>
+    <RootNamespace>
+    </RootNamespace>
+    <AssemblyName>ProtoManager</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>WindowsForms</MyType>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>0.0.0.0</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <PublishWizardCompleted>true</PublishWizardCompleted>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>Full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>
+    </NoWarn>
+    <WarningsAsErrors>42017,42018,42019,42029,42031,42032,42036,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <WarningLevel>1</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>None</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>false</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>
+    </DocumentationFile>
+    <NoWarn>
+    </NoWarn>
+    <WarningsAsErrors>42017,42018,42019,42029,42031,42032,42036,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <RemoveIntegerChecks>true</RemoveIntegerChecks>
+    <WarningLevel>1</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\pmicon32.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>4726886B1401BE344E9406FEA80B7E68EA8315E3</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>Proto Manager_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateManifests>false</GenerateManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <WarningLevel>1</WarningLevel>
+    <DebugType>Full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <WarningsAsErrors>42017,42018,42019,42029,42031,42032,42036,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <RemoveIntegerChecks>true</RemoveIntegerChecks>
+    <Optimize>true</Optimize>
+    <WarningLevel>1</WarningLevel>
+    <DebugType>None</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <WarningsAsErrors>42017,42018,42019,42029,42031,42032,42036,42105,42106,42107,42353,42354,42355</WarningsAsErrors>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic.PowerPacks.Vs, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Messaging" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AboutBox.Designer.vb">
+      <DependentUpon>AboutBox.vb</DependentUpon>
+    </Compile>
+    <Compile Include="AboutBox.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AI_Form.Designer.vb">
+      <DependentUpon>AI_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="AI_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Classes\Prototypes\CommonPrototype.vb" />
+    <Compile Include="Classes\Prototypes\Critter.vb" />
+    <Compile Include="Classes\Prototypes\IPrototype.vb" />
+    <Compile Include="SetFlagsForm.Designer.vb">
+      <DependentUpon>SetFlagsForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="SetFlagsForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\AI.vb" />
+    <Compile Include="AI_TextForm.Designer.vb">
+      <DependentUpon>AI_TextForm.vb</DependentUpon>
+    </Compile>
+    <Compile Include="AI_TextForm.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Classes\Prototypes\AmmoItem.vb" />
+    <Compile Include="Classes\Prototypes\ArmorItem.vb" />
+    <Compile Include="Classes\CalcStats.vb" />
+    <Compile Include="Classes\Enums.vb" />
+    <Compile Include="Classes\Comparer.vb" />
+    <Compile Include="Classes\ExtraMod.vb" />
+    <Compile Include="Classes\Prototypes\ContainerItem.vb" />
+    <Compile Include="Classes\Prototypes\DrugsItem.vb" />
+    <Compile Include="Classes\Prototypes\ItemPrototype.vb" />
+    <Compile Include="Classes\Prototypes\KeyItem.vb" />
+    <Compile Include="Classes\Prototypes\MiscItem.vb" />
+    <Compile Include="Classes\Prototypes\WeaponItem.vb" />
+    <Compile Include="Modules\GameConfig.vb" />
+    <Compile Include="Modules\INIFile.vb" />
+    <Compile Include="Classes\ThumbnailImage.vb" />
+    <Compile Include="MassCreate.Designer.vb">
+      <DependentUpon>MassCreate.vb</DependentUpon>
+    </Compile>
+    <Compile Include="MassCreate.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\DatFiles.vb" />
+    <Compile Include="Modules\Messages.vb" />
+    <Compile Include="Classes\Prototypes.vb" />
+    <Compile Include="Modules\Misc.vb" />
+    <Compile Include="Modules\ProFiles.vb" />
+    <Compile Include="Modules\Settings.vb" />
+    <Compile Include="TxtEdit_Form.Designer.vb">
+      <DependentUpon>TxtEdit_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="TxtEdit_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Hex_Form.Designer.vb">
+      <DependentUpon>Hex_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Hex_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TableLog_Form.Designer.vb">
+      <DependentUpon>TableLog_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="TableLog_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SplashScreen.Designer.vb">
+      <DependentUpon>SplashScreen.vb</DependentUpon>
+    </Compile>
+    <Compile Include="SplashScreen.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Table_Form.Designer.vb">
+      <DependentUpon>Table_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Table_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Items_Form.Designer.vb">
+      <DependentUpon>Items_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Items_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setting_Form.Designer.vb">
+      <DependentUpon>Setting_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Setting_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Main_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Main_Form.Designer.vb">
+      <DependentUpon>Main_Form.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Critter_Form.Designer.vb">
+      <DependentUpon>Critter_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Critter_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Progress_Form.Designer.vb">
+      <DependentUpon>Progress_Form.vb</DependentUpon>
+    </Compile>
+    <Compile Include="Progress_Form.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modules\Main.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="AboutBox.resx">
+      <DependentUpon>AboutBox.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AI_Form.resx">
+      <DependentUpon>AI_Form.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AI_TextForm.resx">
+      <DependentUpon>AI_TextForm.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SetFlagsForm.resx">
+      <DependentUpon>SetFlagsForm.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MassCreate.resx">
+      <DependentUpon>MassCreate.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TxtEdit_Form.resx">
+      <DependentUpon>TxtEdit_Form.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Hex_Form.resx">
+      <DependentUpon>Hex_Form.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SplashScreen.resx">
+      <DependentUpon>SplashScreen.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TableLog_Form.resx">
+      <DependentUpon>TableLog_Form.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Table_Form.resx">
+      <DependentUpon>Table_Form.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Items_Form.resx">
+      <DependentUpon>Items_Form.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setting_Form.resx">
+      <DependentUpon>Setting_Form.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Main_Form.resx">
+      <DependentUpon>Main_Form.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Critter_Form.resx">
+      <DependentUpon>Critter_Form.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Progress_Form.resx">
+      <DependentUpon>Progress_Form.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEAMS.H">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\LeftArrow.png" />
+    <None Include="Resources\RightArrow.png" />
+    <None Include="app.config" />
+    <None Include="My Project\app.manifest" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="color.pal">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="template\ammo.pro" />
+    <None Include="template\armor.pro" />
+    <None Include="template\container.pro" />
+    <None Include="template\critter.pro" />
+    <None Include="template\drugs.pro" />
+    <None Include="template\key.pro" />
+    <None Include="template\misc.pro" />
+    <None Include="template\weapon.pro" />
+    <None Include="update.ver" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
+      <Visible>False</Visible>
+      <ProductName>Клиентский профиль Microsoft .NET Framework 4 %28x86 и x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>Клиентский профиль .NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="frm2gif.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="template\defaultAI.txt" />
+    <None Include="acm2wav.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Resources\112_UpArrowShort_Green_16x16_72.png" />
+    <None Include="Resources\112_DownArrowShort_Green_16x16_72.png" />
+    <Content Include="Resources\pmicon32.ico" />
+    <None Include="Resources\splash.png" />
+    <None Include="Resources\error.png" />
+    <None Include="Resources\Config.ini" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DATLib.git\DATLib.csproj">
+      <Project>{CAD53BCA-DC4B-4BDD-8199-5CD640C47CC1}</Project>
+      <Name>DATLib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

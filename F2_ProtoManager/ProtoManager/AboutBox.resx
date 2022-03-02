@@ -1,0 +1,394 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TextBoxDescription.Text" xml:space="preserve">
+    <value>The priority of searching the required files by the editor:
+1. Your chosen 'Save' folder in which to save all changed files.
+2. The standard Data folder of the game (&lt;Game&gt;\Data\...)
+3. Additional folders and .dat files of mods selected in the editor settings.
+4. The folder with the extracted resources Master.dat and Critter.dat
+5. Internal cache folder (Cache folder is a temporary folder with extracted files from .dat archives).
+6. Files from the archives of the Master.dat and Critter.dat
+
+Приоритет поиска требуемых файлов редактором:
+1. Выбранная вами папка 'Save', в которую сохраняются все измененные файлы.
+2. Стандартная папка игры Data (&lt;Game&gt;\Data\...)
+3. Дополнительные папки и .dat файлы модов выбранные в настройках редактора.
+4. Папки с извлеченными ресурсами Master.dat и Critter.dat
+5. Внутренняя кэш папка (Кэш это временная папка с извлеченными файлами из .dat архивов).
+6. Файлы из архивов Master.dat и Critter.dat
+
+История изменений:
+v.1.3.0 (2021)
+----------------
+- Добавлен поиск требуемых файлов из пользовательских папок и DAT архивов.
+- Добавлено чтение параметров настроек из файла конфигурации игры.
+- Исправление ошибок и проблем в работе редактора.
+
+v.1.2.2
+----------------
+- Исправлено неправильное значение для флага "Hidden Item".
+
+v.1.2.1 (2020)
+----------------
+- Добавлена кнопка для проигрывания звуковых эффектов атаки для оружия.
+- Исправлен элемент управления Weapon SoundID не позволяющий указать пользовательское значение параметра.
+- Добавлен индикатор текущего языка клавиатуры на панели инструментов.
+- Добавлена поддержка чтение не оригинальных .dat файлов формата Fallout 1.
+- Исправлено появление белой каемки на краях спрайта при масштабировании изображения спрайта.
+- Некоторые косметические изменения в интерфейсе редактора.
+
+v.1.2.0
+----------------
+- Для криттеров добавлен выбор формулы между Fallou1 и Fallout2 для расчета статистики и навыков.
+- В листингах добавлено отображение отсутствующих или поврежденных pro-файлов.
+- Добавлено изменение языковой папки к текстовым файлам игры.
+- Добавлена новая поддержка для извлечение файлов (без использования утилиты dat2), что ускорило извлечение требуемых файлов.
+- Некоторые корректировки и исправления в редакторе.
+
+v.1.1.6 (2019)
+----------------
+- Добавлена поддержка нового флага "Energy Weapon" для прототипов оружия.
+- Сохранение выставленной ширины колонок для параметров в списке Предметов и Криттеров правой панели.
+- Исправлена критическая ошибка, когда графический FRM-файл был поврежден.
+- Исправлено позиционирование элементов GUI в окне редактирования предметов для HDPI режима.
+
+v.1.1.5
+----------------
+- Исправлена ошибка с неправильным отображением имен перков, когда в perks.msg был нарушен порядок строк.
+- Улучшено взаимодействие функции поиска с пользователем.
+- Доступен для редактирования параметр статистики Better Critical в интерфейсе криттеров.
+- Доработка опций Show PID/FID, чтобы отобразить параметры без необходимости обновления листинга.
+- Изменена позиция параметров умений Melee и Unarmed в интерфейсе редактирования криттеров.
+- И другие незначительные исправления ошибок редактора.
+
+v.1.1.4 (2018)
+----------------
+- Добавлены опции для отображения дополнительных столбцов PID и FID в списке для криттеров и предметов.
+- Исправление ошибок, и доработка в некоторых местах.
+
+v.1.1.3
+----------------
+- Добавлена возможность в листинге предметов и криттеров отобразить их спрайты.
+- Добавлены оценочные параметры для оружия и брони, по которым AI выбирает лучший предмет.
+- Исправлены некоторые недочеты и ошибки.
+
+v.1.1.2
+----------------
+- Добавлена сортировка к списку прототипов Critters.
+- Добавлены дополнительные коды анимации для оружия (S...T).
+- Исправлена ошибка при чтении файлов прототипов предметов при несоответствующем формате прототипа.
+- Исправлена ошибка в невозможности удаления файлов из Art Cache.
+
+v.1.1.1 (2017)
+----------------
+Доработка и исправление ошибок.
+
+v.1.1.0
+----------------
+Добавлен инструмент массового создания файлов для прототипов Tilles и Walls.
+Добавлена возможность редактировать файлы прототипов криттеров от Falout 1.
+Исправлена ошибка сохранении pro-файла предмета при изменении его подтипа.
+Оптимизирован запуск редактора.
+
+v.1.0.9 beta
+----------------
+Добавлена возможность редактировать параметры AI Packet.
+Небольшие доработки и улучшения в интерфейсе.
+
+v.1.0.3
+----------------
+Добавлены кнопки управления при старте приложения.
+Доработка недоделанных функций.
+Исправление мелких ошибок в работе редактора.
+
+v.1.0.2 (2016)
+----------------
+Добавлена возможность открыть Pro-файл в НЕХ редакторе.
+Восстановлена возможность работать с ресурсами непосредственно из папок Master.dat или Critter.dat
+Исправлены ошибки в работе.
+
+v.1.0.1
+----------------
+Введен поиск по ключевым словам в списке прототипов.
+Добавлена возможность просмотреть и отредактировать Pro-файл в текстовом виде.
+Добавлена поддержка для создания Excel таблицы для криттеров.
+
+v.1.0 beta (2015)
+----------------
+Редизайн пользовательского интерфейса.
+Введен новый инструмент для создания Excel таблиц с параметрами для предметов.
+Добавлена возможность редактировать и создавать прототипы предметов.
+Добавлена  возможность применять параметры брони к защите криттера.
+Введена поддержка для отображения Frm изображений.
+
+v.0.5 (2008)
+----------------
+Добавлена возможность распаковки Dat-файлов, переделана система работы с директориями.
+В строке статуса теперь отображается номера PID для прототипа.
+Исправлены некоторые ошибки в работе редактора.
+
+v.0.4
+----------------
+Добавлена возможность создавать, удалять и копировать прототипы криттеров.
+Исправлены критические ошибки в работе редактора.
+
+v.0.3
+----------------
+Добавлена возможность работать с CP886 и LevCorp кодировкой.
+Исправлены ошибки в редакторе.
+
+v.0.2a
+----------------
+Изменена система редактирования характеристик защиты.
+Стало возможно изменять имя и описание прототипа.
+Добавлена кнопка Обновления листинга прототипов.
+Отображается путь к редактируемому прототипу  в строке статуса.</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="PictureBox1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        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
+        VwAAAABJRU5ErkJggg==
+</value>
+  </data>
+</root>
