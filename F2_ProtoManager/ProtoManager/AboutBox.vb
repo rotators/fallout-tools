@@ -10,14 +10,6 @@
         Me.Close()
     End Sub
 
-    Private Sub LinkLabel1_LinkClicked(ByVal sender As Object, ByVal e As LinkLabelLinkClickedEventArgs) Handles LinkLabel1.LinkClicked
-        Process.Start("https://yadi.sk/d/bb1WTaXCwoJsU")
-    End Sub
-
-    Private Sub LinkLabel2_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLabel2.LinkClicked
-        Process.Start("https://github.com/FakelsHub/F2_ProtoManager/releases")
-    End Sub
-
     Private Sub AboutBox_FormClosed(ByVal sender As Object, ByVal e As FormClosedEventArgs) Handles MyBase.FormClosed
         Me.Dispose()
     End Sub

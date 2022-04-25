@@ -15,12 +15,12 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyCompany("2008 - 2021")>
 <Assembly: AssemblyProduct("Proto Manager")> 
 <Assembly: AssemblyCopyright("Fakels (aka Mr.Stalin)")> 
-<Assembly: AssemblyTrademark("")> 
+<Assembly: AssemblyTrademark("")>
 
-<Assembly: ComVisible(False)> 
+<Assembly: ComVisible(False)>
 
 'Следующий GUID служит для идентификации библиотеки типов, если этот проект будет видимым для COM
-<Assembly: Guid("b4c7652b-2486-44f3-8358-4bd09a03ec7c")>
+<Assembly: Guid("A5D04510-BEF0-45FD-81A5-0602493D87DE")>
 
 ' Сведения о версии сборки состоят из следующих четырех значений:
 '

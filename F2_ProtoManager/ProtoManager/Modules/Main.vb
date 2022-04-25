@@ -116,7 +116,6 @@ Friend Module Main
 
         GetCrittersLstFRM()
         CreateItemsList(ItemType.Unknown)
-        CheckForUpdate()
 
         SplashScreen.ProgressBar1.Value = 100
         Application.DoEvents()
@@ -125,41 +124,6 @@ Friend Module Main
         If Setting_Form.firstRun Then
             Setting_Form.firstRun = False
             AboutBox.ShowDialog()
-        End If
-    End Sub
-
-    Private Sub CheckForUpdate()
-        Dim fi = New FileInfo("update.ver")
-        Dim isExists = fi.Exists AndAlso fi.Length > 0
-        If isExists Then
-            Dim data = File.GetCreationTime("update.ver")
-            Dim time = DateTime.Now.Subtract(data)
-            If (time.Days >= 10) Then isExists = False
-        End If
-        If Not isExists Then
-            File.Delete("update.ver")
-            Dim wc = New WebClient()
-            AddHandler wc.DownloadStringCompleted, AddressOf DownloadStringCompleted
-            wc.DownloadStringAsync(New Uri("https://fallout-teamx.ucoz.net/ProtoManager/update.ver")) 'https://getfile.dokpub.com/yandex/get/https://disk.yandex.ru/d/jmOw7Z9waZ6Ohg
-        End If
-    End Sub
-
-    Private Sub DownloadStringCompleted(ByVal sender As Object, ByVal e As DownloadStringCompletedEventArgs)
-        Dim wc As WebClient = DirectCast(sender, WebClient)
-        RemoveHandler wc.DownloadStringCompleted, AddressOf DownloadStringCompleted
-
-        If (e.Error Is Nothing AndAlso Not String.IsNullOrEmpty(e.Result)) Then
-            File.WriteAllText("update.ver", e.Result)
-            Dim version = Split(e.Result, ".")
-            Dim updVer As Integer = CInt(version(0)) * 1000 + CInt(version(1)) * 100 + CInt(version(2)) * 10 + CInt(version(3))
-
-            Dim ver = My.Application.Info.Version
-            Dim curVer As Integer = ver.Major * 1000 + ver.Minor * 100 + ver.Build * 10 + ver.Revision
-
-            If updVer > curVer Then
-                Main_Form.Label4.Text &= e.Result
-                Main_Form.Label4.Visible = True
-            End If
         End If
     End Sub
 
