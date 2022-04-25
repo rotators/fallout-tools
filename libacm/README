@@ -1,0 +1,160 @@
+libacm - Library for InterPlay ACM Audio format.
+================================================
+
+Intro
+-----
+
+Decoder library for InterPlay ACM audio files.
+
+Includes command line tool and plugins for Winamp, Audacious, XMMS2
+and GStreamer 0.10.
+
+The format was used for games Fallout, Fallout 2 and Baldur's Gate series.
+It is less efficient than the more advanced MP3, Vorbis or AAC algorithms,
+but it's main feature is very fast decoding speed. 
+
+
+NEWS
+----
+
+Version 1.2
+~~~~~~~~~~~
+
+* decoder: Fix error handling in load_bits()   (Brian "Moses" Hall)
+* acmtool: Show time instead number of samples.
+
+* plugin-xmms2: New plugin for XMMS2
+* plugin-audacious: Support Audacious up to 2.4
+* plugin-gstreamer: Fix End-Of-Stream handling
+* plugin-xmms: Drop it.  XMMS is obsolete.
+
+Version 1.1
+~~~~~~~~~~~
+
+* acmtool: play files with libao: acmtool -p FILE
+* decoder: support WAVC files, which are ACM files with additional header.
+* decoder: take mono ACM as stereo, as there are lot of badly tagged files.
+           Trust channel count on WAVC files, those seem to be correct,
+           and WAVC is mostly used for samples.
+* decoder: avoid divide-by-zero in bitrate calculation.
+* plugin-audacious: Keep up with API changes in Audacious 2.x branch.
+           It seems to be still compatible with 1.x, but I have not tested.
+
+Version 1.0
+~~~~~~~~~~~
+
+* decoder: excpect EOF in more places - otherwise libacm
+  complained about "unexpected eof".
+* decoder: on reading assume there is additional single zero byte
+  at the end of all files.  Otherwise last block on some files was
+  skipped because last few bits could not be read.
+
+Thanks to above 2 changes libacm now decodes all Fallout 1/2
+files in full length and without complaining.
+
+* License plugins under LGPL.
+* New separate plugin for Audacious 1.5+
+* Remove plugin for Beep Media Player
+* Rewrite plugin-gstreamer.c for GStreamer "Hell On Earth" 0.10
+* acmtool -d -o - writes to stdout.
+
+Version 0.9.2
+~~~~~~~~~~~~~
+
+* License core libacm code under minimal BSD/ISC license.
+  Plugins continue to be under GPL.
+* Fix acmtool crash.  (ahalda@cs.mcgill.ca)
+
+Version 0.9.1 (unreleased)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Use autoconf/automake for build system
+* Plugin for GStreamer 0.8.  (alsasink seems to be buggy for 22050 Hz
+  audio.  If you hear any cracks, try to use osssink.)
+* Small cleanups.
+
+Version 0.9
+~~~~~~~~~~~
+
+* First public release.
+* Includes: decoder, acmtool, plugins for XMMS, BEEP and Winamp
+
+
+Installation
+------------
+
+  ./configure
+  make
+  make install
+
+By default no plugins are compiled.  You must explicitly enable them:
+
+  --enable-xmms2		Enable plugin for XMMS2
+  --enable-audacious		Enable plugin for Audacious
+  --enable-gstreamer		Enable plugin for Gstreamer 0.10
+
+By default the plugins are installed into player's main plugin directory.
+To specify some other location, use following arguments:
+
+  --with-xmms2-plugindir=DIR
+  --with-audacious-plugindir=DIR
+  --with-gstreamer-plugindir=DIR
+
+Local per-user plugin paths for GStreamer and Audacious:
+
+  --with-audacious-plugindir=$HOME/.local/share/audacious/Plugins
+  --with-gstreamer-plugindir=$HOME/.gstreamer-0.10/plugins
+
+XMMS2 does not support per-user plugin directories.
+
+To compile Windows binaries (needs mingw32):
+
+  make amp		- creates in_libacm.dll
+  make exe		- creates acmtool.exe
+  make zip		- does both and zips
+
+Command line tools usage
+------------------------
+
+    $ acmtool -h
+    acmtool - libacm version 1.0
+    Decode: acmtool -d [-q][-m|-s] [-r|-n] -o outfile infile
+	    acmtool -d [-q][-m|-s] [-r|-n] infile [infile ...]
+    Other:  acmtool -i ACMFILE [ACMFILE ...]
+	    acmtool -M|-S ACMFILE [ACMFILE ...]
+    Commands:
+      -d     decode audio into WAV files
+      -p     play audio
+      -i     show info about ACM files
+      -M     modify ACM header to have 1 channel
+      -S     modify ACM header to have 2 channels
+    Switches:
+      -m     force mono wav
+      -s     force stereo wav
+      -r     raw output - no wav header
+      -q     be quiet
+      -n     no output - for benchmarking
+      -o FN  output to file, can be used if single source file
+
+The mono/stereo options are necessary because for some ACM files
+the number of channels in header in wrong.  Usually those are
+game samples, which contain mono audio but are tagger as stereo.
+
+
+Status
+------
+
+* Decoder: stable
+* WinAmp plugin: stable
+* XMMS2 plugin: stable
+* Audacity plugin: stable
+* GStreamer 0.10 plugin: stable
+* Encoder: when I have more time
+
+
+Credits
+-------
+
+All the hard work of reverse engineering the format was done
+by ABel from TeamX. I simply re-implemented it in C.
+
