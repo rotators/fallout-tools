@@ -19,7 +19,8 @@ Friend Class Main_Form
     'End Sub
 
     Friend Sub SetFormSettings()
-        If Not (Settings.HoverSelect) Then DontHoverSelectToolStripMenuItem.PerformClick()
+        DontHoverSelectToolStripMenuItem.Checked = Not (Settings.HoverSelect)
+        If Not (Settings.HoverSelect) Then SetListViewHoverSelect()
         Cp886ToolStripMenuItem.Checked = Not (Settings.txtWin) And Not (Settings.txtLvCp)
         ClearToolStripMenuItem2.Checked = Settings.cArtCache
         AttrReadOnlyToolStripMenuItem.Checked = Settings.proRO
@@ -631,6 +632,10 @@ Friend Class Main_Form
 
     Private Sub DontHoverSelectToolStripMenuItem_Click(ByVal sender As Object, ByVal e As EventArgs) Handles DontHoverSelectToolStripMenuItem.Click
         Settings.HoverSelect = Not (DontHoverSelectToolStripMenuItem.Checked)
+        SetListViewHoverSelect()
+    End Sub
+
+    Private Sub SetListViewHoverSelect()
         ListView1.HoverSelection = Settings.HoverSelect
         ListView2.HoverSelection = Settings.HoverSelect
         If DontHoverSelectToolStripMenuItem.Checked Then
