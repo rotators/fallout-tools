@@ -59,7 +59,7 @@ Public Class WeaponItemObj
         Dim score As Integer
         If (type = 0) Then
             score = CInt(Math.Floor((MaxDmg + MinDmg) / 4))
-            If (Perk <> -1) Then score *= 3
+            If (Perk <> -1) Then score *= 2
         Else
             score = CInt(Math.Floor(Math.Abs(MaxDmg - MinDmg) / 2))
             If (Perk <> -1) Then score *= 5

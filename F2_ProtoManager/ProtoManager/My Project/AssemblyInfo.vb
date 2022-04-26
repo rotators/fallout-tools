@@ -12,7 +12,7 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyTitle("Proto files editor for Fallout 1/2")> 
 <Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("2008 - 2021")>
+<Assembly: AssemblyCompany("2008 - 2022")>
 <Assembly: AssemblyProduct("Proto Manager")> 
 <Assembly: AssemblyCopyright("Fakels (aka Mr.Stalin)")> 
 <Assembly: AssemblyTrademark("")>
@@ -33,7 +33,7 @@ Imports System.Runtime.InteropServices
 ' используя "*", как показано ниже:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.3.0.3")>
-<Assembly: AssemblyFileVersion("1.3.0.3")>
+<Assembly: AssemblyVersion("1.3.0.4")>
+<Assembly: AssemblyFileVersion("1.3.0.4")>
 
 <Assembly: NeutralResourcesLanguageAttribute("ru")> 

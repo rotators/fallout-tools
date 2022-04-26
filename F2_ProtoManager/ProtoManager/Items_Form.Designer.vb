@@ -388,13 +388,13 @@ Partial Class Items_Form
         Me.cmbWScoreType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbWScoreType.DropDownWidth = 149
         Me.cmbWScoreType.FormattingEnabled = True
-        Me.cmbWScoreType.Items.AddRange(New Object() {"Sfall calc [Fix vanilla]", "Vanilla calc [Obsolette]"})
+        Me.cmbWScoreType.Items.AddRange(New Object() {"sfall calc [Fix vanilla]", "Vanilla calc [Obsolete]"})
         Me.cmbWScoreType.Location = New System.Drawing.Point(270, 287)
         Me.cmbWScoreType.Name = "cmbWScoreType"
         Me.cmbWScoreType.Size = New System.Drawing.Size(149, 22)
         Me.cmbWScoreType.TabIndex = 31
-        Me.ToolTip1.SetToolTip(Me.cmbWScoreType, "Sfall:     (MaxDmg + MinDmg) / 4 [if have perk multiply x3]" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Vanilla: (MaxDmg -  " &
-        "MinDmg) / 2  [if have perk multiply x5]")
+        Me.ToolTip1.SetToolTip(Me.cmbWScoreType, "sfall:	(MaxDmg + MinDmg) / 4	[multiplied by 2 if having perks]" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Vanilla:	(MaxDmg - " &
+        "MinDmg) / 2	[multiplied by 5 if having perks]")
         '
         'lblWeaponScore
         '

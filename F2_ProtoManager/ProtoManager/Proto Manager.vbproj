@@ -370,7 +370,6 @@
     <None Include="template\key.pro" />
     <None Include="template\misc.pro" />
     <None Include="template\weapon.pro" />
-    <None Include="update.ver" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
