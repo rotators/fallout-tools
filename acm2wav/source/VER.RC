@@ -1,0 +1,38 @@
+/****************************************************************************
+
+
+ver.rc
+
+produced by Borland Resource Workshop
+
+
+*****************************************************************************/
+
+
+1 VERSIONINFO 
+FILEVERSION 1, 3, 2, 0
+PRODUCTVERSION 1, 3, 2, 0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+{
+ BLOCK "StringFileInfo"
+ {
+  BLOCK "040904E4"
+  {
+   VALUE "CompanyName", "ABel [TeamX]\000\000"
+   VALUE "FileDescription", "Interplay ACM to WAV Converter\000"
+   VALUE "FileVersion", "1.32\000\000"
+   VALUE "InternalName", "ACM to WAV Converter\000"
+   VALUE "LegalCopyright", "Copyright \251 ABel [TeamX] 1998-2003\000\000"
+   VALUE "OriginalFilename", "acm2wav.exe\000"
+  }
+
+ }
+
+ BLOCK "VarFileInfo"
+ {
+  VALUE "Translation", 1033, 1252
+ }
+
+}
+
