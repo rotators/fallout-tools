@@ -393,8 +393,8 @@ Partial Class Items_Form
         Me.cmbWScoreType.Name = "cmbWScoreType"
         Me.cmbWScoreType.Size = New System.Drawing.Size(149, 22)
         Me.cmbWScoreType.TabIndex = 31
-        Me.ToolTip1.SetToolTip(Me.cmbWScoreType, "sfall:	(MaxDmg + MinDmg) / 4	[multiplied by 2 if having perks]" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Vanilla:	(MaxDmg - " &
-        "MinDmg) / 2	[multiplied by 5 if having perks]")
+        Me.ToolTip1.SetToolTip(Me.cmbWScoreType, "sfall:	(MaxDmg + MinDmg) / 4	[multiplied by 2 if there is a perk]" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Vanilla:	(MaxDmg - " &
+        "MinDmg) / 2	[multiplied by 5 if there is a perk]")
         '
         'lblWeaponScore
         '
