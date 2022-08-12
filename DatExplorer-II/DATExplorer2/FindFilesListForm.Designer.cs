@@ -74,8 +74,7 @@
             this.MaximizeBox = false;
             this.MinimumSize = new System.Drawing.Size(100, 200);
             this.Name = "FindFilesListForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Find Files List";
+            this.Text = "List of found files";
             this.ResumeLayout(false);
 
         }

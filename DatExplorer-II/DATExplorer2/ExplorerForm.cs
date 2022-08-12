@@ -558,7 +558,7 @@ namespace DATExplorer
         private void CloseDat()
         {
             if (currentDat != null && folderTreeView.SelectedNode != null &&
-                MessageBox.Show(this, String.Format((LocaleRU) ? "Вы действительно хотите закрыть\n{0} файл?" : "Do you want to close\n{0} file?", currentDat), "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                MessageBox.Show(this, String.Format((LocaleRU) ? "Вы действительно хотите закрыть\n{0} файл?" : "Do you want to close\n{0} file?", currentDat), "DAT Explorer II", MessageBoxButtons.YesNo) == DialogResult.Yes) {
 
                 ControlDat.CloseDat(currentDat);
                 currentDat = null;
@@ -894,7 +894,7 @@ namespace DATExplorer
                 MessageBox.Show((LocaleRU)
                                 ? "Директория с таким именем уже существует."
                                 : "This directory already exists.",
-                                "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                "DAT Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 e.CancelEdit = true;
                 return;
             }
@@ -929,7 +929,7 @@ namespace DATExplorer
                                 MessageBox.Show((LocaleRU)
                                                  ? "Директория с таким именем уже существует."
                                                  : "This directory already exists.",
-                                                 "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                                 "DAT Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 if (createFolder) {
                                    newName = filesListView.Items[e.Item].Text;
                                    e.CancelEdit = true;
@@ -939,7 +939,7 @@ namespace DATExplorer
                                 MessageBox.Show((LocaleRU)
                                                 ? "Файл с таким именем уже существует."
                                                 : "The file with the same name already exists.",
-                                                "Dat Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                                "DAT Explorer II", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                             e.CancelEdit = true;
                             return;
@@ -994,10 +994,10 @@ namespace DATExplorer
                 message += (LocaleRU)
                           ? "\n\nПримечание: Данная версия программы не поддерживает сжатие добавленных файлов для DAT формата Fallout 1."
                           : "\n\nNote: This version does not support the compression of the added files for DAT Fallout 1 format.";
-            if (MessageBox.Show(message, "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
+            if (MessageBox.Show(message, "DAT Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
 
             statusToolStripStatusLabel.Text = "Saving:";
-            textToolStripStatusLabel.Text = "Prepare...";
+            textToolStripStatusLabel.Text = "Preparing...";
 
             int count = dat.TotalFiles - dat.AddedFiles;
             if (count > 1000) count /= 5;
@@ -1035,10 +1035,10 @@ namespace DATExplorer
             if (MessageBox.Show((LocaleRU)
                                 ? "Вы действительно хотите это удалить?"
                                 : "Do you want to delete it?",
-                                "Dat Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
+                                "DAT Explorer II", MessageBoxButtons.YesNo) == DialogResult.No) return;
 
             statusToolStripStatusLabel.Text = "Deleting:";
-            textToolStripStatusLabel.Text = "Prepare...";
+            textToolStripStatusLabel.Text = "Preparing...";
 
             if (isList) {
                 new WaitForm(this).RemoveFile(filesListView.SelectedItems);
@@ -1154,7 +1154,7 @@ namespace DATExplorer
             }
             FindFilesListForm listForm = new FindFilesListForm(list);
             listForm.GotoFile += GotoListFile;
-            listForm.Show(this);
+            listForm.Show();
         }
 
         private void GotoListFile(sFile file)
@@ -1179,11 +1179,6 @@ namespace DATExplorer
                 }
                 upToolStripButton.Enabled = (currentNode.Parent != null);
             }
-        }
-
-        private void infoToolStripButton_Click(object sender, EventArgs e)
-        {
-            System.Diagnostics.Process.Start("https://github.com/FakelsHub/DatExplorer-II");
         }
     }
 }

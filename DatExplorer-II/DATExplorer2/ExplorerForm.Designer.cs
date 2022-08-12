@@ -148,7 +148,7 @@
             this.toolStripSeparator11,
             this.closeDATToolStripMenuItem});
             this.cmsFolderTree.Name = "cmsFolderTree";
-            this.cmsFolderTree.Size = new System.Drawing.Size(184, 176);
+            this.cmsFolderTree.Size = new System.Drawing.Size(212, 176);
             this.cmsFolderTree.Opening += new System.ComponentModel.CancelEventHandler(this.cmsFolderTree_Opening);
             // 
             // extractAllFilesToolStripMenuItem
@@ -156,7 +156,7 @@
             this.extractAllFilesToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("extractAllFilesToolStripMenuItem.Image")));
             this.extractAllFilesToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Fuchsia;
             this.extractAllFilesToolStripMenuItem.Name = "extractAllFilesToolStripMenuItem";
-            this.extractAllFilesToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.extractAllFilesToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
             this.extractAllFilesToolStripMenuItem.Text = "Extract all files to ...";
             this.extractAllFilesToolStripMenuItem.Click += new System.EventHandler(this.extractAllFilesToolStripMenuItem_Click);
             // 
@@ -164,60 +164,60 @@
             // 
             this.extractFolderToolStripMenuItem.Name = "extractFolderToolStripMenuItem";
             this.extractFolderToolStripMenuItem.ShowShortcutKeys = false;
-            this.extractFolderToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
-            this.extractFolderToolStripMenuItem.Text = "Extract folders to ...";
-            this.extractFolderToolStripMenuItem.ToolTipText = "Распаковывает файлы выбранной папки со структурой родительских каталогов.";
+            this.extractFolderToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
+            this.extractFolderToolStripMenuItem.Text = "Extract folder to ...";
+            this.extractFolderToolStripMenuItem.ToolTipText = "Extract the files in the selected folder with the parent directory structure.";
             this.extractFolderToolStripMenuItem.Click += new System.EventHandler(this.extractFolderToolStripMenuItem_Click);
             // 
             // addFoldersToolStripMenuItem
             // 
             this.addFoldersToolStripMenuItem.Name = "addFoldersToolStripMenuItem";
-            this.addFoldersToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.addFoldersToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
             this.addFoldersToolStripMenuItem.Text = "Import folder";
             this.addFoldersToolStripMenuItem.Click += new System.EventHandler(this.importFoldersToolStripMenuItem_Click);
             // 
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(180, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(208, 6);
             // 
             // createFolderToolStripMenuItem
             // 
             this.createFolderToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("createFolderToolStripMenuItem.Image")));
             this.createFolderToolStripMenuItem.Name = "createFolderToolStripMenuItem";
-            this.createFolderToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.createFolderToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
             this.createFolderToolStripMenuItem.Text = "Add folder";
             this.createFolderToolStripMenuItem.Click += new System.EventHandler(this.createFolderToolStripMenuItem_Click);
             // 
             // renameFolderToolStripMenuItem
             // 
             this.renameFolderToolStripMenuItem.Name = "renameFolderToolStripMenuItem";
-            this.renameFolderToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.renameFolderToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
             this.renameFolderToolStripMenuItem.Text = "Rename folder";
             this.renameFolderToolStripMenuItem.Click += new System.EventHandler(this.renameFolderToolStripMenuItem_Click);
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(180, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(208, 6);
             // 
             // deleteFolderToolStripMenuItem
             // 
             this.deleteFolderToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("deleteFolderToolStripMenuItem.Image")));
             this.deleteFolderToolStripMenuItem.Name = "deleteFolderToolStripMenuItem";
-            this.deleteFolderToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.deleteFolderToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
             this.deleteFolderToolStripMenuItem.Text = "Delete folder";
             this.deleteFolderToolStripMenuItem.Click += new System.EventHandler(this.deleteFolderToolStripMenuItem_Click);
             // 
             // toolStripSeparator11
             // 
             this.toolStripSeparator11.Name = "toolStripSeparator11";
-            this.toolStripSeparator11.Size = new System.Drawing.Size(180, 6);
+            this.toolStripSeparator11.Size = new System.Drawing.Size(208, 6);
             // 
             // closeDATToolStripMenuItem
             // 
             this.closeDATToolStripMenuItem.Name = "closeDATToolStripMenuItem";
-            this.closeDATToolStripMenuItem.Size = new System.Drawing.Size(183, 22);
+            this.closeDATToolStripMenuItem.Size = new System.Drawing.Size(211, 22);
             this.closeDATToolStripMenuItem.Text = "Close DAT";
             this.closeDATToolStripMenuItem.Click += new System.EventHandler(this.closeDATToolStripMenuItem_Click);
             // 
@@ -260,7 +260,7 @@
             // columnHeader1
             // 
             this.columnHeader1.Text = "Name";
-            this.columnHeader1.Width = 200;
+            this.columnHeader1.Width = 300;
             // 
             // columnHeader2
             // 
@@ -272,13 +272,13 @@
             // 
             this.columnHeader3.Text = "Size";
             this.columnHeader3.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeader3.Width = 75;
+            this.columnHeader3.Width = 100;
             // 
             // columnHeader4
             // 
             this.columnHeader4.Text = "Packed Size";
             this.columnHeader4.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.columnHeader4.Width = 75;
+            this.columnHeader4.Width = 100;
             // 
             // listViewContextMenuStrip
             // 
@@ -295,7 +295,7 @@
             this.toolStripSeparator10,
             this.deleteFilesToolStripMenuItem});
             this.listViewContextMenuStrip.Name = "listViewContextMenuStrip";
-            this.listViewContextMenuStrip.Size = new System.Drawing.Size(230, 182);
+            this.listViewContextMenuStrip.Size = new System.Drawing.Size(209, 182);
             this.listViewContextMenuStrip.Opening += new System.ComponentModel.CancelEventHandler(this.listViewContextMenuStrip_Opening);
             // 
             // openToolStripMenuItem
@@ -304,76 +304,74 @@
             this.openToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("openToolStripMenuItem.Image")));
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeyDisplayString = "Enter";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(226, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(205, 6);
             // 
             // extractFilesToolStripMenuItem
             // 
             this.extractFilesToolStripMenuItem.Name = "extractFilesToolStripMenuItem";
-            this.extractFilesToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.extractFilesToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.extractFilesToolStripMenuItem.Text = "Extract selected file(s) to ...";
-            this.extractFilesToolStripMenuItem.ToolTipText = "Распаковывает выбранные файлы или папки с сохранением структур родительских катал" +
-    "огов.";
+            this.extractFilesToolStripMenuItem.ToolTipText = "Extract the selected files or folders while preserving the parent directory structures.";
             this.extractFilesToolStripMenuItem.Click += new System.EventHandler(this.extractFilesToolStripMenuItem_Click);
             // 
             // toolStripSeparator7
             // 
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(226, 6);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(205, 6);
             // 
             // importFilesToolStripMenuItem
             // 
             this.importFilesToolStripMenuItem.Name = "importFilesToolStripMenuItem";
-            this.importFilesToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.importFilesToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.importFilesToolStripMenuItem.Text = "Import file(s)";
-            this.importFilesToolStripMenuItem.ToolTipText = "Импортирует выбранные файлы в текущий каталог.\r\n";
+            this.importFilesToolStripMenuItem.ToolTipText = "Import the selected files to the current directory.";
             this.importFilesToolStripMenuItem.Click += new System.EventHandler(this.importFilesToolStripMenuItem_Click);
             // 
             // importFoldersToolStripMenuItem
             // 
             this.importFoldersToolStripMenuItem.Name = "importFoldersToolStripMenuItem";
-            this.importFoldersToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.importFoldersToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.importFoldersToolStripMenuItem.Text = "Import folder with files";
-            this.importFoldersToolStripMenuItem.ToolTipText = "Импортирует выбранные каталоги и их файлы со структурой вложенных папок в текущий" +
-    " каталог.";
+            this.importFoldersToolStripMenuItem.ToolTipText = "Import the selected folder with its subfolders and filesto the current directory.";
             this.importFoldersToolStripMenuItem.Click += new System.EventHandler(this.importFoldersToolStripMenuItem_Click);
             // 
             // toolStripSeparator8
             // 
             this.toolStripSeparator8.Name = "toolStripSeparator8";
-            this.toolStripSeparator8.Size = new System.Drawing.Size(226, 6);
+            this.toolStripSeparator8.Size = new System.Drawing.Size(205, 6);
             // 
             // createFolderToolStripMenuItem1
             // 
             this.createFolderToolStripMenuItem1.Name = "createFolderToolStripMenuItem1";
-            this.createFolderToolStripMenuItem1.Size = new System.Drawing.Size(229, 22);
+            this.createFolderToolStripMenuItem1.Size = new System.Drawing.Size(208, 22);
             this.createFolderToolStripMenuItem1.Text = "Add folder";
             this.createFolderToolStripMenuItem1.Click += new System.EventHandler(this.createFolderToolStripMenuItem1_Click);
             // 
             // renameToolStripMenuItem
             // 
             this.renameToolStripMenuItem.Name = "renameToolStripMenuItem";
-            this.renameToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.renameToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.renameToolStripMenuItem.Text = "Rename file or folder";
             this.renameToolStripMenuItem.Click += new System.EventHandler(this.renameToolStripMenuItem_Click);
             // 
             // toolStripSeparator10
             // 
             this.toolStripSeparator10.Name = "toolStripSeparator10";
-            this.toolStripSeparator10.Size = new System.Drawing.Size(226, 6);
+            this.toolStripSeparator10.Size = new System.Drawing.Size(205, 6);
             // 
             // deleteFilesToolStripMenuItem
             // 
             this.deleteFilesToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("deleteFilesToolStripMenuItem.Image")));
             this.deleteFilesToolStripMenuItem.Name = "deleteFilesToolStripMenuItem";
             this.deleteFilesToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.deleteFilesToolStripMenuItem.Size = new System.Drawing.Size(229, 22);
+            this.deleteFilesToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.deleteFilesToolStripMenuItem.Text = "Delete selected file(s)";
             this.deleteFilesToolStripMenuItem.ToolTipText = "Удаляет выбранные файлы и все файлы из выбранных папок.";
             this.deleteFilesToolStripMenuItem.Click += new System.EventHandler(this.deleteFilesToolStripMenuItem_Click);
@@ -447,7 +445,7 @@
             this.OpenToolStripButton.Size = new System.Drawing.Size(41, 36);
             this.OpenToolStripButton.Text = "Open";
             this.OpenToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.OpenToolStripButton.ToolTipText = "Open Dat file";
+            this.OpenToolStripButton.ToolTipText = "Open DAT file";
             this.OpenToolStripButton.Click += new System.EventHandler(this.OpenToolStripButton_Click);
             // 
             // CreateNewToolStripButton
@@ -461,7 +459,7 @@
             this.CreateNewToolStripButton.Size = new System.Drawing.Size(45, 36);
             this.CreateNewToolStripButton.Text = "New";
             this.CreateNewToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.CreateNewToolStripButton.ToolTipText = "Creare new Dat";
+            this.CreateNewToolStripButton.ToolTipText = "Create new DAT file";
             // 
             // fallout2ToolStripMenuItem
             // 
@@ -491,7 +489,7 @@
             this.SaveToolStripButton.Size = new System.Drawing.Size(37, 36);
             this.SaveToolStripButton.Text = "Save";
             this.SaveToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.SaveToolStripButton.ToolTipText = "Save current Dat";
+            this.SaveToolStripButton.ToolTipText = "Save the current DAT file";
             this.SaveToolStripButton.Click += new System.EventHandler(this.SaveToolStripButton_Click);
             // 
             // toolStripSeparator
@@ -508,7 +506,7 @@
             this.closeToolStripButton.Size = new System.Drawing.Size(39, 36);
             this.closeToolStripButton.Text = "Close";
             this.closeToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.closeToolStripButton.ToolTipText = "Close current Dat";
+            this.closeToolStripButton.ToolTipText = "Close the current DAT file";
             this.closeToolStripButton.Click += new System.EventHandler(this.closeDATToolStripMenuItem_Click);
             // 
             // toolStripSeparator9
@@ -525,7 +523,7 @@
             this.upToolStripButton.Size = new System.Drawing.Size(44, 36);
             this.upToolStripButton.Text = "Up Dir";
             this.upToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.upToolStripButton.ToolTipText = "Goto parent folder";
+            this.upToolStripButton.ToolTipText = "Up one level";
             this.upToolStripButton.Click += new System.EventHandler(this.upToolStripButton_Click);
             // 
             // toolStripSeparator1
@@ -545,13 +543,12 @@
             this.stileToolStripDropDownButton.Size = new System.Drawing.Size(47, 36);
             this.stileToolStripDropDownButton.Text = "View";
             this.stileToolStripDropDownButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.stileToolStripDropDownButton.ToolTipText = "View details";
             // 
             // largeToolStripMenuItem
             // 
             this.largeToolStripMenuItem.Name = "largeToolStripMenuItem";
-            this.largeToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
-            this.largeToolStripMenuItem.Text = "Large";
+            this.largeToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+            this.largeToolStripMenuItem.Text = "Large Icons";
             this.largeToolStripMenuItem.Click += new System.EventHandler(this.largeToolStripMenuItem_Click);
             // 
             // listToolStripMenuItem
@@ -559,14 +556,14 @@
             this.listToolStripMenuItem.Checked = true;
             this.listToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.listToolStripMenuItem.Name = "listToolStripMenuItem";
-            this.listToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.listToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
             this.listToolStripMenuItem.Text = "List";
             this.listToolStripMenuItem.Click += new System.EventHandler(this.listToolStripMenuItem_Click);
             // 
             // detailsToolStripMenuItem
             // 
             this.detailsToolStripMenuItem.Name = "detailsToolStripMenuItem";
-            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
+            this.detailsToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
             this.detailsToolStripMenuItem.Text = "Details";
             this.detailsToolStripMenuItem.Click += new System.EventHandler(this.detailsToolStripMenuItem_Click);
             // 
@@ -584,7 +581,7 @@
             this.assosToolStripButton.Name = "assosToolStripButton";
             this.assosToolStripButton.Size = new System.Drawing.Size(36, 36);
             this.assosToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.assosToolStripButton.ToolTipText = "Associate .dat files with the DAT Explorer.";
+            this.assosToolStripButton.ToolTipText = "Associate .dat files with DAT Explorer";
             this.assosToolStripButton.Click += new System.EventHandler(this.assosToolStripButton_Click);
             // 
             // toolStripSeparator12
@@ -601,7 +598,7 @@
             this.tsBtnSearch.Size = new System.Drawing.Size(48, 36);
             this.tsBtnSearch.Text = "Search";
             this.tsBtnSearch.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
-            this.tsBtnSearch.ToolTipText = "Global search file.";
+            this.tsBtnSearch.ToolTipText = "Global search file";
             this.tsBtnSearch.Click += new System.EventHandler(this.tsBtnSearch_Click);
             // 
             // stbFindFile
@@ -613,29 +610,13 @@
             this.stbFindFile.Overflow = System.Windows.Forms.ToolStripItemOverflow.Never;
             this.stbFindFile.Padding = new System.Windows.Forms.Padding(0, 12, 0, 0);
             this.stbFindFile.Size = new System.Drawing.Size(200, 26);
-            this.stbFindFile.ToolTipText = "Finds file in current folder.\r\nEnter - Forward search.\r\nCtrl+Enter - Backward sea" +
-    "rch.";
+            this.stbFindFile.ToolTipText = "Find a file in the current directory\r\nEnter - Search forward\r\nCtrl+Enter - Search backward";
             this.stbFindFile.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.stbFindFile_KeyPress);
             // 
             // toolStripSeparator13
             // 
             this.toolStripSeparator13.Name = "toolStripSeparator13";
             this.toolStripSeparator13.Size = new System.Drawing.Size(6, 39);
-            // 
-            // infoToolStripButton
-            // 
-            this.infoToolStripButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-            this.infoToolStripButton.Font = new System.Drawing.Font("Tahoma", 9.75F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.infoToolStripButton.ForeColor = System.Drawing.Color.DeepPink;
-            this.infoToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("infoToolStripButton.Image")));
-            this.infoToolStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
-            this.infoToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.infoToolStripButton.Name = "infoToolStripButton";
-            this.infoToolStripButton.Size = new System.Drawing.Size(64, 36);
-            this.infoToolStripButton.Text = "Donate!";
-            this.infoToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.Overlay;
-            this.infoToolStripButton.ToolTipText = "Support the development of the program.";
-            this.infoToolStripButton.Click += new System.EventHandler(this.infoToolStripButton_Click);
             // 
             // statusStrip1
             // 
@@ -660,7 +641,7 @@
             this.statusToolStripStatusLabel.BorderStyle = System.Windows.Forms.Border3DStyle.Etched;
             this.statusToolStripStatusLabel.Margin = new System.Windows.Forms.Padding(3, 2, 0, 0);
             this.statusToolStripStatusLabel.Name = "statusToolStripStatusLabel";
-            this.statusToolStripStatusLabel.Size = new System.Drawing.Size(48, 20);
+            this.statusToolStripStatusLabel.Size = new System.Drawing.Size(54, 20);
             this.statusToolStripStatusLabel.Text = "Ready.";
             this.statusToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
@@ -699,7 +680,7 @@
             this.dirToolStripStatusLabel.BorderStyle = System.Windows.Forms.Border3DStyle.Etched;
             this.dirToolStripStatusLabel.Margin = new System.Windows.Forms.Padding(2, 2, 2, 0);
             this.dirToolStripStatusLabel.Name = "dirToolStripStatusLabel";
-            this.dirToolStripStatusLabel.Size = new System.Drawing.Size(471, 20);
+            this.dirToolStripStatusLabel.Size = new System.Drawing.Size(430, 20);
             this.dirToolStripStatusLabel.Spring = true;
             this.dirToolStripStatusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
@@ -711,7 +692,7 @@
             this.toolStripStatusLabel2.BorderStyle = System.Windows.Forms.Border3DStyle.Etched;
             this.toolStripStatusLabel2.Margin = new System.Windows.Forms.Padding(0, 2, 0, 0);
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
-            this.toolStripStatusLabel2.Size = new System.Drawing.Size(55, 20);
+            this.toolStripStatusLabel2.Size = new System.Drawing.Size(90, 20);
             this.toolStripStatusLabel2.Text = "Total files:";
             this.toolStripStatusLabel2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 

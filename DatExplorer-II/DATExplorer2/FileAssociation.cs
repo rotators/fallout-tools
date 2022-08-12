@@ -20,8 +20,8 @@ namespace DATExplorer
         public static void Associate(bool force = false)
         {
             if ((!force && IsAssociated) || MessageBox.Show((ExplorerForm.LocaleRU)
-                ? "Вы желаете ассоциировать .dat файлы с программой DAT Explorer?"
-                : "Do you want to associate .dat files with Dat Explorer?",
+                ? "Желаете ассоциировать .dat файлы с программой DAT Explorer?"
+                : "Do you want to associate .dat files with DAT Explorer?",
                 "Associate file", MessageBoxButtons.YesNo) == DialogResult.No)
             {
                 return;
@@ -35,11 +35,11 @@ namespace DATExplorer
             Registry.ClassesRoot.CreateSubKey(FILE_EXTENSION).SetValue("", appName);
             using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(appName))
             {
-                key.SetValue("", "Fallout Dat Explorer 2");
+                key.SetValue("", "Fallout DAT Explorer 2");
                 key.SetValue("AlwaysShowExt", "");
                 key.CreateSubKey("DefaultIcon").SetValue("", Application.StartupPath + "\\dat.ico");
                 key.CreateSubKey("Shell").SetValue("", "OpenDatExplorer");
-                key.CreateSubKey(@"Shell\OpenDatExplorer").SetValue("", "Fallout Dat Explorer");
+                key.CreateSubKey(@"Shell\OpenDatExplorer").SetValue("", "Fallout DAT Explorer");
                 key.CreateSubKey(@"Shell\OpenDatExplorer\Command").SetValue("", Application.ExecutablePath + " \"%1\"");
             }
             SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero);
