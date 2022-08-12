@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.IO;
+using System.Collections.Generic;
 
 using DATLib;
 
@@ -13,7 +15,7 @@ namespace DATExplorer
         private string cutPath;
         private string unpackPath;
         private string nameDat;
-        private string[] listFiles;
+        private List<string> listFiles;
 
         enum WorkState {
             Extract,
@@ -35,7 +37,7 @@ namespace DATExplorer
             InitializeComponent();
         }
 
-        public void Unpack(string unpackPath, string[] listFiles, string nameDat, string cutPath)
+        public void Unpack(string unpackPath, List<string> listFiles, string nameDat, string cutPath)
         {
             this.state = WorkState.Extract;
 
@@ -47,12 +49,12 @@ namespace DATExplorer
             this.ShowDialog(ownerFrm);
         }
 
-        public void UnpackFile(string unpackPath, string[] listFiles, string nameDat)
+        public void UnpackFile(string unpackPath, string listFiles, string nameDat)
         {
             this.state = WorkState.ExtractSingle;
 
             this.unpackPath = unpackPath + '\\';
-            this.listFiles = listFiles;
+            this.listFiles = new List<string>() { listFiles };
             this.nameDat = nameDat;
 
             this.ShowDialog(ownerFrm);
@@ -61,7 +63,7 @@ namespace DATExplorer
         public void RemoveFile(string file)
         {
             this.state = WorkState.Delete;
-            this.listFiles = new string[1] { file };
+            this.listFiles = new List<string>() { file };
 
             this.ShowDialog(ownerFrm);
         }
@@ -117,9 +119,9 @@ namespace DATExplorer
                 case WorkState.Extract:
                     if (listFiles != null) {
                         if (cutPath != string.Empty)
-                            DATManage.ExtractFileList(unpackPath, listFiles, nameDat, cutPath);
+                            DATManage.ExtractFileList(unpackPath, listFiles.ToArray(), nameDat, cutPath);
                         else
-                            DATManage.ExtractFileList(unpackPath, listFiles, nameDat);
+                            DATManage.ExtractFileList(unpackPath, listFiles.ToArray(), nameDat);
                     } else {
                         DATManage.ExtractAllFiles(unpackPath, nameDat);
                     }
@@ -140,11 +142,15 @@ namespace DATExplorer
 
         private void Extraction()
         {
-            if (ExplorerForm.LocaleRU)
-                label1.Text = "Подождите идет извлечение файлов...";
-            else
-                label1.Text = "Please wait extraction of files...";
+            string msgFMT;
 
+            if (ExplorerForm.LocaleRU) {
+                label1.Text = "Подождите идет извлечение файлов...";
+                msgFMT = "Файл {0} уже существует.\nПерезаписать файл?";
+            } else {
+                label1.Text = "Please wait extraction of files...";
+                msgFMT = "The file {0} already exists.\nOverwrite the file?";
+            }
             if (this.state == WorkState.ExtractSingle) {
                 Application.DoEvents();
 
@@ -152,6 +158,22 @@ namespace DATExplorer
 
                 this.Dispose();
             } else {
+                List<string> list = new List<string>();
+
+                int len = (cutPath != null) ? cutPath.Length : 0;
+                foreach (var f in listFiles)
+                {
+                    string cfile = Path.GetFullPath(Path.Combine(unpackPath, (len != 0) ? f.Substring(len) : f));
+                    if (File.Exists(cfile)) {
+                        this.Activate();
+                        var result = MessageBox.Show(String.Format(msgFMT, cfile), "DAT Explorer II", MessageBoxButtons.YesNoCancel);
+                        if (result == DialogResult.No) continue;
+                        if (result == DialogResult.Cancel) break;
+                    }
+                    list.Add(f);
+                }
+                if (list.Count != listFiles.Count) listFiles = list;
+
                 WorkerRun();
             }
         }

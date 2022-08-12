@@ -47,6 +47,12 @@ namespace DATExplorer
 
             LocaleRU = System.Globalization.CultureInfo.CurrentCulture.Name == "ru-RU";
 
+            foreach (var dirPath in Directory.GetDirectories(Application.StartupPath))
+            {
+                var dir = Path.GetFileName(dirPath);
+                if (dir.StartsWith("tmp")) Directory.Delete(dirPath, true);
+            }
+
             dragDropFileWatcher = new FileWatcher(tmpAppFolder);
 
             dragDropFileWatcher.DragDrop += new FileWatcher.DropExplorerEvent(DropHandler);
@@ -139,7 +145,7 @@ namespace DATExplorer
         /// Распаковывает список файлов с сохранением структуры каталогов
         /// </summary>
         /// <param name="listFiles"></param>
-        private void ExtractFiles(string[] listFiles)
+        private void ExtractFiles(List<string> listFiles)
         {
             extractFolderBrowser.SelectedPath = extractFolder;
             if (extractFolderBrowser.ShowDialog() == DialogResult.Cancel) return;
@@ -154,11 +160,11 @@ namespace DATExplorer
         /// <param name="listFiles"></param>
         /// <param name="extractToPath"></param>
         /// <param name="cutPath"></param>
-        private void ExtractFiles(string[] listFiles, string extractToPath, string cutPath)
+        private void ExtractFiles(List<string> listFiles, string extractToPath, string cutPath)
         {
             successExtracted = 0;
             statusToolStripStatusLabel.Text = "Extracted:";
-            toolStripProgressBar.Maximum = (listFiles != null)  ? listFiles.Length
+            toolStripProgressBar.Maximum = (listFiles != null) ? listFiles.Count
                                          : ControlDat.GetDat(currentDat).TotalFiles;
 
             new WaitForm(this).Unpack(extractToPath, listFiles, currentDat, cutPath);
@@ -175,7 +181,7 @@ namespace DATExplorer
             if (listFiles.Count == 0) return;
 
             int cut = fullPath.LastIndexOf("\\" + folder);
-            ExtractFiles(listFiles.ToArray(), extractToPath, ((cut > 0) ? fullPath.Remove(cut + 1) : String.Empty));
+            ExtractFiles(listFiles, extractToPath, ((cut > 0) ? fullPath.Remove(cut + 1) : String.Empty));
         }
 
         private void ImportFiles(string[] list)
@@ -462,14 +468,14 @@ namespace DATExplorer
                     GetFolderFiles(listFiles, item.Name);
                 }
             }
-            ExtractFiles(listFiles.ToArray());
+            ExtractFiles(listFiles);
         }
 
         private void extractFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
             List<String> listFiles = new List<String>();
             GetFolderFiles(listFiles, folderTreeView.SelectedNode.Name);
-            ExtractFiles(listFiles.ToArray());
+            ExtractFiles(listFiles);
         }
 
         private void extractAllFilesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -490,15 +496,14 @@ namespace DATExplorer
                     if (File.Exists(realfile)) System.Diagnostics.Process.Start("explorer", realfile);
                     return;
                 }
-                var file = new string[1] { sfile.path };
 
                 if (sfile.file.info.Size > 1048576) { // 1mb
-                    new WaitForm(this).UnpackFile(tmpAppFolder, file, currentDat);
+                    new WaitForm(this).UnpackFile(tmpAppFolder, sfile.path, currentDat);
                 } else {
                     DATManage.ExtractFile(tmpAppFolder, sfile.path, currentDat);
                 }
 
-                string ofile = tmpAppFolder + file[0];
+                string ofile = tmpAppFolder + sfile.path;
                 if (File.Exists(ofile)) System.Diagnostics.Process.Start("explorer", ofile);
             } else { // folder
                 foreach (TreeNode node in folderTreeView.SelectedNode.Nodes)
@@ -639,7 +644,7 @@ namespace DATExplorer
 
                 string fullPath = (folderTreeView.SelectedNode.Parent != null) ? folderTreeView.SelectedNode.Name : String.Empty;
 
-                ExtractFiles(dropSelected.ToArray(), dropExtractPath, fullPath);
+                ExtractFiles(dropSelected, dropExtractPath, fullPath);
             }
         }
 
