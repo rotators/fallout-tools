@@ -65,6 +65,7 @@
             this.fallout1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.SaveToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.btnQuickSave = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator = new System.Windows.Forms.ToolStripSeparator();
             this.closeToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
@@ -241,10 +242,12 @@
             this.filesListView.ContextMenuStrip = this.listViewContextMenuStrip;
             this.filesListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.filesListView.ForeColor = System.Drawing.Color.WhiteSmoke;
+            this.filesListView.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.filesListView.HideSelection = false;
             this.filesListView.LargeImageList = this.listImageList;
             this.filesListView.Location = new System.Drawing.Point(0, 0);
             this.filesListView.Name = "filesListView";
+            this.filesListView.ShowItemToolTips = true;
             this.filesListView.Size = new System.Drawing.Size(714, 592);
             this.filesListView.SmallImageList = this.listSmallImageList;
             this.filesListView.TabIndex = 1;
@@ -373,7 +376,7 @@
             this.deleteFilesToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
             this.deleteFilesToolStripMenuItem.Size = new System.Drawing.Size(208, 22);
             this.deleteFilesToolStripMenuItem.Text = "Delete selected file(s)";
-            this.deleteFilesToolStripMenuItem.ToolTipText = "Удаляет выбранные файлы и все файлы из выбранных папок.";
+            this.deleteFilesToolStripMenuItem.ToolTipText = "Delete the selected files and all files from the selected folders.";
             this.deleteFilesToolStripMenuItem.Click += new System.EventHandler(this.deleteFilesToolStripMenuItem_Click);
             // 
             // listImageList
@@ -418,6 +421,7 @@
             this.CreateNewToolStripButton,
             this.toolStripSeparator2,
             this.SaveToolStripButton,
+            this.btnQuickSave,
             this.toolStripSeparator,
             this.closeToolStripButton,
             this.toolStripSeparator9,
@@ -491,6 +495,21 @@
             this.SaveToolStripButton.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
             this.SaveToolStripButton.ToolTipText = "Save the current DAT file";
             this.SaveToolStripButton.Click += new System.EventHandler(this.SaveToolStripButton_Click);
+            // 
+            // btnQuickSave
+            // 
+            this.btnQuickSave.Enabled = false;
+            this.btnQuickSave.Image = ((System.Drawing.Image)(resources.GetObject("btnQuickSave.Image")));
+            this.btnQuickSave.ImageTransparentColor = System.Drawing.Color.Transparent;
+            this.btnQuickSave.Name = "btnQuickSave";
+            this.btnQuickSave.Size = new System.Drawing.Size(41, 36);
+            this.btnQuickSave.Tag = "1";
+            this.btnQuickSave.Text = "Quick";
+            this.btnQuickSave.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.btnQuickSave.ToolTipText = "Quick save the current DAT file (not recommended)\r\n" +
+                "Save the DAT without actually deleting file data (after deleting files in the list).\r\n" +
+                "The size of the DAT file itself is practically not reduced.";
+            this.btnQuickSave.Click += new System.EventHandler(this.SaveToolStripButton_Click);
             // 
             // toolStripSeparator
             // 
@@ -864,6 +883,7 @@
         private System.Windows.Forms.ToolStripButton tsBtnSearch;
         private System.Windows.Forms.ToolStripTextBox stbFindFile;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator13;
+        private System.Windows.Forms.ToolStripButton btnQuickSave;
     }
 }
 

@@ -44,11 +44,12 @@ namespace DATExplorer
 
     internal class OpenDat
     {
+        [Flags]
         enum SaveType {
-            None,
-            DirTree,
-            Append,
-            New
+            None      = 0x0,
+            UpdateDir = 0x1,
+            Append    = 0x2,
+            Full      = 0x4,
         }
 
         private string datFile;
@@ -203,7 +204,7 @@ namespace DATExplorer
 
             TotalFiles++;
 
-            if (shouldSave != SaveType.New) shouldSave = SaveType.Append;
+            /*if (shouldSave != SaveType.Full)*/ shouldSave |= SaveType.Append;
         }
 
         internal sFile RenameFile(string pathFile, string newName)
@@ -220,7 +221,7 @@ namespace DATExplorer
                 }
             }
             dat.RenameFile(pathFile, newName);
-            if (shouldSave == SaveType.None) shouldSave = SaveType.DirTree;
+            if (shouldSave == SaveType.None) shouldSave = SaveType.UpdateDir;
             return file;
         }
 
@@ -259,7 +260,7 @@ namespace DATExplorer
 
             DATManage.RenameFolder(DatName, pathFolder, newNameFolder);
 
-            if (shouldSave == SaveType.None) shouldSave = SaveType.DirTree;
+            if (shouldSave == SaveType.None) shouldSave = SaveType.UpdateDir;
             return newPath;
         }
 
@@ -296,7 +297,7 @@ namespace DATExplorer
             TotalFiles -= pathFileList.Count;
 
             // удаление файлов из Dat
-            if (dat.RemoveFiles(pathFileList)) shouldSave = SaveType.New;
+            if (dat.RemoveFiles(pathFileList)) shouldSave |= SaveType.Full;
         }
 
         internal void RemoveEmptyFolder(string folder)
@@ -304,21 +305,25 @@ namespace DATExplorer
             if (treeFiles[folder].GetFiles().Count == 0) treeFiles.Remove(folder);
         }
 
-        internal bool SaveDat()
+        internal bool SaveDat(bool quick)
         {
-            switch (shouldSave)
-            {
-                case SaveType.DirTree:
-                    DATManage.SaveDirectoryStructure(DatName);
-                    break;
-                case SaveType.Append:
-                case SaveType.New:
-                    new WaitForm(ExplorerForm.ActiveForm).SaveDat(DatName, shouldSave == SaveType.Append);
-                    UpdateTreeFiles();
-                    break;
+            if (quick && shouldSave == SaveType.Full) { // if only deleting
+                shouldSave = SaveType.UpdateDir;
             }
-            bool refresh = (shouldSave != SaveType.DirTree);
+
+            if (shouldSave == SaveType.UpdateDir) {
+                DATManage.SaveDirectoryStructure(DatName);
+            }
+            else if ((shouldSave & (SaveType.Full | SaveType.Append)) != 0) {
+                bool append = quick || shouldSave == SaveType.Append;
+
+                new WaitForm(ExplorerForm.ActiveForm).SaveDat(DatName, append);
+                UpdateTreeFiles();
+            }
+
+            bool refresh = (shouldSave != SaveType.UpdateDir);
             shouldSave = SaveType.None;
+
             return refresh;
         }
 

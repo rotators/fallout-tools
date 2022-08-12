@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Mr.Stalin")]
 [assembly: AssemblyProduct("DAT Explorer 2")]
-[assembly: AssemblyCopyright("Copyright © 2019 - 2021 by Mr.Stalin")]
+[assembly: AssemblyCopyright("Copyright © 2019 - 2022 by Mr.Stalin")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

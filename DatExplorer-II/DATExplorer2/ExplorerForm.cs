@@ -201,6 +201,7 @@ namespace DATExplorer
             FindFiles(currentDat, treeFolder);
 
             SaveToolStripButton.Enabled = true;
+            btnQuickSave.Enabled = dat.IsFO2Type();
         }
 
         private void ImportFilesWithFolders(string[] list, string rootFolder)
@@ -240,6 +241,7 @@ namespace DATExplorer
             FindFiles(currentDat, treeFolder);
 
             SaveToolStripButton.Enabled = true;
+            btnQuickSave.Enabled = dat.IsFO2Type();
         }
 
         private void ReBuildTreeNode(OpenDat dat)
@@ -405,6 +407,8 @@ namespace DATExplorer
             if (currentDat != datPath) {
                 SaveToolStripButton.Enabled = ControlDat.GetDat(datPath).ShouldSave();
                 SaveToolStripButton.ToolTipText = "Save: " + datPath;
+
+                btnQuickSave.Enabled = ControlDat.GetDat(datPath).IsFO2Type() && SaveToolStripButton.Enabled;
             }
             currentDat = datPath;
             FindFiles(datPath, node);
@@ -904,6 +908,8 @@ namespace DATExplorer
 
             SaveToolStripButton.Enabled = dat.ShouldSave();
             dirToolStripStatusLabel.Text = "Directory: " + e.Node.Name;
+
+            btnQuickSave.Enabled = dat.IsFO2Type() && SaveToolStripButton.Enabled;
         }
 
         private void filesListView_AfterLabelEdit(object sender, LabelEditEventArgs e)
@@ -983,6 +989,7 @@ namespace DATExplorer
                 }
             }
             SaveToolStripButton.Enabled = dat.ShouldSave();
+            btnQuickSave.Enabled = dat.IsFO2Type() && SaveToolStripButton.Enabled;
         }
 
         private void SaveToolStripButton_Click(object sender, EventArgs e)
@@ -1004,11 +1011,14 @@ namespace DATExplorer
             count += (dat.AddedFiles > 1000) ? dat.AddedFiles / 5 : dat.AddedFiles;
             toolStripProgressBar.Maximum = count;
 
-            if (dat.SaveDat()) {
+            bool quick = (((ToolStripButton)sender).Tag != null);
+
+            if (dat.SaveDat(quick)) {
                FindFiles(currentDat, folderTreeView.SelectedNode);
             }
 
             SaveToolStripButton.Enabled = false;
+            btnQuickSave.Enabled = false;
             toolStripProgressBar.Value = 0;
             textToolStripStatusLabel.Text = "Done.";
         }
@@ -1054,7 +1064,10 @@ namespace DATExplorer
             var dat = ControlDat.GetDat(currentDat);
             totalToolStripStatusLabel.Text = dat.TotalFiles.ToString();
 
-            if (dat.ShouldSave()) SaveToolStripButton.Enabled = true;
+            if (dat.ShouldSave()) {
+                SaveToolStripButton.Enabled = true;
+                btnQuickSave.Enabled = dat.IsFO2Type();
+            }
         }
 
         internal void DeleteFiles(string path)
