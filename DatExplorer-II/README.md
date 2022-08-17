@@ -1,15 +1,15 @@
 # DAT Explorer II
----
-Просмотр содержимого файлов DAT архивов для Fallout 1 и 2, так же извлечение и упаковка файлов в них.
-Является заменой устаревшего инструмента DatExpl1.43 by Dims. 
 
-##### Особенности:
-- Ассоциация `.dat` файлов с программой (открытие по двойному клику).
-- Перетаскивание файлов методом **Drag&Drop** из проводника в интерфейс программы, или в проводник Windows для быстрой их распаковки.
-- Поиск и открытие файлов в `.dat` архиве.
+A utility for viewing the contents of DAT archive files for Fallout 1 and 2, as well as extracting and packing files into them.
+This is a replacement for the outdated DAT explorer 1.43 by Dims.
 
-##### Недостатки:
-- Автоматически не обновляется проводник для корневых папок диска и рабочего стола (требуется ручное обновление клавишей <kbd>F5</kbd>) при использовании метода **Drag&Drop** в Windows 7 (возможно и Windows 10).
-- Сжатие файлов для DAT формата Fallout 1 не поддерживается.
+### Features:
+- Can associate `.dat` files with the program (open them by double-click).
+- Support **Drag&Drop** files from/to the program for quick extraction or adding them to a `.dat` archive.
+- Search and open files in a `.dat` archive.
 
-![Preview UI](/.github/screen.png)
+### Limitations:
+- The file explorer for the root directory and the desktop is not updated automatically (requires a manual update with the F5 key) when using the Drag&Drop method in Windows 7 (and possibly Windows 10).
+- File compression for Fallout 1 DAT format is not supported.
+
+![UI Preview](pics/screen.png)
