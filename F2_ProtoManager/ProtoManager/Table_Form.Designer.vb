@@ -58,7 +58,7 @@ Partial Class Table_Form
         Me.CheckedListBox1.ContextMenuStrip = Me.ContextMenuStrip1
         Me.CheckedListBox1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CheckedListBox1.FormattingEnabled = True
-        Me.CheckedListBox1.Items.AddRange(New Object() {"Damage Type", "Min Damage", "Max Damage", "Range Primary Attack", "Range Secondary Attack", "AP Cost Primary Attack", "AP Cost Secondary Attack", "Max Ammo", "Rounds Brust", "Caliber", "Ammo PID", "Min Strength", "Critical Fail", "Cost", "Weight", "Size", "Perk", "Shoot Thru [Flag]", "Light Thru [Flag]"})
+        Me.CheckedListBox1.Items.AddRange(New Object() {"PID", "FrmID", "Damage Type", "Min Damage", "Max Damage", "Range Primary Attack", "Range Secondary Attack", "AP Cost Primary Attack", "AP Cost Secondary Attack", "Max Ammo", "Burst Rounds", "Caliber", "Ammo PID", "Min Strength", "Critical Fail", "Cost", "Weight", "Size", "Perk", "Anim Code", "Shoot Thru [Flag]", "Light Thru [Flag]"})
         Me.CheckedListBox1.Location = New System.Drawing.Point(3, 3)
         Me.CheckedListBox1.Name = "CheckedListBox1"
         Me.CheckedListBox1.ScrollAlwaysVisible = True
@@ -149,7 +149,7 @@ Partial Class Table_Form
         Me.CheckedListBox2.ContextMenuStrip = Me.ContextMenuStrip1
         Me.CheckedListBox2.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CheckedListBox2.FormattingEnabled = True
-        Me.CheckedListBox2.Items.AddRange(New Object() {"Cost", "Weight", "Caliber", "Quantity", "AC Adjust", "DR Adjust", "Dam Mult", "Dam Div", "Size", "Shoot Thru [Flag]", "Light Thru [Flag]"})
+        Me.CheckedListBox2.Items.AddRange(New Object() {"PID", "Cost", "Weight", "Caliber", "Quantity", "AC Adjust", "DR Adjust", "Dam Mult", "Dam Div", "Size", "Shoot Thru [Flag]", "Light Thru [Flag]"})
         Me.CheckedListBox2.Location = New System.Drawing.Point(3, 3)
         Me.CheckedListBox2.Name = "CheckedListBox2"
         Me.CheckedListBox2.ScrollAlwaysVisible = True
@@ -173,7 +173,7 @@ Partial Class Table_Form
         Me.CheckedListBox3.ContextMenuStrip = Me.ContextMenuStrip1
         Me.CheckedListBox3.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CheckedListBox3.FormattingEnabled = True
-        Me.CheckedListBox3.Items.AddRange(New Object() {"Cost", "Weight", "Armor Class", "Normal DT|DR", "Laser DT|DR", "Fire DT|DR", "Plasma DT|DR", "Electrical DT|DR", "Explosion DT|DR", "EMP DT|DR", "Perk", "Size", "Shoot Thru [Flag]", "Light Thru [Flag]"})
+        Me.CheckedListBox3.Items.AddRange(New Object() {"PID", "FrmID", "Cost", "Weight", "Armor Class", "Normal DT|DR", "Laser DT|DR", "Fire DT|DR", "Plasma DT|DR", "Electrical DT|DR", "Explosion DT|DR", "EMP DT|DR", "Perk", "Size", "Shoot Thru [Flag]", "Light Thru [Flag]"})
         Me.CheckedListBox3.Location = New System.Drawing.Point(3, 3)
         Me.CheckedListBox3.Name = "CheckedListBox3"
         Me.CheckedListBox3.ScrollAlwaysVisible = True
@@ -197,7 +197,7 @@ Partial Class Table_Form
         Me.CheckedListBox4.ContextMenuStrip = Me.ContextMenuStrip1
         Me.CheckedListBox4.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CheckedListBox4.FormattingEnabled = True
-        Me.CheckedListBox4.Items.AddRange(New Object() {"Cost", "Weight", "Modify Stat 0", "Modify Stat 1", "Modify Stat 2", "Instant Amount 0", "Instant Amount 1", "Instant Amount 2", "First Amount 0", "First Amount 1", "First Amount 2", "First Duration Time", "Second Amount 0", "Second Amount 1", "Second Amount 2", "Second Duration Time", "Addiction Effect", "Addiction Onset Time", "Addiction Rate", "Size", "Shoot Thru [Flag]", "Light Thru [Flag]"})
+        Me.CheckedListBox4.Items.AddRange(New Object() {"PID", "FrmID", "Cost", "Weight", "Modify Stat 0", "Modify Stat 1", "Modify Stat 2", "Instant Amount 0", "Instant Amount 1", "Instant Amount 2", "First Amount 0", "First Amount 1", "First Amount 2", "First Duration Time", "Second Amount 0", "Second Amount 1", "Second Amount 2", "Second Duration Time", "Addiction Effect", "Addiction Onset Time", "Addiction Rate", "Size", "Shoot Thru [Flag]", "Light Thru [Flag]"})
         Me.CheckedListBox4.Location = New System.Drawing.Point(3, 3)
         Me.CheckedListBox4.Name = "CheckedListBox4"
         Me.CheckedListBox4.ScrollAlwaysVisible = True
@@ -221,7 +221,7 @@ Partial Class Table_Form
         Me.CheckedListBox5.ContextMenuStrip = Me.ContextMenuStrip1
         Me.CheckedListBox5.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CheckedListBox5.FormattingEnabled = True
-        Me.CheckedListBox5.Items.AddRange(New Object() {"Cost", "Weight", "Size", "Power PID", "Power Type", "Charges", "Shoot Thru [Flag]", "Light Thru [Flag]"})
+        Me.CheckedListBox5.Items.AddRange(New Object() {"PID", "FrmID", "Cost", "Weight", "Size", "Power PID", "Power Type", "Charges", "Shoot Thru [Flag]", "Light Thru [Flag]"})
         Me.CheckedListBox5.Location = New System.Drawing.Point(3, 3)
         Me.CheckedListBox5.Name = "CheckedListBox5"
         Me.CheckedListBox5.ScrollAlwaysVisible = True

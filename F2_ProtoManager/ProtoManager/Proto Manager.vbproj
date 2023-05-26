@@ -40,7 +40,7 @@
     <DebugType>Full</DebugType>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DocumentationFile>
     </DocumentationFile>
     <NoWarn>
@@ -399,8 +399,8 @@
     <None Include="Resources\Config.ini" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\DATLib.git\DATLib.csproj">
-      <Project>{CAD53BCA-DC4B-4BDD-8199-5CD640C47CC1}</Project>
+    <ProjectReference Include="..\..\DATLib\DATLib.csproj">
+      <Project>{cad53bca-dc4b-4bdd-8199-5cd640c47cc1}</Project>
       <Name>DATLib</Name>
     </ProjectReference>
   </ItemGroup>
