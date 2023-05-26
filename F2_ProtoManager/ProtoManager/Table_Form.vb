@@ -23,6 +23,8 @@ Public Class Table_Form
 
     Private ReadOnly DmgType() As String = {"Normal", "Laser", "Fire", "Plasma", "Electrical", "EMP", "Explode", "Unused"}
 
+    Private ReadOnly AnimCodes() As String = {"None", "Knife (D)", "Club (E)", "2Hnd Club (F)", "Spear (G)", "Pistol (H)", "Uzi (I)", "Rifle (J)", "Laser (K)", "Minigun (L)", "Rocket Launcher (M)", "Custom Anim (S)", "Custom Anim (O)", "Custom Anim (P)", "Custom Anim (Q)", "Custom Anim (T)"}
+
     Private ReadOnly DrugEffect() As String = {"Drug Stat (Special)", "None", "Strength", "Perception", "Endurance",
                                                "Charisma", "Intelligence", "Agility", "Luck", "Max.Healing Point",
                                                "Max.Action Point", "Calss Armor", "Unarmed Damage", "Melee Damage",
@@ -217,6 +219,10 @@ SaveRetry:
 
     Private Function CreateTable_Common(ByRef tableLine As String, param As String, ByRef item As CommonItemProto) As Boolean
         Select Case param
+            Case "PID"
+                tableLine &= spr & item.common.ProtoID
+            Case "FrmID"
+                tableLine &= spr & item.common.FrmID
             Case "Cost"
                 tableLine &= spr & item.data.Cost
             Case "Weight"
@@ -253,11 +259,11 @@ SaveRetry:
                 tableLine &= spr & item.MPCostS
             Case "Max Ammo"
                 tableLine &= spr & item.MaxAmmo
-            Case "Rounds Brust"
+            Case "Burst Rounds"
                 tableLine &= spr & item.Rounds
             Case "Caliber"
                 If item.Caliber <> &HFFFFFFFF Then
-                    tableLine &= spr & CaliberNAME(item.Caliber)
+                    tableLine &= spr & CaliberNAME(item.Caliber) & " [" & item.Caliber & "]"
                 Else
                     tableLine &= spr
                 End If
@@ -275,6 +281,8 @@ SaveRetry:
                 Else
                     tableLine &= spr
                 End If
+            Case "Anim Code"
+                tableLine &= spr & AnimCodes(item.AnimCode) & " [" & item.AnimCode & "]"
         End Select
     End Sub
 
@@ -292,7 +300,7 @@ SaveRetry:
                 tableLine &= spr & item.Quantity
             Case "Caliber"
                 If item.Caliber <> -1 Then
-                    tableLine &= spr & CaliberNAME(item.Caliber)
+                    tableLine &= spr & CaliberNAME(item.Caliber) & " [" & item.Caliber & "]"
                 Else
                     tableLine &= spr
                 End If
@@ -636,22 +644,18 @@ SaveRetry:
             Case "max ammo"
                 item.MaxAmmo = CInt(tValue)
             Case "rounds brust"
+            Case "burst rounds"
                 item.Rounds = CInt(tValue)
             Case "caliber"
-                If tValue <> Nothing Then
-                    For z = 0 To UBound(CaliberNAME)
-                        If tValue.Equals(CaliberNAME(z), StringComparison.OrdinalIgnoreCase) Then
-                            item.Caliber = z
-                            Exit For
-                        End If
-                    Next
-                End If
+                item.Caliber = GetTable_Param(tValue)
             Case "ammo pid"
                 item.AmmoPID = GetTable_Param(tValue)
             Case "critical fail"
                 item.CritFail = CInt(tValue)
             Case "perk"
                 item.Perk = GetTable_Param(tValue)
+            Case "anim code"
+                item.AnimCode = GetTable_Param(tValue)
         End Select
     End Sub
 
@@ -668,14 +672,7 @@ SaveRetry:
             Case "quantity"
                 item.Quantity = CInt(tValue)
             Case "caliber"
-                If tValue <> Nothing Then
-                    For z = 0 To UBound(CaliberNAME)
-                        If tValue.Equals(CaliberNAME(z), StringComparison.OrdinalIgnoreCase) Then
-                            item.Caliber = z
-                            Exit For
-                        End If
-                    Next
-                End If
+                item.Caliber = GetTable_Param(tValue)
         End Select
     End Sub
 
