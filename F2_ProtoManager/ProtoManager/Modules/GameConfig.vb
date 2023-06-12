@@ -32,23 +32,6 @@ Module GameConfig
         Return language
     End Function
 
-    'static bool NormalizePath(std::string &path) {
-    '   const char* whiteSpaces = " \t";
-    '	std:size_t pos;
-    '	If (path.find(':') != std::string::npos) return false;
-
-    '   std:replace(path.begin(), path.end(), '/', '\\');
-
-    '	If (path.find(".\\")!= std: String : npos || path.find("..\\") != std:String : npos) return false;
-    '	pos = path.find_first_of(";#");  // comments
-    '	If (pos!= std: String : npos) {
-    '		path.erase(pos);
-    '	}
-    '	path.erase(0, path.find_first_not_of(whiteSpaces)); // trim left
-    '	path.erase(path.find_last_not_of(whiteSpaces) + 1); // trim right
-    '	path.erase(0, path.find_first_not_of('\\')); // remove firsts '\'
-    '	Return !path.empty();
-    '}
     Private Function NormalizePath(path As String) As String
         ' Comments
         Dim pos = path.IndexOfAny({";"c, "#"c})
