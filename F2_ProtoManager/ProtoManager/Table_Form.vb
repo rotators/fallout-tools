@@ -25,6 +25,8 @@ Public Class Table_Form
 
     Private ReadOnly AnimCodes() As String = {"None", "Knife (D)", "Club (E)", "2Hnd Club (F)", "Spear (G)", "Pistol (H)", "Uzi (I)", "Rifle (J)", "Laser (K)", "Minigun (L)", "Rocket Launcher (M)", "Custom Anim (S)", "Custom Anim (O)", "Custom Anim (P)", "Custom Anim (Q)", "Custom Anim (T)"}
 
+    Private ReadOnly AttackTypes() As String = {"None", "Punch", "Kick", "Swing", "Thrust", "Throw", "Single", "Burst", "Flame"}
+
     Private ReadOnly DrugEffect() As String = {"Drug Stat (Special)", "None", "Strength", "Perception", "Endurance",
                                                "Charisma", "Intelligence", "Agility", "Luck", "Max.Healing Point",
                                                "Max.Action Point", "Calss Armor", "Unarmed Damage", "Melee Damage",
@@ -121,7 +123,7 @@ Public Class Table_Form
                                 FileClose(fFile)
                                 IsRead = True
                             End If
-                            CreateTable_Weapon(table(n), CheckedList.Item(m).ToString, weaponItem)
+                            CreateTable_Weapon(table(n), CheckedList.Item(m).ToString, weaponItem, commonItem)
                         Case TabType.Ammo
                             If Not IsRead Then
                                 FileGet(fFile, dataBuffer)
@@ -239,7 +241,7 @@ SaveRetry:
         Return True
     End Function
 
-    Private Sub CreateTable_Weapon(ByRef tableLine As String, param As String, ByRef item As WeaponItemProto)
+    Private Sub CreateTable_Weapon(ByRef tableLine As String, param As String, ByRef item As WeaponItemProto, ByRef commonItem As CommonItemProto)
         Select Case param
             Case "Min Strength"
                 tableLine &= spr & item.MinST
@@ -249,13 +251,17 @@ SaveRetry:
                 tableLine &= spr & item.MinDmg
             Case "Max Damage"
                 tableLine &= spr & item.MaxDmg
-            Case "Range Primary Attack"
+            Case "Attack Primary"
+                tableLine &= spr & AttackTypes(commonItem.common.FlagsExt And &HF)
+            Case "Attack Secondary"
+                tableLine &= spr & AttackTypes((commonItem.common.FlagsExt >> 4) And &HF)
+            Case "Range Primary"
                 tableLine &= spr & item.MaxRangeP
-            Case "Range Secondary Attack"
+            Case "Range Secondary"
                 tableLine &= spr & item.MaxRangeS
-            Case "AP Cost Primary Attack"
+            Case "AP Cost Primary"
                 tableLine &= spr & item.MPCostP
-            Case "AP Cost Secondary Attack"
+            Case "AP Cost Secondary"
                 tableLine &= spr & item.MPCostS
             Case "Max Ammo"
                 tableLine &= spr & item.MaxAmmo
@@ -283,6 +289,12 @@ SaveRetry:
                 End If
             Case "Anim Code"
                 tableLine &= spr & AnimCodes(item.AnimCode) & " [" & item.AnimCode & "]"
+            Case "Big Gun [Flag]"
+                tableLine &= spr & CBool((commonItem.common.FlagsExt And Enums.FlagsExt.BigGun) <> 0)
+            Case "Two Hand [Flag]"
+                tableLine &= spr & CBool((commonItem.common.FlagsExt And Enums.FlagsExt.TwoHand) <> 0)
+            Case "Energy [Flag]"
+                tableLine &= spr & CBool((commonItem.common.FlagsExt And Enums.FlagsExt.Energy) <> 0)
         End Select
     End Sub
 

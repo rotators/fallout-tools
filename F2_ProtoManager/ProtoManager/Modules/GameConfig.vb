@@ -1,4 +1,6 @@
 ﻿Imports System.IO
+Imports System.IO.Path
+Imports System.Text.RegularExpressions
 
 Module GameConfig
 
@@ -30,6 +32,18 @@ Module GameConfig
         Return language
     End Function
 
+    Private Function NormalizePath(path As String) As String
+        ' Comments
+        Dim pos = path.IndexOfAny({";"c, "#"c})
+        If pos <> -1 Then path = path.Substring(0, pos)
+        If path.Contains(":") Then Return Nothing
+        path = path.Replace("/", "\")
+        If (path.Contains(".\") Or path.Contains("..\")) Then Return Nothing
+        path = path.Trim()
+        path = New Regex("^\\+").Replace(path, String.Empty)
+        Return path
+    End Function
+
     Friend Sub SearchExtraModFiles(ByVal gamePathFolder As String, ByVal masterPath As String, ByVal critterPath As String)
         gcExtraMods.Clear()
 
@@ -48,21 +62,41 @@ Module GameConfig
 
         ' Просмотр папки Mods
         Dim list As List(Of ExtraModData) = New List(Of ExtraModData)
-        Dim gameFolderMods = gamePathFolder + "mods" ' <game>\mods
+        Dim gameFolderMods = Path.Combine(gamePathFolder, "mods") ' <game>\mods
         If (Directory.Exists(gameFolderMods)) Then
-            For Each file As String In Directory.GetFiles(gameFolderMods, "*.dat")
-                If (file.EndsWith(".dat", StringComparison.OrdinalIgnoreCase) = False) Then Continue For
-                If (plist.Exists(Function(x) String.Equals(x.filePath, file, StringComparison.OrdinalIgnoreCase))) Then Continue For
+            Dim modsOrderFile = Path.Combine(gameFolderMods, "mods_order.txt")
+            If (File.Exists(modsOrderFile)) Then
+                list.AddRange(File.ReadAllLines(modsOrderFile).
+                    Select(Function(line)
+                               Dim fPath = NormalizePath(line)
+                               If fPath = "" Then Return Nothing
+                               fPath = Path.Combine(gameFolderMods, fPath)
+                               If (plist.Exists(Function(x) String.Equals(x.filePath, fPath, StringComparison.OrdinalIgnoreCase))) Then
+                                   Return Nothing
+                               End If
+                               If (Directory.Exists(fPath)) Then
+                                   Return New ExtraModData(fPath, False)
+                               ElseIf (File.Exists(fPath)) Then
+                                   Return New ExtraModData(fPath, True)
+                               End If
+                               Return Nothing
+                           End Function).
+                    Where(Function(p) p IsNot Nothing))
+            Else
+                For Each file As String In Directory.GetFiles(gameFolderMods, "*.dat")
+                    If (file.EndsWith(".dat", StringComparison.OrdinalIgnoreCase) = False) Then Continue For
+                    If (plist.Exists(Function(x) String.Equals(x.filePath, file, StringComparison.OrdinalIgnoreCase))) Then Continue For
 
-                list.Add(New ExtraModData(file, True))
-            Next
-            For Each file As String In Directory.GetDirectories(gameFolderMods, "*.dat")
-                If (file.EndsWith(".dat", StringComparison.OrdinalIgnoreCase) = False) Then Continue For
-                If (plist.Exists(Function(x) String.Equals(x.filePath, file, StringComparison.OrdinalIgnoreCase))) Then Continue For
+                    list.Add(New ExtraModData(file, True))
+                Next
+                For Each file As String In Directory.GetDirectories(gameFolderMods, "*.dat")
+                    If (file.EndsWith(".dat", StringComparison.OrdinalIgnoreCase) = False) Then Continue For
+                    If (plist.Exists(Function(x) String.Equals(x.filePath, file, StringComparison.OrdinalIgnoreCase))) Then Continue For
 
-                list.Add(New ExtraModData(file, False))
-            Next
-            list.Sort(New Comparer.ExtraModComparer())
+                    list.Add(New ExtraModData(file, False))
+                Next
+                list.Sort(New Comparer.ExtraModComparer())
+            End If
             list.Reverse()
         End If
 
