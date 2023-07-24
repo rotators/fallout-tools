@@ -58,7 +58,7 @@ Partial Class Table_Form
         Me.CheckedListBox1.ContextMenuStrip = Me.ContextMenuStrip1
         Me.CheckedListBox1.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CheckedListBox1.FormattingEnabled = True
-        Me.CheckedListBox1.Items.AddRange(New Object() {"PID", "FrmID", "Damage Type", "Min Damage", "Max Damage", "Range Primary Attack", "Range Secondary Attack", "AP Cost Primary Attack", "AP Cost Secondary Attack", "Max Ammo", "Burst Rounds", "Caliber", "Ammo PID", "Min Strength", "Critical Fail", "Cost", "Weight", "Size", "Perk", "Anim Code", "Shoot Thru [Flag]", "Light Thru [Flag]"})
+        Me.CheckedListBox1.Items.AddRange(New Object() {"PID", "FrmID", "Damage Type", "Min Damage", "Max Damage", "Attack Primary", "Attack Secondary", "Range Primary", "Range Secondary", "AP Cost Primary", "AP Cost Secondary", "Max Ammo", "Burst Rounds", "Caliber", "Ammo PID", "Min Strength", "Critical Fail", "Cost", "Weight", "Size", "Perk", "Anim Code", "Big Gun [Flag]", "Two Hand [Flag]", "Energy [Flag]", "Shoot Thru [Flag]", "Light Thru [Flag]"})
         Me.CheckedListBox1.Location = New System.Drawing.Point(3, 3)
         Me.CheckedListBox1.Name = "CheckedListBox1"
         Me.CheckedListBox1.ScrollAlwaysVisible = True
@@ -114,7 +114,7 @@ Partial Class Table_Form
         Me.CheckedListBox6.ContextMenuStrip = Me.ContextMenuStrip1
         Me.CheckedListBox6.Dock = System.Windows.Forms.DockStyle.Fill
         Me.CheckedListBox6.FormattingEnabled = True
-        Me.CheckedListBox6.Items.AddRange(New Object() {"Strength", "Perception", "Endurance", "Charisma", "Intelligence", "Agility", "Luck", "Action Point", "Armor Class", "Health Point", "Healing Rate", "Melee Damage", "Critical Chance", "Sequence", "Exp Value", "Damage Type", "Small Guns [Skill]", "Big Guns [Skill]", "Energy Weapons [Skill]", "Unarmed [Skill]", "Melee [Skill]", "Throwing [Skill]", "Resistance Radiation", "Resistance Poison", "Normal DT|DR", "Laser DT|DR", "Fire DT|DR", "Plasma DT|DR", "Electrical DT|DR", "Explosion DT|DR", "EMP DT|DR", "Base Normal DT|DR", "Base Laser DT|DR", "Base Fire DT|DR", "Base Plasma DT|DR", "Base Electrical DT|DR", "Base Explosion DT|DR", "Base EMP DT|DR"})
+        Me.CheckedListBox6.Items.AddRange(New Object() {"PID", "FrmID", "Strength", "Perception", "Endurance", "Charisma", "Intelligence", "Agility", "Luck", "Action Point", "Armor Class", "Health Point", "Healing Rate", "Melee Damage", "Critical Chance", "Sequence", "Exp Value", "Damage Type", "Small Guns [Skill]", "Big Guns [Skill]", "Energy Weapons [Skill]", "Unarmed [Skill]", "Melee [Skill]", "Throwing [Skill]", "First Aid [Skill]", "Doctor [Skill]", "Sneak [Skill]", "Lockpick [Skill]", "Steal [Skill]", "Traps [Skill]", "Science [Skill]", "Repear [Skill]", "Speech [Skill]", "Barter [Skill]", "Gambling [Skill]", "Outdoorsman [Skill]", "Resistance Radiation", "Resistance Poison", "Normal DT|DR", "Laser DT|DR", "Fire DT|DR", "Plasma DT|DR", "Electrical DT|DR", "Explosion DT|DR", "EMP DT|DR", "Base Normal DT|DR", "Base Laser DT|DR", "Base Fire DT|DR", "Base Plasma DT|DR", "Base Electrical DT|DR", "Base Explosion DT|DR", "Base EMP DT|DR"})
         Me.CheckedListBox6.Location = New System.Drawing.Point(3, 3)
         Me.CheckedListBox6.Name = "CheckedListBox6"
         Me.CheckedListBox6.ScrollAlwaysVisible = True

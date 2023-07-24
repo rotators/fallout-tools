@@ -193,7 +193,7 @@ Public Class Table_Form
                 For m = 0 To CheckedList.Count - 1
                     'создаем строку с параметрами
                     If n = 1 Then table(0) &= spr & CheckedList.Item(m).ToString
-                    CreateTable_Critter(table(n), CheckedList.Item(m).ToString, critterPro.data)
+                    CreateTable_Critter(table(n), CheckedList.Item(m).ToString, critterPro)
                 Next
                 If ((n Mod 2) <> 0) Then Progress_Form.ProgressIncrement()
             Next
@@ -420,8 +420,13 @@ SaveRetry:
         End Select
     End Sub
 
-    Private Sub CreateTable_Critter(ByRef tableLine As String, param As String, ByRef critter As CritterProtoData)
+    Private Sub CreateTable_Critter(ByRef tableLine As String, param As String, ByRef critterProto As CritterProto)
+        Dim critter As CritterProtoData = critterProto.data
         Select Case param
+            Case "PID"
+                tableLine &= spr & critterProto.common.ProtoID
+            Case "FrmID"
+                tableLine &= spr & critterProto.common.FrmID
             Case "Strength"
                 tableLine &= spr & critter.Strength
             Case "Perception"
@@ -468,6 +473,30 @@ SaveRetry:
                 tableLine &= spr & CStr(CalcStats.Melee_Skill(critter.Agility, critter.Strength) + critter.Melee)
             Case "Throwing [Skill]"
                 tableLine &= spr & CStr(CalcStats.Throwing_Skill(critter.Agility) + critter.Throwing)
+            Case "First Aid [Skill]"
+                tableLine &= spr & CStr(CalcStats.FirstAid_Skill(critter.Perception, critter.Intelligence) + critter.FirstAid)
+            Case "Doctor [Skill]"
+                tableLine &= spr & CStr(CalcStats.Doctor_Skill(critter.Perception, critter.Intelligence) + critter.Doctor)
+            Case "Sneak [Skill]"
+                tableLine &= spr & CStr(CalcStats.Sneak_Skill(critter.Agility) + critter.Sneak)
+            Case "Lockpick [Skill]"
+                tableLine &= spr & CStr(CalcStats.Lockpick_Skill(critter.Perception, critter.Agility) + critter.Lockpick)
+            Case "Steal [Skill]"
+                tableLine &= spr & CStr(CalcStats.Steal_Skill(critter.Agility) + critter.Steal)
+            Case "Traps [Skill]"
+                tableLine &= spr & CStr(CalcStats.Trap_Skill(critter.Perception, critter.Agility) + critter.Traps)
+            Case "Science [Skill]"
+                tableLine &= spr & CStr(CalcStats.Science_Skill(critter.Intelligence) + critter.Science)
+            Case "Repear [Skill]"
+                tableLine &= spr & CStr(CalcStats.Repair_Skill(critter.Intelligence) + critter.Repair)
+            Case "Speech [Skill]"
+                tableLine &= spr & CStr(CalcStats.Speech_Skill(critter.Charisma) + critter.Speech)
+            Case "Barter [Skill]"
+                tableLine &= spr & CStr(CalcStats.Barter_Skill(critter.Charisma) + critter.Barter)
+            Case "Gambling [Skill]"
+                tableLine &= spr & CStr(CalcStats.Gamblings_Skill(critter.Luck) + critter.Gambling)
+            Case "Outdoorsman [Skill]"
+                tableLine &= spr & CStr(CalcStats.Outdoorsman_Skill(critter.Endurance, critter.Intelligence) + critter.Outdoorsman)
                 '
             Case "Resistance Radiation"
                 tableLine &= spr & (critter.DRRadiation + critter.b_DRRadiation)
@@ -977,6 +1006,30 @@ SaveRetry:
                         critter.Melee = CInt(tableValue(n, m)) - CalcStats.Melee_Skill(critter.Agility, critter.Strength)
                     Case "throwing [skill]"
                         critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Throwing_Skill(critter.Agility)
+                    Case "first aid [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.FirstAid_Skill(critter.Perception, critter.Intelligence)
+                    Case "doctor [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Doctor_Skill(critter.Perception, critter.Intelligence)
+                    Case "sneak [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Sneak_Skill(critter.Agility)
+                    Case "lockpick [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Lockpick_Skill(critter.Perception, critter.Agility)
+                    Case "steal [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Steal_Skill(critter.Agility)
+                    Case "traps [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Trap_Skill(critter.Perception, critter.Agility)
+                    Case "science [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Science_Skill(critter.Intelligence)
+                    Case "repair [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Repair_Skill(critter.Intelligence)
+                    Case "speech [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Speech_Skill(critter.Charisma)
+                    Case "barter [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Barter_Skill(critter.Charisma)
+                    Case "gambling [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Gamblings_Skill(critter.Luck)
+                    Case "outdoorsman [skill]"
+                        critter.Throwing = CInt(tableValue(n, m)) - CalcStats.Outdoorsman_Skill(critter.Endurance, critter.Intelligence)
                 End Select
             Next
         Catch
