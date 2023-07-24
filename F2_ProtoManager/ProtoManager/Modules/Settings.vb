@@ -28,6 +28,8 @@ Friend Module Settings
     Friend proRO As Boolean = True
     Friend cCache As Boolean = True
     Friend cArtCache As Boolean = True
+    Friend ShowItemPid As Boolean = True
+    Friend ShowCritterFid As Boolean = True
     Friend HoverSelect As Boolean = True
 
     Friend ShowAIPacket As Boolean = True
@@ -86,6 +88,8 @@ Friend Module Settings
         If (appConfig.TryGetValue("ClearCache", strValue)) Then cCache = CBool(strValue)
         If (appConfig.TryGetValue("ClearArtCache", strValue)) Then cArtCache = CBool(strValue)
         If (appConfig.TryGetValue("HoverSelect", strValue)) Then HoverSelect = CBool(strValue)
+        If (appConfig.TryGetValue("ShowItemPid", strValue)) Then ShowItemPid = CBool(strValue)
+        If (appConfig.TryGetValue("ShowCritterFid", strValue)) Then ShowCritterFid = CBool(strValue)
         If (appConfig.TryGetValue("StatFormula", strValue)) Then CalcStats.SetFormula(CType(Convert.ToInt32(strValue), CalcStats.FormulaType))
 
         If (appConfig.TryGetValue("SplitSize", strValue)) Then SplitSize = CInt(strValue)
@@ -159,6 +163,8 @@ SetDefault:
         settingParam.Add("MsgLC=" & txtLvCp)
         settingParam.Add("ClearCache=" & cCache)
         settingParam.Add("ClearArtCache=" & cArtCache)
+        settingParam.Add("ShowItemPid=" & ShowItemPid)
+        settingParam.Add("ShowCritterFid=" & ShowCritterFid)
         settingParam.Add("Background=")
         settingParam.Add("HoverSelect=" & HoverSelect)
         settingParam.Add("StatFormula=" & CalcStats.GetFormula().ToString)

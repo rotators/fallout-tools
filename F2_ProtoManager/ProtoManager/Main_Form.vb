@@ -23,6 +23,8 @@ Friend Class Main_Form
         If Not (Settings.HoverSelect) Then SetListViewHoverSelect()
         Cp886ToolStripMenuItem.Checked = Not (Settings.txtWin) And Not (Settings.txtLvCp)
         ClearToolStripMenuItem2.Checked = Settings.cArtCache
+        ShowFIDToolStripMenuItem.Checked = Settings.ShowCritterFid
+        ShowPIDToolStripMenuItem.Checked = Settings.ShowItemPid
         AttrReadOnlyToolStripMenuItem.Checked = Settings.proRO
     End Sub
 
@@ -350,25 +352,33 @@ Friend Class Main_Form
         SetFormSettings()
     End Sub
 
+    Private Sub UpdateCritterList()
+        Main.GetCrittersLst()
+        Main.CreateCritterList()
+        If onlyOnceCritter AndAlso ListView1.View = View.Tile Then
+            ThumbnailImage.GetCrittersImages()
+            ListView1.Refresh()
+        End If
+    End Sub
+
+    Private Sub UpdateItemList()
+        Main.Items_FRM = Nothing
+        Main.Iven_FRM = Nothing
+
+        Main.GetItemsLst()
+        Main.CreateItemsList(currentFilter)
+        If onlyOnceItem AndAlso ListView2.View = View.Tile Then
+            Main.GetItemsLstFRM()
+            ThumbnailImage.GetItemsImages()
+            ListView2.Refresh()
+        End If
+    End Sub
+
     Private Sub UpdateList(ByVal sender As Object, ByVal e As EventArgs) Handles tsbtnUpdateList.Click
         If TabControl1.SelectedIndex = 1 Then
-            Main.GetCrittersLst()
-            Main.CreateCritterList()
-            If onlyOnceCritter AndAlso ListView1.View = View.Tile Then
-                ThumbnailImage.GetCrittersImages()
-                ListView1.Refresh()
-            End If
+            UpdateCritterList()
         Else
-            Main.Items_FRM = Nothing
-            Main.Iven_FRM = Nothing
-
-            Main.GetItemsLst()
-            Main.CreateItemsList(currentFilter)
-            If onlyOnceItem AndAlso ListView2.View = View.Tile Then
-                Main.GetItemsLstFRM()
-                ThumbnailImage.GetItemsImages()
-                ListView2.Refresh()
-            End If
+            UpdateItemList()
         End If
         Scripts_Lst = Nothing
         Main.GetScriptLst()
@@ -652,36 +662,13 @@ Friend Class Main_Form
     End Sub
 
     Private Sub ShowFIDToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ShowFIDToolStripMenuItem.Click
-        With Me.ListView1
-            If (.Items.Count = 0) Then Return
-            If .Columns.ContainsKey("cFid") Then
-                .Columns.RemoveByKey("cFid")
-                Return
-            Else
-                .BeginUpdate()
-                .Columns.Add("cFid", "FID", If(ColumnCritterSize(4) > 15, ColumnCritterSize(4), 65), HorizontalAlignment.Center, 0)
-            End If
-            For Each item As ListViewItem In .Items
-                item.SubItems.Add(GetFID(CInt(item.Tag)).ToString)
-            Next
-            .EndUpdate()
-        End With
+        UpdateCritterList()
+        ShowCritterFid = ShowFIDToolStripMenuItem.Checked
     End Sub
 
     Private Sub ShowPIDToolStripMenuItem_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles ShowPIDToolStripMenuItem.Click
-        With Me.ListView2
-            If .Columns.ContainsKey("iPid") Then
-                .Columns.RemoveByKey("iPid")
-                Return
-            Else
-                .BeginUpdate()
-                .Columns.Add("iPid", "PID", If(ColumnItemSize(4) > 15, ColumnItemSize(4), 65), HorizontalAlignment.Center, 0)
-            End If
-            For Each item As ListViewItem In .Items
-                item.SubItems.Add((CInt(item.Tag) + 1).ToString.PadLeft(8, "0"c))
-            Next
-            .EndUpdate()
-        End With
+        UpdateItemList()
+        ShowItemPid = ShowPIDToolStripMenuItem.Checked
     End Sub
 
     Private Sub Fallout2Formula_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles Fallout2ToolStripMenuItem.Click
