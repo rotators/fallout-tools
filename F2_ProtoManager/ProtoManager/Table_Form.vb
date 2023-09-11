@@ -540,7 +540,7 @@ SaveRetry:
         Try
             table = File.ReadAllLines(tableFile, Encoding.Default)
         Catch ex As Exception
-            MsgBox("Can not open this table file!", MsgBoxStyle.Critical, "Open error")
+            MsgBox("Cannot open this table file!", MsgBoxStyle.Critical, "Open error")
             Exit Sub
         End Try
 
@@ -594,7 +594,7 @@ SaveRetry:
                     iType = ItemType.Armor
                     item = New ArmorItemObj(pPath)
                 Case Else
-                    TableLog_Form.ListBox1.Items.Add("Error: Pro file '" & ProFile & "' item type does not match the file size.")
+                    TableLog_Form.ListBox1.Items.Add("Error: PRO file '" & ProFile & "' item type does not match the file size.")
                     Continue For
             End Select
 
@@ -820,7 +820,7 @@ SaveRetry:
         Try
             table = File.ReadAllLines(tableFile, Encoding.Default)
         Catch ex As Exception
-            MsgBox("Can not open this table file!", MsgBoxStyle.Critical, "Open error")
+            MsgBox("Cannot open this table file!", MsgBoxStyle.Critical, "Open error")
             Exit Sub
         End Try
 
@@ -863,7 +863,7 @@ SaveRetry:
                 'Changed values
                 If (SetParams(critter.data, n, tableParam, tableValue) = False) Then Continue For
 
-                'Save the profile and goto next pro file
+                'Save the PRO file and go to next one
                 ProFiles.SaveCritterProData(filePath, critter)
             Next
         End If

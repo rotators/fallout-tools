@@ -25,7 +25,7 @@ Friend Class Critter_Form
 
         critter = New CritterObj(cPath & proFile)
         If (critter.Load() = False) Then 'BadFormat
-            MsgBox("The pro file: " & proFile & " does not have the correct format.", MsgBoxStyle.Critical)
+            MsgBox("The PRO file: " & proFile & " does not have the correct format.", MsgBoxStyle.Critical)
             Return True ' error
         End If
 
@@ -38,7 +38,7 @@ Friend Class Critter_Form
 
     Private Sub Critter_Form_FormClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs) Handles MyBase.FormClosing
         If Button6.Enabled Then
-            Dim btn As MsgBoxResult = MsgBox("Save changes to the Pro-File?", MsgBoxStyle.YesNoCancel, "Attention!")
+            Dim btn As MsgBoxResult = MsgBox("Save changes to PRO File?", MsgBoxStyle.YesNoCancel, "Attention!")
             If btn = MsgBoxResult.Yes Then
                 Button_Save(sender, e)
             ElseIf btn = MsgBoxResult.Cancel Then
@@ -473,7 +473,7 @@ Friend Class Critter_Form
 
         Messages.GetMsgData("pro_crit.msg", False)
         If Messages.AddTextMSG(str, ID, Desc) Then
-            MsgBox("You can not add value to the Msg file." & vbLf & "Not found msg line #:" & ID, MsgBoxStyle.SystemModal And MsgBoxStyle.Critical, "Error: pro_crit.msg")
+            MsgBox("You cannot add value to the MSG file." & vbLf & "Not found msg line #:" & ID, MsgBoxStyle.SystemModal And MsgBoxStyle.Critical, "Error: pro_crit.msg")
             Exit Sub
         End If
         'Save

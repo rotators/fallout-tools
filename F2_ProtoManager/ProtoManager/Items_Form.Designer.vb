@@ -2318,7 +2318,7 @@ Partial Class Items_Form
         Me.Button5.Size = New System.Drawing.Size(80, 24)
         Me.Button5.TabIndex = 13
         Me.Button5.Text = "Save Desc"
-        Me.ToolTip1.SetToolTip(Me.Button5, "Save description to MSG file.")
+        Me.ToolTip1.SetToolTip(Me.Button5, "Save item description to MSG file.")
         Me.Button5.UseVisualStyleBackColor = True
         '
         'Button4
@@ -2331,7 +2331,7 @@ Partial Class Items_Form
         Me.Button4.Size = New System.Drawing.Size(80, 24)
         Me.Button4.TabIndex = 11
         Me.Button4.Text = "Save Name"
-        Me.ToolTip1.SetToolTip(Me.Button4, "Save name to MSG.")
+        Me.ToolTip1.SetToolTip(Me.Button4, "Save item name to MSG file.")
         Me.Button4.UseVisualStyleBackColor = True
         '
         'TextBox30
@@ -2906,7 +2906,7 @@ Partial Class Items_Form
         Me.Button2.Size = New System.Drawing.Size(60, 34)
         Me.Button2.TabIndex = 108
         Me.Button2.Text = "Reload"
-        Me.ToolTip1.SetToolTip(Me.Button2, "Reload prototype data from the current Pro file.")
+        Me.ToolTip1.SetToolTip(Me.Button2, "Reload prototype data from the current PRO file.")
         Me.Button2.UseVisualStyleBackColor = True
         '
         'Button1
@@ -2953,9 +2953,9 @@ Partial Class Items_Form
         Me.btnSave.Name = "btnSave"
         Me.btnSave.Size = New System.Drawing.Size(74, 40)
         Me.btnSave.TabIndex = 106
-        Me.btnSave.Text = "Save Pro"
+        Me.btnSave.Text = "Save PRO"
         Me.btnSave.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText
-        Me.ToolTip1.SetToolTip(Me.btnSave, "Save change data to Pro file.")
+        Me.ToolTip1.SetToolTip(Me.btnSave, "Save changed data to PRO file.")
         Me.btnSave.UseVisualStyleBackColor = True
         '
         'Button3

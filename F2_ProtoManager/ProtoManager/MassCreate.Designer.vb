@@ -134,7 +134,7 @@ Partial Class MassCreate
         Me.Label4.Size = New System.Drawing.Size(59, 13)
         Me.Label4.TabIndex = 8
         Me.Label4.Text = "Count files:"
-        Me.ToolTip1.SetToolTip(Me.Label4, "The number of created pro files.")
+        Me.ToolTip1.SetToolTip(Me.Label4, "The number of created PRO files.")
         '
         'Label5
         '

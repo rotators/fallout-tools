@@ -95,7 +95,7 @@ Friend Module Main
 
         If (clear) Then
             SplashScreen.ProgressBar1.Value += 20
-            SplashScreen.Label1.Text = "Loading: Extraction Pro-files..."
+            SplashScreen.Label1.Text = "Loading: Extraction PRO files..."
             Application.DoEvents()
 
             DatFiles.UnpackedFilesByList(pLST, Game_Path & MasterDAT, "cache\")

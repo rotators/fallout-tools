@@ -235,7 +235,7 @@ Partial Class Setting_Form
         '
         'FolderBrowserDialog1
         '
-        Me.FolderBrowserDialog1.Description = "Select the folder where the edited pro-files will be saved."
+        Me.FolderBrowserDialog1.Description = "Select the folder where the edited PRO files will be saved."
         Me.FolderBrowserDialog1.RootFolder = System.Environment.SpecialFolder.MyComputer
         '
         'GroupBox2
@@ -286,7 +286,7 @@ Partial Class Setting_Form
         Me.Label6.Size = New System.Drawing.Size(100, 13)
         Me.Label6.TabIndex = 4
         Me.Label6.Text = "Msg encoding type:"
-        Me.ToolTip1.SetToolTip(Me.Label6, "Text encoding for Msg files.")
+        Me.ToolTip1.SetToolTip(Me.Label6, "Text encoding for MSG files.")
         '
         'CheckBox1
         '
@@ -378,8 +378,8 @@ Partial Class Setting_Form
         Me.CheckBox2.Name = "CheckBox2"
         Me.CheckBox2.Size = New System.Drawing.Size(136, 17)
         Me.CheckBox2.TabIndex = 0
-        Me.CheckBox2.Text = "Set Read Only attribute"
-        Me.ToolTip1.SetToolTip(Me.CheckBox2, "Set the ""Read Only"" attribute on the .pro file when you save prototype file.")
+        Me.CheckBox2.Text = "Set Read-Only attribute"
+        Me.ToolTip1.SetToolTip(Me.CheckBox2, "Set the ""Read-Only"" attribute on the .pro file when you save prototype file.")
         Me.CheckBox2.UseVisualStyleBackColor = True
         '
         'Label5

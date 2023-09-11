@@ -61,7 +61,7 @@ Public Class MassCreate
         End If
 
         Dim lstFile As String = If(PID = &H4000000, "Tiles.lst", "Walls.lst")
-        If (File.Exists(savePath & lstFile) AndAlso MessageBox.Show("Add a list of created pro files to " & lstFile & " file?", "Mass Create", MessageBoxButtons.YesNo) = DialogResult.Yes) Then
+        If (File.Exists(savePath & lstFile) AndAlso MessageBox.Show("Add a list of created PRO files to " & lstFile & " file?", "Mass Create", MessageBoxButtons.YesNo) = DialogResult.Yes) Then
             Dim lst = File.ReadAllLines(savePath & lstFile).ToList
             Dim index = lst.Count - 1
             While (index >= 0 AndAlso lst(index).TrimStart = String.Empty)

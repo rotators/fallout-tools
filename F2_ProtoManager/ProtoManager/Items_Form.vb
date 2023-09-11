@@ -638,7 +638,7 @@ Friend Class Items_Form
 
         Messages.GetMsgData("pro_item.msg", False)
         If Messages.AddTextMSG(str, ID, Desc) Then
-            MsgBox("You can not add value to the Msg file." & vbLf & "Not found msg line #:" & ID, MsgBoxStyle.Critical, "Error: pro_item.msg")
+            MsgBox("You cannot add value to the MSG file." & vbLf & "Not found msg line #:" & ID, MsgBoxStyle.Critical, "Error: pro_item.msg")
             Exit Sub
         End If
         'Save
@@ -860,7 +860,7 @@ Friend Class Items_Form
 
     Private Sub Items_Form_FormClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs) Handles MyBase.FormClosing
         If btnSave.Enabled Then
-            Dim btn As MsgBoxResult = MsgBox("Save changes to Pro file?", MsgBoxStyle.YesNoCancel, "Attention!")
+            Dim btn As MsgBoxResult = MsgBox("Save changes to PRO file?", MsgBoxStyle.YesNoCancel, "Attention!")
             If btn = MsgBoxResult.Yes Then
                 SaveProto(sender, e)
             ElseIf btn = MsgBoxResult.Cancel Then

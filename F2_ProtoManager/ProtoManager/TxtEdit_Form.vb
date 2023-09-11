@@ -314,7 +314,7 @@ Friend Class TxtEdit_Form
 
 BadFormat:
         FileClose()
-        MsgBox("Error reading Pro file, maybe he does have the not correct format.", MsgBoxStyle.Critical)
+        MsgBox("Error reading PRO file, maybe it does not have the correct format.", MsgBoxStyle.Critical)
         Main_Form.Focus()
         Me.Dispose()
     End Sub
@@ -467,7 +467,7 @@ BadFormat:
                 Case ItemType.Key
                     FilePut(fFile, ProFiles.ReverseBytes(itemKeyData))
                 Case Else
-                    MsgBox("Invalid object type item. Check pro file data format.", MsgBoxStyle.Critical, "Error pro data")
+                    MsgBox("Invalid object type item. Check PRO file data format.", MsgBoxStyle.Critical, "Error PRO data")
                     FileClose(fFile)
                     Exit Sub
             End Select

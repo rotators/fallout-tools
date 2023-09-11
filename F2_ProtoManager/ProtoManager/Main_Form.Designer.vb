@@ -405,7 +405,7 @@ Partial Class Main_Form
         Me.AttrReadOnlyToolStripMenuItem.ShowShortcutKeys = False
         Me.AttrReadOnlyToolStripMenuItem.Size = New System.Drawing.Size(186, 22)
         Me.AttrReadOnlyToolStripMenuItem.Text = "Set Pro 'ReadOnly'"
-        Me.AttrReadOnlyToolStripMenuItem.ToolTipText = "Set read-only attribute on file when you save pro-file."
+        Me.AttrReadOnlyToolStripMenuItem.ToolTipText = "Set Read-Only attribute on file when you save PRO file."
         '
         'Cp886ToolStripMenuItem
         '
@@ -414,7 +414,7 @@ Partial Class Main_Form
         Me.Cp886ToolStripMenuItem.ShowShortcutKeys = False
         Me.Cp886ToolStripMenuItem.Size = New System.Drawing.Size(186, 22)
         Me.Cp886ToolStripMenuItem.Text = "Encoding Msg CP886"
-        Me.Cp886ToolStripMenuItem.ToolTipText = "Read and save Msg files in a DOS encoding."
+        Me.Cp886ToolStripMenuItem.ToolTipText = "Read and save MSG files in a DOS encoding."
         '
         'ToolStripSeparator9
         '

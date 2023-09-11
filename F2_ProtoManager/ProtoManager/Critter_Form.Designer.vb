@@ -460,7 +460,7 @@ Partial Class Critter_Form
         Me.numLuck.Size = New System.Drawing.Size(44, 20)
         Me.numLuck.TabIndex = 0
         Me.numLuck.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ToolTip1.SetToolTip(Me.numLuck, "Base stat")
+        Me.ToolTip1.SetToolTip(Me.numLuck, "Base Stat")
         Me.numLuck.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'numAgility
@@ -475,7 +475,7 @@ Partial Class Critter_Form
         Me.numAgility.Size = New System.Drawing.Size(44, 20)
         Me.numAgility.TabIndex = 0
         Me.numAgility.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ToolTip1.SetToolTip(Me.numAgility, "Base stat")
+        Me.ToolTip1.SetToolTip(Me.numAgility, "Base Stat")
         Me.numAgility.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'numIntelligence
@@ -490,7 +490,7 @@ Partial Class Critter_Form
         Me.numIntelligence.Size = New System.Drawing.Size(44, 20)
         Me.numIntelligence.TabIndex = 0
         Me.numIntelligence.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ToolTip1.SetToolTip(Me.numIntelligence, "Base stat")
+        Me.ToolTip1.SetToolTip(Me.numIntelligence, "Base Stat")
         Me.numIntelligence.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'numCharisma
@@ -505,7 +505,7 @@ Partial Class Critter_Form
         Me.numCharisma.Size = New System.Drawing.Size(44, 20)
         Me.numCharisma.TabIndex = 0
         Me.numCharisma.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ToolTip1.SetToolTip(Me.numCharisma, "Base stat")
+        Me.ToolTip1.SetToolTip(Me.numCharisma, "Base Stat")
         Me.numCharisma.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'numEndurance
@@ -520,7 +520,7 @@ Partial Class Critter_Form
         Me.numEndurance.Size = New System.Drawing.Size(44, 20)
         Me.numEndurance.TabIndex = 0
         Me.numEndurance.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ToolTip1.SetToolTip(Me.numEndurance, "Base stat")
+        Me.ToolTip1.SetToolTip(Me.numEndurance, "Base Stat")
         Me.numEndurance.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'numPerception
@@ -535,7 +535,7 @@ Partial Class Critter_Form
         Me.numPerception.Size = New System.Drawing.Size(44, 20)
         Me.numPerception.TabIndex = 0
         Me.numPerception.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ToolTip1.SetToolTip(Me.numPerception, "Base stat")
+        Me.ToolTip1.SetToolTip(Me.numPerception, "Base Stat")
         Me.numPerception.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'numStrength
@@ -550,7 +550,7 @@ Partial Class Critter_Form
         Me.numStrength.Size = New System.Drawing.Size(44, 20)
         Me.numStrength.TabIndex = 0
         Me.numStrength.TextAlign = System.Windows.Forms.HorizontalAlignment.Center
-        Me.ToolTip1.SetToolTip(Me.numStrength, "Base stat")
+        Me.ToolTip1.SetToolTip(Me.numStrength, "Base Stat")
         Me.numStrength.Value = New Decimal(New Integer() {1, 0, 0, 0})
         '
         'Label6
@@ -2223,7 +2223,7 @@ Partial Class Critter_Form
         Me.ListView1.FullRowSelect = True
         Me.ListView1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable
         Me.ListView1.HideSelection = False
-        ListViewItem1.ToolTipText = "Restore armor bonus characteristics."
+        ListViewItem1.ToolTipText = "Restore armor bonus stats."
         Me.ListView1.Items.AddRange(New System.Windows.Forms.ListViewItem() {ListViewItem1})
         Me.ListView1.Location = New System.Drawing.Point(6, 125)
         Me.ListView1.MultiSelect = False
@@ -3405,7 +3405,7 @@ Partial Class Critter_Form
         Me.Button5.Size = New System.Drawing.Size(80, 22)
         Me.Button5.TabIndex = 7
         Me.Button5.Text = "Save Desc"
-        Me.ToolTip1.SetToolTip(Me.Button5, "Save description critter in the MSG file.")
+        Me.ToolTip1.SetToolTip(Me.Button5, "Save critter description to MSG file.")
         Me.Button5.UseVisualStyleBackColor = True
         '
         'Button4
@@ -3418,7 +3418,7 @@ Partial Class Critter_Form
         Me.Button4.Size = New System.Drawing.Size(80, 22)
         Me.Button4.TabIndex = 7
         Me.Button4.Text = "Save Name"
-        Me.ToolTip1.SetToolTip(Me.Button4, "Save critter name in MSG file.")
+        Me.ToolTip1.SetToolTip(Me.Button4, "Save critter name to MSG file.")
         Me.Button4.UseVisualStyleBackColor = True
         '
         'TextBox30
@@ -3430,7 +3430,7 @@ Partial Class Critter_Form
         Me.TextBox30.ScrollBars = System.Windows.Forms.ScrollBars.Vertical
         Me.TextBox30.Size = New System.Drawing.Size(351, 63)
         Me.TextBox30.TabIndex = 1
-        Me.ToolTip1.SetToolTip(Me.TextBox30, "Description critter")
+        Me.ToolTip1.SetToolTip(Me.TextBox30, "Critter Description")
         '
         'tbCritterName
         '
@@ -3439,7 +3439,7 @@ Partial Class Critter_Form
         Me.tbCritterName.Name = "tbCritterName"
         Me.tbCritterName.Size = New System.Drawing.Size(351, 20)
         Me.tbCritterName.TabIndex = 1
-        Me.ToolTip1.SetToolTip(Me.tbCritterName, "Name critter")
+        Me.ToolTip1.SetToolTip(Me.tbCritterName, "Critter Name")
         '
         'GroupBox7
         '
@@ -3539,7 +3539,7 @@ Partial Class Critter_Form
         Me.CheckBox15.Size = New System.Drawing.Size(70, 18)
         Me.CheckBox15.TabIndex = 0
         Me.CheckBox15.Text = "No Limbs"
-        Me.ToolTip1.SetToolTip(Me.CheckBox15, "Can not lose limbs." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "(Не может терять конечности).")
+        Me.ToolTip1.SetToolTip(Me.CheckBox15, "Cannot lose limbs." & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "(Не может терять конечности).")
         Me.CheckBox15.UseVisualStyleBackColor = True
         '
         'CheckBox19
@@ -4085,7 +4085,7 @@ Partial Class Critter_Form
         Me.Button1.Size = New System.Drawing.Size(60, 30)
         Me.Button1.TabIndex = 3
         Me.Button1.Text = "Restore"
-        Me.ToolTip1.SetToolTip(Me.Button1, "Restore data a prototype from DAT file.")
+        Me.ToolTip1.SetToolTip(Me.Button1, "Restore prototype data from DAT file.")
         Me.Button1.UseVisualStyleBackColor = True
         '
         'Button2
@@ -4097,7 +4097,7 @@ Partial Class Critter_Form
         Me.Button2.Size = New System.Drawing.Size(60, 30)
         Me.Button2.TabIndex = 4
         Me.Button2.Text = "Reload"
-        Me.ToolTip1.SetToolTip(Me.Button2, "Reload data the prototype from current Pro file.")
+        Me.ToolTip1.SetToolTip(Me.Button2, "Reload prototype data from the current PRO file.")
         Me.Button2.UseVisualStyleBackColor = True
         '
         'GroupBox4
@@ -4175,9 +4175,9 @@ Partial Class Critter_Form
         Me.Button6.Name = "Button6"
         Me.Button6.Size = New System.Drawing.Size(90, 40)
         Me.Button6.TabIndex = 0
-        Me.Button6.Text = "Save Pro"
+        Me.Button6.Text = "Save PRO"
         Me.Button6.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText
-        Me.ToolTip1.SetToolTip(Me.Button6, "Save data in Pro file.")
+        Me.ToolTip1.SetToolTip(Me.Button6, "Save changed data to PRO file.")
         Me.Button6.UseVisualStyleBackColor = True
         '
         'Button8
@@ -4190,7 +4190,7 @@ Partial Class Critter_Form
         Me.Button8.TabIndex = 2
         Me.Button8.Text = "AI Packet"
         Me.Button8.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText
-        Me.ToolTip1.SetToolTip(Me.Button8, "Edit AI Packet this critter.")
+        Me.ToolTip1.SetToolTip(Me.Button8, "Edit AI Packet of this critter.")
         Me.Button8.UseVisualStyleBackColor = True
         '
         'Button3
