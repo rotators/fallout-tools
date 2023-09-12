@@ -285,7 +285,7 @@ Partial Class Setting_Form
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(100, 13)
         Me.Label6.TabIndex = 4
-        Me.Label6.Text = "Msg encoding type:"
+        Me.Label6.Text = "MSG encoding type:"
         Me.ToolTip1.SetToolTip(Me.Label6, "Text encoding for MSG files.")
         '
         'CheckBox1
@@ -320,7 +320,7 @@ Partial Class Setting_Form
         Me.RadioButton3.Size = New System.Drawing.Size(65, 17)
         Me.RadioButton3.TabIndex = 2
         Me.RadioButton3.Text = "LevCorp"
-        Me.ToolTip1.SetToolTip(Me.RadioButton3, "Кодировка русского текста использующаяся в файлах ЛевойКорпорации.")
+        Me.ToolTip1.SetToolTip(Me.RadioButton3, "Russian text encoding used in LevCorp files.")
         Me.RadioButton3.UseVisualStyleBackColor = True
         '
         'RadioButton2
@@ -331,7 +331,7 @@ Partial Class Setting_Form
         Me.RadioButton2.Size = New System.Drawing.Size(73, 17)
         Me.RadioButton2.TabIndex = 2
         Me.RadioButton2.Text = "OEM-866 "
-        Me.ToolTip1.SetToolTip(Me.RadioButton2, "Dos encoding.")
+        Me.ToolTip1.SetToolTip(Me.RadioButton2, "Russian DOS encoding for US engine.")
         Me.RadioButton2.UseVisualStyleBackColor = True
         '
         'RadioButton1
@@ -344,7 +344,7 @@ Partial Class Setting_Form
         Me.RadioButton1.TabIndex = 2
         Me.RadioButton1.TabStop = True
         Me.RadioButton1.Text = "Default (Win)"
-        Me.ToolTip1.SetToolTip(Me.RadioButton1, "Use default windows encoding character set.")
+        Me.ToolTip1.SetToolTip(Me.RadioButton1, "Use default Windows encoding character set.")
         Me.RadioButton1.UseVisualStyleBackColor = True
         '
         'btnClear
@@ -355,7 +355,7 @@ Partial Class Setting_Form
         Me.btnClear.Size = New System.Drawing.Size(90, 23)
         Me.btnClear.TabIndex = 1
         Me.btnClear.Text = "Clear Art Cache"
-        Me.ToolTip1.SetToolTip(Me.btnClear, "Clear cache folder of images files.")
+        Me.ToolTip1.SetToolTip(Me.btnClear, "Clear image files in cache folder.")
         Me.btnClear.UseVisualStyleBackColor = True
         '
         'CheckBox3

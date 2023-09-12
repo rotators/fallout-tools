@@ -388,20 +388,20 @@ Partial Class Items_Form
         Me.cmbWScoreType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
         Me.cmbWScoreType.DropDownWidth = 149
         Me.cmbWScoreType.FormattingEnabled = True
-        Me.cmbWScoreType.Items.AddRange(New Object() {"sfall calc [Fix vanilla]", "Vanilla calc [Obsolete]"})
+        Me.cmbWScoreType.Items.AddRange(New Object() {"Fixed formula [sfall fix]", "Original formula"})
         Me.cmbWScoreType.Location = New System.Drawing.Point(270, 287)
         Me.cmbWScoreType.Name = "cmbWScoreType"
         Me.cmbWScoreType.Size = New System.Drawing.Size(149, 22)
         Me.cmbWScoreType.TabIndex = 31
-        Me.ToolTip1.SetToolTip(Me.cmbWScoreType, "sfall:	(MaxDmg + MinDmg) / 4	[multiplied by 2 if there is a perk]" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Vanilla:	(MaxDmg - " &
-        "MinDmg) / 2	[multiplied by 5 if there is a perk]")
+        Me.ToolTip1.SetToolTip(Me.cmbWScoreType, "Fixed:    (MaxDmg + MinDmg) / 4  [multiplied by 2 if there is a perk]" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Original: " &
+        "(MaxDmg - MinDmg) / 2  [multiplied by 5 if there is a perk]")
         '
         'lblWeaponScore
         '
         Me.lblWeaponScore.AutoSize = True
         Me.lblWeaponScore.Font = New System.Drawing.Font("Arial", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
         Me.lblWeaponScore.ForeColor = System.Drawing.Color.DarkRed
-        Me.lblWeaponScore.Location = New System.Drawing.Point(142, 293)
+        Me.lblWeaponScore.Location = New System.Drawing.Point(159, 293)
         Me.lblWeaponScore.Name = "lblWeaponScore"
         Me.lblWeaponScore.Size = New System.Drawing.Size(28, 15)
         Me.lblWeaponScore.TabIndex = 21
@@ -411,12 +411,12 @@ Partial Class Items_Form
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Font = New System.Drawing.Font("Arial", 8.25!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
+        Me.Label1.Font = New System.Drawing.Font("Arial", 9.0!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
         Me.Label1.Location = New System.Drawing.Point(10, 293)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(134, 14)
+        Me.Label1.Size = New System.Drawing.Size(144, 15)
         Me.Label1.TabIndex = 20
-        Me.Label1.Text = "AI Weapon points priority:"
+        Me.Label1.Text = "AI Weapon priority score:"
         '
         'GroupBox15
         '
@@ -908,8 +908,8 @@ Partial Class Items_Form
         Me.cbEnergyGun.Size = New System.Drawing.Size(83, 18)
         Me.cbEnergyGun.TabIndex = 30
         Me.cbEnergyGun.Text = "Energy Gun"
-        Me.ToolTip1.SetToolTip(Me.cbEnergyGun, "Указывает движку игры, принудительно использовать навык ""Энергетическое оружие"" д" &
-        "ля оружия.")
+        Me.ToolTip1.SetToolTip(Me.cbEnergyGun, "Tells the game engine to force the weapon to use the ""Energy Weapons"" skill (sfal" &
+        "l).")
         Me.cbEnergyGun.UseVisualStyleBackColor = True
         '
         'cbTwoHand
@@ -931,7 +931,7 @@ Partial Class Items_Form
         Me.cbBigGun.Size = New System.Drawing.Size(64, 18)
         Me.cbBigGun.TabIndex = 29
         Me.cbBigGun.Text = "Big Gun"
-        Me.ToolTip1.SetToolTip(Me.cbBigGun, "Оружие будет использовать навык ""Тяжелое оружие"".")
+        Me.ToolTip1.SetToolTip(Me.cbBigGun, "The weapon will use the ""Big Guns"" skill.")
         Me.cbBigGun.UseVisualStyleBackColor = True
         '
         'TabPage2
@@ -956,19 +956,19 @@ Partial Class Items_Form
         'Label54
         '
         Me.Label54.AutoSize = True
-        Me.Label54.Font = New System.Drawing.Font("Arial", 8.25!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
-        Me.Label54.Location = New System.Drawing.Point(11, 293)
+        Me.Label54.Font = New System.Drawing.Font("Arial", 9.0!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
+        Me.Label54.Location = New System.Drawing.Point(10, 293)
         Me.Label54.Name = "Label54"
-        Me.Label54.Size = New System.Drawing.Size(123, 14)
+        Me.Label54.Size = New System.Drawing.Size(132, 15)
         Me.Label54.TabIndex = 23
-        Me.Label54.Text = "AI Armor points priority:"
+        Me.Label54.Text = "AI Armor priority score:"
         '
         'lblArmorScore
         '
         Me.lblArmorScore.AutoSize = True
         Me.lblArmorScore.Font = New System.Drawing.Font("Arial", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(204, Byte))
         Me.lblArmorScore.ForeColor = System.Drawing.Color.Maroon
-        Me.lblArmorScore.Location = New System.Drawing.Point(140, 293)
+        Me.lblArmorScore.Location = New System.Drawing.Point(147, 293)
         Me.lblArmorScore.Name = "lblArmorScore"
         Me.lblArmorScore.Size = New System.Drawing.Size(28, 15)
         Me.lblArmorScore.TabIndex = 0

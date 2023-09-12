@@ -21,7 +21,7 @@ Friend Class Main_Form
     Friend Sub SetFormSettings()
         DontHoverSelectToolStripMenuItem.Checked = Not (Settings.HoverSelect)
         If Not (Settings.HoverSelect) Then SetListViewHoverSelect()
-        Cp886ToolStripMenuItem.Checked = Not (Settings.txtWin) And Not (Settings.txtLvCp)
+        Cp866ToolStripMenuItem.Checked = Not (Settings.txtWin) And Not (Settings.txtLvCp)
         ClearToolStripMenuItem2.Checked = Settings.cArtCache
         ShowFIDToolStripMenuItem.Checked = Settings.ShowCritterFid
         ShowPIDToolStripMenuItem.Checked = Settings.ShowItemPid
@@ -392,8 +392,8 @@ Friend Class Main_Form
         cArtCache = ClearToolStripMenuItem2.Checked
     End Sub
 
-    Private Sub Cp886ToolStripMenuItem_Click(ByVal sender As Object, ByVal e As EventArgs) Handles Cp886ToolStripMenuItem.Click
-        Settings.txtWin = Not (Cp886ToolStripMenuItem.Checked)
+    Private Sub Cp866ToolStripMenuItem_Click(ByVal sender As Object, ByVal e As EventArgs) Handles Cp866ToolStripMenuItem.Click
+        Settings.txtWin = Not (Cp866ToolStripMenuItem.Checked)
         Settings.SetEncoding()
         txtLvCp = False
     End Sub

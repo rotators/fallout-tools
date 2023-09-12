@@ -113,7 +113,7 @@ Partial Class AboutBox
         '
         Me.TextBoxDescription.Cursor = System.Windows.Forms.Cursors.Default
         Me.TextBoxDescription.Dock = System.Windows.Forms.DockStyle.Fill
-        Me.TextBoxDescription.Font = New System.Drawing.Font("Microsoft Sans Serif", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.TextBoxDescription.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
         Me.TextBoxDescription.Location = New System.Drawing.Point(3, 72)
         Me.TextBoxDescription.Margin = New System.Windows.Forms.Padding(3, 0, 3, 3)
         Me.TextBoxDescription.Multiline = True

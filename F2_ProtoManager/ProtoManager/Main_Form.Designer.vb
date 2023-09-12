@@ -61,7 +61,7 @@ Partial Class Main_Form
         Me.Fallout1ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.FromSfallToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.AttrReadOnlyToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
-        Me.Cp886ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
+        Me.Cp866ToolStripMenuItem = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator9 = New System.Windows.Forms.ToolStripSeparator()
         Me.ClearToolStripMenuItem2 = New System.Windows.Forms.ToolStripMenuItem()
         Me.ToolStripSeparator10 = New System.Windows.Forms.ToolStripSeparator()
@@ -113,7 +113,6 @@ Partial Class Main_Form
         Me.ColumnHeader6 = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.cFid = CType(New System.Windows.Forms.ColumnHeader(), System.Windows.Forms.ColumnHeader)
         Me.SplitContainer1 = New System.Windows.Forms.SplitContainer()
-        Me.Label4 = New System.Windows.Forms.Label()
         Me.LinkLabel3 = New System.Windows.Forms.LinkLabel()
         Me.TextBox1 = New System.Windows.Forms.RichTextBox()
         Me.Label2 = New System.Windows.Forms.Label()
@@ -321,7 +320,7 @@ Partial Class Main_Form
         '
         Me.AIPacketToolStripMenuItem.Name = "AIPacketToolStripMenuItem"
         Me.AIPacketToolStripMenuItem.Size = New System.Drawing.Size(146, 22)
-        Me.AIPacketToolStripMenuItem.Text = "AI Packet Edit"
+        Me.AIPacketToolStripMenuItem.Text = "AI Packet Editor"
         '
         'ItemsTableToolStripMenuItem
         '
@@ -360,7 +359,7 @@ Partial Class Main_Form
         '
         'ToolStripSplitButton2
         '
-        Me.ToolStripSplitButton2.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.StatsFormulaToolStripMenuItem, Me.AttrReadOnlyToolStripMenuItem, Me.Cp886ToolStripMenuItem, Me.ToolStripSeparator9, Me.ClearToolStripMenuItem2, Me.ToolStripSeparator10, Me.ShowPIDToolStripMenuItem, Me.ShowFIDToolStripMenuItem, Me.ViewLogToolStripMenuItem, Me.ToolStripSeparator12, Me.DontHoverSelectToolStripMenuItem})
+        Me.ToolStripSplitButton2.DropDownItems.AddRange(New System.Windows.Forms.ToolStripItem() {Me.StatsFormulaToolStripMenuItem, Me.AttrReadOnlyToolStripMenuItem, Me.Cp866ToolStripMenuItem, Me.ToolStripSeparator9, Me.ClearToolStripMenuItem2, Me.ToolStripSeparator10, Me.ShowPIDToolStripMenuItem, Me.ShowFIDToolStripMenuItem, Me.ViewLogToolStripMenuItem, Me.ToolStripSeparator12, Me.DontHoverSelectToolStripMenuItem})
         Me.ToolStripSplitButton2.Image = CType(resources.GetObject("ToolStripSplitButton2.Image"), System.Drawing.Image)
         Me.ToolStripSplitButton2.ImageTransparentColor = System.Drawing.Color.Magenta
         Me.ToolStripSplitButton2.Name = "ToolStripSplitButton2"
@@ -404,17 +403,17 @@ Partial Class Main_Form
         Me.AttrReadOnlyToolStripMenuItem.Name = "AttrReadOnlyToolStripMenuItem"
         Me.AttrReadOnlyToolStripMenuItem.ShowShortcutKeys = False
         Me.AttrReadOnlyToolStripMenuItem.Size = New System.Drawing.Size(186, 22)
-        Me.AttrReadOnlyToolStripMenuItem.Text = "Set Pro 'ReadOnly'"
+        Me.AttrReadOnlyToolStripMenuItem.Text = "Set PRO 'Read-Only'"
         Me.AttrReadOnlyToolStripMenuItem.ToolTipText = "Set Read-Only attribute on file when you save PRO file."
         '
-        'Cp886ToolStripMenuItem
+        'Cp866ToolStripMenuItem
         '
-        Me.Cp886ToolStripMenuItem.CheckOnClick = True
-        Me.Cp886ToolStripMenuItem.Name = "Cp886ToolStripMenuItem"
-        Me.Cp886ToolStripMenuItem.ShowShortcutKeys = False
-        Me.Cp886ToolStripMenuItem.Size = New System.Drawing.Size(186, 22)
-        Me.Cp886ToolStripMenuItem.Text = "Encoding Msg CP886"
-        Me.Cp886ToolStripMenuItem.ToolTipText = "Read and save MSG files in a DOS encoding."
+        Me.Cp866ToolStripMenuItem.CheckOnClick = True
+        Me.Cp866ToolStripMenuItem.Name = "Cp866ToolStripMenuItem"
+        Me.Cp866ToolStripMenuItem.ShowShortcutKeys = False
+        Me.Cp866ToolStripMenuItem.Size = New System.Drawing.Size(186, 22)
+        Me.Cp866ToolStripMenuItem.Text = "MSG CP866 encoding"
+        Me.Cp866ToolStripMenuItem.ToolTipText = "Read and save MSG files in Russian DOS encoding."
         '
         'ToolStripSeparator9
         '
@@ -428,7 +427,7 @@ Partial Class Main_Form
         Me.ClearToolStripMenuItem2.ShowShortcutKeys = False
         Me.ClearToolStripMenuItem2.Size = New System.Drawing.Size(186, 22)
         Me.ClearToolStripMenuItem2.Text = "Clear Art Cache"
-        Me.ClearToolStripMenuItem2.ToolTipText = "Clear art files in cache when program is closed."
+        Me.ClearToolStripMenuItem2.ToolTipText = "Clear cached art files when the program is closed."
         '
         'ToolStripSeparator10
         '
@@ -840,7 +839,6 @@ Partial Class Main_Form
         'SplitContainer1.Panel1
         '
         Me.SplitContainer1.Panel1.BackColor = System.Drawing.Color.FromArgb(CType(CType(90, Byte), Integer), CType(CType(95, Byte), Integer), CType(CType(115, Byte), Integer))
-        Me.SplitContainer1.Panel1.Controls.Add(Me.Label4)
         Me.SplitContainer1.Panel1.Controls.Add(Me.LinkLabel2)
         Me.SplitContainer1.Panel1.Controls.Add(Me.LinkLabel3)
         Me.SplitContainer1.Panel1.Controls.Add(Me.LinkLabel1)
@@ -858,18 +856,6 @@ Partial Class Main_Form
         Me.SplitContainer1.Size = New System.Drawing.Size(999, 574)
         Me.SplitContainer1.SplitterDistance = 671
         Me.SplitContainer1.TabIndex = 7
-        '
-        'Label4
-        '
-        Me.Label4.AutoSize = True
-        Me.Label4.BackColor = System.Drawing.Color.Transparent
-        Me.Label4.ForeColor = System.Drawing.Color.Yellow
-        Me.Label4.Location = New System.Drawing.Point(12, 97)
-        Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(130, 13)
-        Me.Label4.TabIndex = 4
-        Me.Label4.Text = ">> New version released: "
-        Me.Label4.Visible = False
         '
         'LinkLabel3
         '
@@ -1022,7 +1008,7 @@ Partial Class Main_Form
     Friend WithEvents ToolStripButton11 As System.Windows.Forms.ToolStripDropDownButton
     Friend WithEvents ToolStripSeparator6 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents ToolStripSplitButton2 As System.Windows.Forms.ToolStripSplitButton
-    Friend WithEvents Cp886ToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
+    Friend WithEvents Cp866ToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents AttrReadOnlyToolStripMenuItem As System.Windows.Forms.ToolStripMenuItem
     Friend WithEvents ToolStripSeparator9 As System.Windows.Forms.ToolStripSeparator
     Friend WithEvents ClearToolStripMenuItem2 As System.Windows.Forms.ToolStripMenuItem
@@ -1076,7 +1062,6 @@ Partial Class Main_Form
     Friend WithEvents LinkLabel3 As LinkLabel
     Friend WithEvents Label3 As Label
     Friend WithEvents BackwardFindToolStripMenuItem As ToolStripMenuItem
-    Friend WithEvents Label4 As Label
     Public WithEvents ColumnHeader1 As ColumnHeader
     Public WithEvents cFid As ColumnHeader
 End Class
