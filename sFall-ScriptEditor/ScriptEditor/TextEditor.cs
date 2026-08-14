@@ -544,6 +544,16 @@ namespace ScriptEditor
             Refresh();
             Opacity = 1D;
 
+            // Let native Search & Replace controls complete their first paint while
+            // invisible. The reusable dialog can then appear without a light-theme
+            // frame when the user presses Ctrl+F for the first time.
+            BeginInvoke(new MethodInvoker(delegate {
+                if (!IsDisposed && !isClosing) {
+                    EnsureSearchForm();
+                    sf.Prewarm();
+                }
+            }));
+
             // Give Windows one complete painted frame before restoring documents.
             // Session tabs are useful startup state, but they must not delay the shell.
             var startupDocumentsTimer = new Timer { Interval = 50 };
@@ -558,19 +568,19 @@ namespace ScriptEditor
 
         private void RestoreStartupDocuments()
         {
-            bool restoredPreviousSession = RestorePreviousSession();
+            RestorePreviousSession(delegate(bool restoredPreviousSession) {
+                // Open documents passed from the command line after session restoration.
+                foreach (string fArg in commandsArgs)
+                {
+                    string file = fArg;
+                    bool fcd = FileAssociation.CheckFCDFile(ref file);
+                    if (file != null)
+                        Open(file, TextEditor.OpenType.File, commandline: true, fcdOpen: fcd);
+                }
 
-            // Open documents passed from the command line after the application shell is visible.
-            foreach (string fArg in commandsArgs)
-            {
-                string file = fArg;
-                bool fcd = FileAssociation.CheckFCDFile(ref file);
-                if (file != null)
-                    Open(file, TextEditor.OpenType.File, commandline: true, fcdOpen: fcd);
-            }
-
-            if (restoredPreviousSession)
-                BeginInvoke((MethodInvoker)ExpandRestoredProcedureGroups);
+                if (restoredPreviousSession)
+                    BeginInvoke((MethodInvoker)ExpandRestoredProcedureGroups);
+            });
         }
 
         private void TextEditor_Resize(object sender, EventArgs e)
@@ -689,10 +699,12 @@ namespace ScriptEditor
             statusMessageTimer.Start();
         }
 
-        private bool RestorePreviousSession()
+        private void RestorePreviousSession(Action<bool> completed)
         {
-            if (!Settings.reopenLastTabs)
-                return false;
+            if (!Settings.reopenLastTabs) {
+                completed(false);
+                return;
+            }
 
             int selectedIndex;
             string[] paths = Settings.LoadLastSession(out selectedIndex);
@@ -702,18 +714,45 @@ namespace ScriptEditor
             }
             TabInfo selectedTab = null;
             bool restoredAny = false;
-            for (int i = 0; i < paths.Length; i++) {
-                if (!File.Exists(paths[i]))
-                    continue;
-                TabInfo restored = Open(paths[i], OpenType.File, addToMRU: false, seltab: false);
-                restoredAny |= restored != null;
-                if (i == selectedIndex)
-                    selectedTab = restored;
-            }
-            if (selectedTab != null && selectedTab.index >= 0 && selectedTab.index < tabControl1.TabCount)
-                tabControl1.SelectTab(selectedTab.index);
+            int pathIndex = 0;
 
-            return restoredAny;
+            if (paths.Length == 0) {
+                completed(false);
+                return;
+            }
+
+            // Restore one document per UI turn. Individual files still receive their normal
+            // initialization, but the shell can repaint and accept input between files.
+            var restoreTimer = new Timer { Interval = 1 };
+            restoreTimer.Tick += delegate {
+                restoreTimer.Stop();
+                if (IsDisposed || isClosing) {
+                    restoreTimer.Dispose();
+                    return;
+                }
+
+                while (pathIndex < paths.Length && !File.Exists(paths[pathIndex]))
+                    pathIndex++;
+
+                if (pathIndex < paths.Length) {
+                    int restoringIndex = pathIndex;
+                    TabInfo restored = Open(paths[pathIndex++], OpenType.File, addToMRU: false, seltab: false);
+                    restoredAny |= restored != null;
+                    if (restoringIndex == selectedIndex)
+                        selectedTab = restored;
+                }
+
+                if (pathIndex < paths.Length) {
+                    restoreTimer.Start();
+                    return;
+                }
+
+                restoreTimer.Dispose();
+                if (selectedTab != null && selectedTab.index >= 0 && selectedTab.index < tabControl1.TabCount)
+                    tabControl1.SelectTab(selectedTab.index);
+                completed(restoredAny);
+            };
+            restoreTimer.Start();
         }
 
         private void ExpandRestoredProcedureGroups()
@@ -764,10 +803,8 @@ namespace ScriptEditor
 
             // Parser timer
             extParserTimer = new Timer();
-            extParserTimer.Interval = 100;
             extParserTimer.Tick += new EventHandler(ExternalParser_Tick);
             intParserTimer = new Timer();
-            intParserTimer.Interval = 10;
             intParserTimer.Tick += new EventHandler(InternalParser_Tick);
 
             // Tabs Swapped

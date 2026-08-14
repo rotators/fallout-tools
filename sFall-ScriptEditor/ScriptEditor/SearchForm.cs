@@ -10,10 +10,16 @@ namespace ScriptEditor
     public partial class SearchForm : Form
     {
         private bool isHide = false;
+        private bool initialThemeReady;
+        private bool prewarming;
+        private bool revealing;
         private readonly ToolTip searchToolTip = new ToolTip();
 
         public SearchForm()
         {
+            // Keep native light controls out of the first visible frame. Handles are
+            // created and themed in OnLoad before the search window is revealed.
+            Opacity = 0D;
             InitializeComponent();
 
             cbSearchPath.Items.AddRange((Settings.searchListPath.Count > 0)
@@ -76,6 +82,98 @@ namespace ScriptEditor
                     this.bSearch.PerformClick();
                 }
             };
+
+            InterfaceTheme.Apply((Control)this);
+            PerformLayout();
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            EnsureControlHandles(this);
+            InterfaceTheme.Apply(this);
+            PerformLayout();
+            Update();
+        }
+
+        protected override void SetVisibleCore(bool value)
+        {
+            if (value && !initialThemeReady) {
+                // Create and theme the complete native control hierarchy before WinForms
+                // is allowed to make the window visible. This avoids exposing the initial
+                // system-colour layout pass.
+                EnsureControlHandles(this);
+                InterfaceTheme.Apply(this);
+                PerformLayout();
+                Refresh();
+                Update();
+                initialThemeReady = true;
+            }
+
+            if (value && !prewarming) {
+                revealing = true;
+                Opacity = 0D;
+            }
+            base.SetVisibleCore(value);
+
+            if (value && !prewarming) {
+                // Showing an editable ComboBox recreates and repaints its native edit
+                // child. Keep the composed window transparent through that pass, then
+                // reveal the already-themed pixels as one complete frame.
+                EnsureControlHandles(this);
+                InterfaceTheme.Apply(this);
+                PerformLayout();
+                Refresh();
+                Update();
+                Opacity = 1D;
+                revealing = false;
+            }
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            InterfaceTheme.Apply(this);
+            Refresh();
+            Update();
+            base.OnShown(e);
+        }
+
+        protected override bool ShowWithoutActivation
+        {
+            get { return prewarming; }
+        }
+
+        public void Prewarm()
+        {
+            if (IsDisposed || initialThemeReady || Visible)
+                return;
+
+            prewarming = true;
+            Opacity = 0D;
+            try {
+                // Some native WinForms controls only complete their first paint after
+                // the top-level window is shown. Perform that paint invisibly so Ctrl+F
+                // never exposes their temporary system colours.
+                Show();
+                EnsureControlHandles(this);
+                InterfaceTheme.Apply(this);
+                PerformLayout();
+                Refresh();
+                Update();
+                Hide();
+            }
+            finally {
+                prewarming = false;
+                Opacity = 0D;
+                initialThemeReady = true;
+            }
+        }
+
+        private static void EnsureControlHandles(Control parent)
+        {
+            IntPtr handle = parent.Handle;
+            foreach (Control child in parent.Controls)
+                EnsureControlHandles(child);
         }
 
         public List<string> GetFolderFiles()
@@ -89,6 +187,37 @@ namespace ScriptEditor
                 files.AddRange(Directory.GetFiles(Settings.lastSearchPath, cbFileMask.Text, so));
 
             return files;
+        }
+
+        internal string[] GetFolderSearchPatterns()
+        {
+            if (cbFileMask.SelectedIndex == 0)
+                return cbFileMask.Items.Cast<object>().Skip(1).Select(item => item.ToString()).ToArray();
+            return new[] { cbFileMask.Text };
+        }
+
+        internal bool SearchSubfolders
+        {
+            get { return cbSearchSubfolders.Checked; }
+        }
+
+        internal void SetFolderSearchRunning(bool running)
+        {
+            cbSearch.Enabled = !running;
+            tbReplace.Enabled = !running;
+            cbCase.Enabled = !running;
+            cbWord.Enabled = !running && !cbRegular.Checked;
+            cbRegular.Enabled = !running;
+            cbFindAll.Enabled = !running;
+            rbCurrent.Enabled = !running;
+            rbAll.Enabled = !running;
+            rbFolder.Enabled = !running;
+            cbSearchPath.Enabled = !running && rbFolder.Checked;
+            cbSearchSubfolders.Enabled = !running && rbFolder.Checked;
+            cbFileMask.Enabled = !running && rbFolder.Checked;
+            bChange.Enabled = !running && rbFolder.Checked;
+            bReplace.Enabled = !running && !rbFolder.Checked;
+            bSearch.Text = running ? "Cancel" : "Search";
         }
 
         private void SelectSearchPath(string path)
@@ -124,6 +253,8 @@ namespace ScriptEditor
 
         private void SearchForm_Activated(object sender, EventArgs e)
         {
+            if (prewarming || revealing)
+                return;
             Opacity = 1;
             isHide = false;
         }

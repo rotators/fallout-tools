@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -19,6 +21,15 @@ namespace ScriptEditor
 {
     partial class TextEditor
     {
+        private CancellationTokenSource folderSearchCancellation;
+
+        private sealed class FolderSearchResult
+        {
+            internal readonly List<string> Files = new List<string>();
+            internal readonly List<Error> Matches = new List<Error>();
+            internal int Scanned;
+        }
+
         #region Search Function
         private bool SubSearchInternal(List<int> offsets, List<int> lengths)
         {
@@ -120,37 +131,50 @@ namespace ScriptEditor
         #region Search & Replace function form
         private string lastSearchText = string.Empty;
 
+        private void EnsureSearchForm()
+        {
+            if (sf != null)
+                return;
+
+            sf = new SearchForm();
+            sf.Owner = this;
+
+            sf.FormClosed += delegate(object a1, FormClosedEventArgs a2) {
+                if (folderSearchCancellation != null) {
+                    folderSearchCancellation.Cancel();
+                    folderSearchCancellation.Dispose();
+                    folderSearchCancellation = null;
+                }
+                lastSearchText = sf.cbSearch.Text;
+                sf = null;
+            };
+
+            sf.lbFindFiles.MouseDoubleClick += delegate (object a1, MouseEventArgs a2) {
+                if (sf.lbFindFiles.Items.Count == 0) return;
+
+                string file = sf.lbFindFiles.SelectedItem.ToString();
+
+                TabInfo tab = CheckTabs(tabs, file); // проверить открыт ли уже этот файл
+                bool isOpen = (tab != null);
+                if (!isOpen) tab = Open(file, OpenType.File, false);
+
+                Utilities.SearchAndScroll(tab.textEditor.ActiveTextAreaControl, (Regex)sf.lbFindFiles.Tag,
+                                          sf.cbSearch.Text, sf.cbCase.Checked, ref PosChangeType, false);
+
+                if (isOpen) SwitchToTab(tab.index);
+            };
+
+            sf.bSearch.Click += new EventHandler(bSearch_Click);
+            sf.bReplace.Click += new EventHandler(bReplace_Click);
+
+            sf.cbSearch.Items.AddRange(SearchTextComboBox.Items.Cast<String>().ToArray());
+        }
+
         private void findToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string searchText = lastSearchText;
             if (sf == null) {
-                sf = new SearchForm();
-                sf.Owner = this;
-
-                sf.FormClosed += delegate(object a1, FormClosedEventArgs a2) {
-                    lastSearchText = sf.cbSearch.Text;
-                    sf = null;
-                };
-
-                sf.lbFindFiles.MouseDoubleClick += delegate (object a1, MouseEventArgs a2) {
-                    if (sf.lbFindFiles.Items.Count == 0) return;
-
-                    string file = sf.lbFindFiles.SelectedItem.ToString();
-
-                    TabInfo tab = CheckTabs(tabs, file); // проверить открыт ли уже этот файл
-                    bool isOpen = (tab != null);
-                    if (!isOpen) tab = Open(file, OpenType.File, false);
-
-                    Utilities.SearchAndScroll(tab.textEditor.ActiveTextAreaControl, (Regex)sf.lbFindFiles.Tag,
-                                              sf.cbSearch.Text, sf.cbCase.Checked, ref PosChangeType, false);
-
-                    if (isOpen) SwitchToTab(tab.index);
-                };
-
-                sf.bSearch.Click += new EventHandler(bSearch_Click);
-                sf.bReplace.Click += new EventHandler(bReplace_Click);
-
-                sf.cbSearch.Items.AddRange(SearchTextComboBox.Items.Cast<String>().ToArray());
+                EnsureSearchForm();
             } else {
                 sf.WindowState = FormWindowState.Normal;
                 sf.Focus();
@@ -169,12 +193,156 @@ namespace ScriptEditor
             sf.cbSearch.SelectAll();
         }
 
-        private void bSearch_Click(object sender, EventArgs e)
+        private async void bSearch_Click(object sender, EventArgs e)
         {
             sf.cbSearch.Text = sf.cbSearch.Text.Trim();
             if (sf.cbSearch.Text.Length == 0)
                 return;
+            if (sf.rbFolder.Checked) {
+                if (folderSearchCancellation != null) {
+                    folderSearchCancellation.Cancel();
+                    return;
+                }
+                await SearchFolderAsync();
+                return;
+            }
             SubSearchInternal(null, null);
+        }
+
+        private async Task SearchFolderAsync()
+        {
+            if (sf == null || String.IsNullOrWhiteSpace(Settings.lastSearchPath)
+                || !Directory.Exists(Settings.lastSearchPath)) {
+                EditorNotifications.Show(this, "Select a folder before searching files.", NotificationKind.Warning);
+                return;
+            }
+
+            RegexOptions options = sf.cbCase.Checked ? RegexOptions.None : RegexOptions.IgnoreCase;
+            Regex regex = null;
+            try {
+                if (sf.cbRegular.Checked)
+                    regex = new Regex(sf.cbSearch.Text, options | RegexOptions.Compiled);
+                else if (Settings.searchWholeWord)
+                    regex = new Regex(@"\b" + Regex.Escape(sf.cbSearch.Text) + @"\b",
+                        options | RegexOptions.Compiled);
+            } catch (ArgumentException ex) {
+                EditorNotifications.Show(this, "Invalid regular expression: " + ex.Message,
+                    NotificationKind.Error);
+                return;
+            }
+
+            string folder = Settings.lastSearchPath;
+            string[] patterns = sf.GetFolderSearchPatterns();
+            bool recursive = sf.SearchSubfolders;
+            bool findAll = sf.cbFindAll.Checked;
+            bool matchCase = sf.cbCase.Checked;
+            string searchText = sf.cbSearch.Text;
+            AddSearchTextComboBox(searchText);
+
+            var cancellation = new CancellationTokenSource();
+            folderSearchCancellation = cancellation;
+            sf.SetFolderSearchRunning(true);
+            EditorNotifications.Show(this, "Searching files...", NotificationKind.Information, 60000);
+
+            try {
+                FolderSearchResult result = await Task.Run(() =>
+                    SearchFolderFiles(folder, patterns, recursive, findAll, searchText, regex,
+                        matchCase, cancellation.Token), cancellation.Token);
+
+                if (sf == null || sf.IsDisposed)
+                    return;
+
+                sf.lbFindFiles.Tag = regex;
+                sf.lbFindFiles.Items.Clear();
+                sf.lbFindFiles.Visible = false;
+                sf.labelCount.Text = findAll ? result.Matches.Count.ToString() : result.Files.Count.ToString();
+
+                if (!findAll) {
+                    if (result.Files.Count > 0) {
+                        sf.lbFindFiles.Items.AddRange(result.Files.Cast<object>().ToArray());
+                        if (sf.Height < 500) sf.Height = 500;
+                        sf.lbFindFiles.Visible = true;
+                    }
+                } else if (result.Matches.Count > 0) {
+                    DataGridView dgv = CommonDGV.DataGridCreate();
+                    dgv.DoubleClick += dgvErrors_DoubleClick;
+                    dgv.SuspendLayout();
+                    foreach (Error match in result.Matches)
+                        dgv.Rows.Add(Path.GetFileName(match.fileName), match.line.ToString(), match);
+                    dgv.ResumeLayout();
+
+                    TabPage page = new TabPage("Search results") {
+                        ToolTipText = "Find text: " + searchText
+                    };
+                    page.Controls.Add(dgv);
+                    dgv.Dock = DockStyle.Fill;
+                    InterfaceTheme.Apply(page);
+                    tabControl2.TabPages.Add(page);
+                    tabControl2.SelectTab(page);
+                    MaximizeLog();
+                }
+
+                int found = findAll ? result.Matches.Count : result.Files.Count;
+                EditorNotifications.Show(this,
+                    found == 0
+                        ? "No matches found for '" + searchText + "'."
+                        : String.Format("Found {0} match{1} in {2} files.",
+                            found, found == 1 ? String.Empty : "es", result.Scanned),
+                    found == 0 ? NotificationKind.Information : NotificationKind.Success);
+            } catch (OperationCanceledException) {
+                EditorNotifications.Show(this, "Folder search cancelled.", NotificationKind.Information);
+            } catch (Exception ex) {
+                EditorNotifications.Show(this, "Folder search failed: " + ex.Message,
+                    NotificationKind.Error);
+            } finally {
+                if (folderSearchCancellation == cancellation)
+                    folderSearchCancellation = null;
+                cancellation.Dispose();
+                if (sf != null && !sf.IsDisposed)
+                    sf.SetFolderSearchRunning(false);
+            }
+        }
+
+        private static FolderSearchResult SearchFolderFiles(string folder, string[] patterns,
+            bool recursive, bool findAll, string searchText, Regex regex, bool matchCase,
+            CancellationToken cancellationToken)
+        {
+            var result = new FolderSearchResult();
+            var files = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            SearchOption option = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+            foreach (string pattern in patterns) {
+                cancellationToken.ThrowIfCancellationRequested();
+                foreach (string file in Directory.EnumerateFiles(folder, pattern, option))
+                    files.Add(file);
+            }
+
+            foreach (string file in files) {
+                cancellationToken.ThrowIfCancellationRequested();
+                result.Scanned++;
+                try {
+                    if (!findAll) {
+                        if (Utilities.Search(File.ReadAllText(file), searchText, regex, matchCase))
+                            result.Files.Add(file);
+                        continue;
+                    }
+
+                    string[] lines = File.ReadAllLines(file);
+                    for (int i = 0; i < lines.Length; i++) {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        bool matched = regex != null
+                            ? regex.IsMatch(lines[i])
+                            : lines[i].IndexOf(searchText, matchCase
+                                ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase) >= 0;
+                        if (matched)
+                            result.Matches.Add(new Error(lines[i].Trim(), Path.GetFullPath(file), i + 1));
+                    }
+                } catch (IOException) {
+                    // Files may disappear or be temporarily locked during a project-wide search.
+                } catch (UnauthorizedAccessException) {
+                    // Skip inaccessible files while continuing through the selected folder.
+                }
+            }
+            return result;
         }
 
         void bReplace_Click(object sender, EventArgs e)

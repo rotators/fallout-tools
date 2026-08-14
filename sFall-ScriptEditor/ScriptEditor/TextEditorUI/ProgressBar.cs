@@ -37,21 +37,21 @@ namespace ScriptEditor.TextEditorUI
                 progressForm.Location = new Point(owner.Location.X + (owner.Width - progressForm.Width) / 2,
                                                   owner.Location.Y + (owner.Height - progressForm.Height) / 2);
             progressForm.Show(owner);
-            Application.DoEvents();
+            progressForm.Update();
         }
 
         public int SetProgress
         {
             set {
                 bar.Value = value;
-                Application.DoEvents();
+                bar.Update();
             }
         }
 
         public void IncProgress()
         {
             if (bar.Value < bar.Maximum) bar.Value++;
-            Application.DoEvents();
+            bar.Update();
         }
 
         public void Dispose()

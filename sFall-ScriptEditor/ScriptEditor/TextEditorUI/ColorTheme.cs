@@ -31,7 +31,11 @@ namespace ScriptEditor.TextEditorUI
         }
 
         public static Color HighlightProcedureTree {
-            get { return (IsDarkTheme) ? Color.Yellow : Color.Blue; }
+            get {
+                return ScriptEditor.InterfaceTheme.IsDark
+                    ? Color.FromArgb(255, 214, 82)
+                    : Color.FromArgb(0, 90, 180);
+            }
         }
 
         public static string HighlightingScheme

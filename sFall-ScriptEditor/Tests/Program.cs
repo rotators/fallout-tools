@@ -37,6 +37,7 @@ namespace SfallScriptEditor.Tests
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
             Run("notification severity is conveyed in text", NotificationSeverityIsConveyedInText);
             Run("LF message files populate hover text", LfMessageFilesPopulateHoverText);
+            Run("message cache reloads changed files", MessageCacheReloadsChangedFiles);
             Run("script NAME resolves shared message file", ScriptNameResolvesSharedMessageFile);
             Run("message_str resolves explicit message file", MessageStrResolvesExplicitMessageFile);
             Run("message wrapper macro resolves explicit message file", MessageWrapperMacroResolvesExplicitMessageFile);
@@ -164,6 +165,37 @@ namespace SfallScriptEditor.Tests
 
             Equal(2, scriptTab.messages.Count);
             Equal("I wouldn't work for you if you offered me all the money in this crummy place.", scriptTab.messages[117]);
+        }
+
+        private static void MessageCacheReloadsChangedFiles()
+        {
+            WithTempDirectory(directory => {
+                string messagePath = Path.Combine(directory, "cached.msg");
+                File.WriteAllText(messagePath, "{100}{}{First cached value.}\n");
+                var tab = new TabInfo {
+                    filepath = Path.Combine(directory, "cached.ssl"),
+                    filename = "cached.ssl",
+                    msgFilePath = messagePath
+                };
+
+                Encoding oldEncoding = Settings.EncCodePage;
+                try {
+                    Settings.EncCodePage = Encoding.UTF8;
+                    string message;
+                    True(MessageFile.TryGetMessageText(tab, null, 100, out message),
+                        "The initial message file should be cached.");
+                    Equal("First cached value.", message);
+
+                    File.WriteAllText(messagePath, "{100}{}{Updated value with a different length.}\n");
+                    File.SetLastWriteTimeUtc(messagePath, DateTime.UtcNow.AddSeconds(2));
+
+                    True(MessageFile.TryGetMessageText(tab, null, 100, out message),
+                        "A changed message file should still resolve.");
+                    Equal("Updated value with a different length.", message);
+                } finally {
+                    Settings.EncCodePage = oldEncoding;
+                }
+            });
         }
 
         private static void ScriptNameResolvesSharedMessageFile()

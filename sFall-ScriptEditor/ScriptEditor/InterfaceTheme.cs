@@ -31,6 +31,7 @@ namespace ScriptEditor
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
         private static readonly HashSet<CheckBox> DrawnCheckBoxes = new HashSet<CheckBox>();
         private static readonly Dictionary<CheckBox, Padding> CheckBoxPaddings = new Dictionary<CheckBox, Padding>();
+        private static readonly HashSet<RadioButton> DrawnRadioButtons = new HashSet<RadioButton>();
         private static readonly Dictionary<TextBoxBase, BorderStyle> TextBoxBorders = new Dictionary<TextBoxBase, BorderStyle>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
         private static readonly Dictionary<ComboBox, DrawMode> ComboDrawModes = new Dictionary<ComboBox, DrawMode>();
@@ -151,7 +152,7 @@ namespace ScriptEditor
                     comboWindow = new ComboBoxWindow(comboBox);
                     ComboWindows.Add(comboBox, comboWindow);
                 }
-                comboWindow.RequestPaint();
+                comboWindow.PaintNow();
             }
 
             DataGridView grid = control as DataGridView;
@@ -207,6 +208,20 @@ namespace ScriptEditor
                     checkBox.LostFocus += delegate { checkBox.Invalidate(); };
                 }
                 checkBox.Invalidate();
+            }
+
+            RadioButton radioButton = control as RadioButton;
+            if (radioButton != null && radioButton.Appearance == Appearance.Normal) {
+                if (DrawnRadioButtons.Add(radioButton)) {
+                    radioButton.Paint += DrawRadioButton;
+                    radioButton.CheckedChanged += delegate { radioButton.Invalidate(); };
+                    radioButton.EnabledChanged += delegate { radioButton.Invalidate(); };
+                    radioButton.MouseEnter += delegate { radioButton.Invalidate(); };
+                    radioButton.MouseLeave += delegate { radioButton.Invalidate(); };
+                    radioButton.GotFocus += delegate { radioButton.Invalidate(); };
+                    radioButton.LostFocus += delegate { radioButton.Invalidate(); };
+                }
+                radioButton.Invalidate();
             }
 
             ComboBox themedCombo = control as ComboBox;
@@ -442,6 +457,54 @@ namespace ScriptEditor
                 ControlPaint.DrawFocusRectangle(e.Graphics, textBounds, textColor, background);
         }
 
+        private static void DrawRadioButton(object sender, PaintEventArgs e)
+        {
+            if (!IsDark) return;
+
+            RadioButton radioButton = (RadioButton)sender;
+            Rectangle bounds = radioButton.ClientRectangle;
+            Color background = radioButton.BackColor.A == 0 && radioButton.Parent != null
+                ? radioButton.Parent.BackColor : radioButton.BackColor;
+            using (Brush backgroundBrush = new SolidBrush(background))
+                e.Graphics.FillRectangle(backgroundBrush, bounds);
+
+            int glyphSize = DpiHelper.Scale(radioButton, 13);
+            Rectangle glyph = new Rectangle(0, System.Math.Max(0, (bounds.Height - glyphSize) / 2), glyphSize, glyphSize);
+            bool hovered = radioButton.Enabled && glyph.Contains(radioButton.PointToClient(Cursor.Position));
+            Color glyphBack = radioButton.Checked
+                ? (radioButton.Enabled ? (hovered ? Color.FromArgb(18, 132, 224) : DarkAccent) : DarkSelection)
+                : DarkBack;
+            Color glyphBorder = radioButton.Enabled
+                ? (hovered ? Color.FromArgb(155, 205, 245) : Color.FromArgb(135, 135, 140))
+                : DarkBorder;
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using (Brush glyphBrush = new SolidBrush(glyphBack))
+                e.Graphics.FillEllipse(glyphBrush, glyph);
+            using (Pen borderPen = new Pen(glyphBorder))
+                e.Graphics.DrawEllipse(borderPen, glyph.X, glyph.Y, glyph.Width - 1, glyph.Height - 1);
+
+            if (radioButton.Checked) {
+                int dotInset = DpiHelper.Scale(radioButton, 4);
+                Rectangle dot = Rectangle.Inflate(glyph, -dotInset, -dotInset);
+                Color dotColor = radioButton.Enabled ? Color.White : Color.FromArgb(205, 205, 210);
+                using (Brush dotBrush = new SolidBrush(dotColor))
+                    e.Graphics.FillEllipse(dotBrush, dot);
+            }
+            e.Graphics.SmoothingMode = SmoothingMode.None;
+
+            int textGap = DpiHelper.Scale(radioButton, 5);
+            Rectangle textBounds = new Rectangle(glyph.Right + textGap, 0,
+                System.Math.Max(0, bounds.Width - glyph.Right - textGap), bounds.Height);
+            Color textColor = radioButton.Enabled ? DarkText : Color.FromArgb(155, 155, 160);
+            TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+            if (!radioButton.UseMnemonic) flags |= TextFormatFlags.NoPrefix;
+            TextRenderer.DrawText(e.Graphics, radioButton.Text, radioButton.Font, textBounds, textColor, flags);
+
+            if (radioButton.Focused && radioButton.Enabled && textBounds.Width > 0)
+                ControlPaint.DrawFocusRectangle(e.Graphics, textBounds, textColor, background);
+        }
+
         private static void DrawComboBoxItem(object sender, DrawItemEventArgs e)
         {
             if (!IsDark) return;
@@ -592,6 +655,17 @@ namespace ScriptEditor
                 PostMessage(comboBox.Handle, PaintComboMessage, System.IntPtr.Zero, System.IntPtr.Zero);
             }
 
+            internal void PaintNow()
+            {
+                if (!IsDark || !comboBox.IsHandleCreated)
+                    return;
+                paintPending = false;
+                if (comboBox.Enabled)
+                    DrawArrowButton();
+                else
+                    DrawDisabledComboBox();
+            }
+
             protected override void WndProc(ref Message m)
             {
                 if (m.Msg == PaintComboMessage) {
@@ -606,9 +680,16 @@ namespace ScriptEditor
                 }
 
                 base.WndProc(ref m);
-                if (m.Msg == 0x000F || m.Msg == 0x0085 || m.Msg == 0x0200 ||
-                    m.Msg == 0x0201 || m.Msg == 0x0202 || m.Msg == 0x0215)
-                    RequestPaint();
+                if (IsDark && comboBox.IsHandleCreated &&
+                    (m.Msg == 0x000F || m.Msg == 0x0085)) {
+                    // The input controls use classic, non-hot native styling in dark mode.
+                    // Drawing on every mouse move only churns the GDI surface and makes the
+                    // arrow blink, so overlay it only after an actual paint operation.
+                    if (comboBox.Enabled)
+                        DrawArrowButton();
+                    else
+                        DrawDisabledComboBox();
+                }
             }
 
             private void DrawArrowButton()
@@ -807,10 +888,13 @@ namespace ScriptEditor
             if (!control.IsHandleCreated) return;
             try {
                 AllowDarkModeForWindow(control.Handle, dark);
-                SetWindowTheme(control.Handle, dark ? "DarkMode_Explorer" : "Explorer", null);
+                bool darkInput = dark && (control is ComboBox || control is TextBoxBase);
+                string theme = darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer");
+                string themeParts = darkInput ? "" : null;
+                SetWindowTheme(control.Handle, theme, themeParts);
                 EnumChildWindows(control.Handle, delegate(System.IntPtr hwnd, System.IntPtr param) {
                     AllowDarkModeForWindow(hwnd, dark);
-                    SetWindowTheme(hwnd, dark ? "DarkMode_Explorer" : "Explorer", null);
+                    SetWindowTheme(hwnd, theme, themeParts);
                     return true;
                 }, System.IntPtr.Zero);
             } catch { }

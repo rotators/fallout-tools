@@ -8,6 +8,9 @@ namespace ScriptEditor.CodeTranslation
 {
     internal class GetMacros
     {
+        private static readonly object globalMacrosLock = new object();
+        private static string globalMacrosFingerprint;
+
         private static string[] ReadAllLines(string file)
         {
             return ICSharpCode.TextEditor.Util.FileReader.ReadFileContent(file).Split('\n');
@@ -27,11 +30,30 @@ namespace ScriptEditor.CodeTranslation
             string[] headerFiles = GetHeadersFiles(dirHeaders);
             if (headerFiles == null) return;
 
-            ProgramInfo.macrosGlobal.Clear();
+            Array.Sort(headerFiles, StringComparer.OrdinalIgnoreCase);
+            string fingerprint = CreateHeaderFingerprint(dirHeaders, headerFiles);
+            lock (globalMacrosLock) {
+                if (String.Equals(globalMacrosFingerprint, fingerprint, StringComparison.Ordinal))
+                    return;
+
+                ProgramInfo.macrosGlobal.Clear();
+                foreach (string file in headerFiles)
+                    new GetMacros(ReadAllLines(file), file, "", ProgramInfo.macrosGlobal, false);
+                globalMacrosFingerprint = fingerprint;
+            }
+        }
+
+        private static string CreateHeaderFingerprint(string dirHeaders, string[] headerFiles)
+        {
+            var fingerprint = new StringBuilder(Path.GetFullPath(dirHeaders).ToUpperInvariant());
             foreach (string file in headerFiles)
             {
-                new GetMacros(ReadAllLines(file), file, "", ProgramInfo.macrosGlobal, false);
+                var info = new FileInfo(file);
+                fingerprint.Append('|').Append(file.ToUpperInvariant())
+                           .Append(':').Append(info.Length)
+                           .Append(':').Append(info.LastWriteTimeUtc.Ticks);
             }
+            return fingerprint.ToString();
         }
 
         public GetMacros(string file, string dir, SortedDictionary<string, Macro> macros)

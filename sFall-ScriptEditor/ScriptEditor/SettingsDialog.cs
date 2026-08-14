@@ -99,6 +99,17 @@ namespace ScriptEditor
             base.OnShown(e);
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape) {
+                // The dialog currently commits its values whenever it closes, including
+                // through the title-bar close button. Escape follows that same behavior.
+                Close();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private static void EnsureControlHandles(Control parent)
         {
             IntPtr handle = parent.Handle;

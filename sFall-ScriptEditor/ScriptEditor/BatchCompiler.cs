@@ -36,7 +36,8 @@ namespace ScriptEditor
             label1.Text = "Failed count: 0";
             textBox.Text = String.Format("{0} scripts found.\r\n{1}", found, textBox.Text);
 
-            workers = new BackgroundWorker[Settings.multiThreaded ? Math.Min(Environment.ProcessorCount, found) : 1];
+            int workerCount = Settings.multiThreaded ? Math.Min(Math.Min(Environment.ProcessorCount, 4), found) : 1;
+            workers = new BackgroundWorker[workerCount];
             for (int i = 0; i < workers.Length; i++) {
                 workers[i] = new BackgroundWorker();
                 workers[i].ProgressChanged += new ProgressChangedEventHandler(BatchCompiler_ProgressChanged);
@@ -92,12 +93,12 @@ namespace ScriptEditor
         void BatchCompiler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Error != null)
-                textBox.Text += "Compiler worker error: " + e.Error.Message + "\r\n";
+                textBox.AppendText("Compiler worker error: " + e.Error.Message + "\r\n");
             if (++completed == workers.Length) {
                 int skipped = Math.Max(0, found - (failed + compiled));
                 bCancel.Visible = false;
                 bClose.Visible = true;
-                textBox.Text += String.Format("--------------------\r\n{0} successfully compiled.\r\n{1} failed to compile.\r\n{2} skipped.", compiled, failed, skipped);
+                textBox.AppendText(String.Format("--------------------\r\n{0} successfully compiled.\r\n{1} failed to compile.\r\n{2} skipped.", compiled, failed, skipped));
             }
         }
 
@@ -111,10 +112,10 @@ namespace ScriptEditor
             if (e.ProgressPercentage == 1) {
                 failed++;
                 label1.Text = "Failed count: " + failed;
-                textBox.Text += "Failed: " + System.IO.Path.GetFileName(result.File);
+                textBox.AppendText("Failed: " + System.IO.Path.GetFileName(result.File));
                 if (!String.IsNullOrEmpty(result.Error))
-                    textBox.Text += " (" + result.Error + ")";
-                textBox.Text += "\r\n";
+                    textBox.AppendText(" (" + result.Error + ")");
+                textBox.AppendText("\r\n");
             } else
                 compiled++;
         }
@@ -141,6 +142,15 @@ namespace ScriptEditor
         private void bClose_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            foreach (BackgroundWorker worker in workers) {
+                if (worker.IsBusy)
+                    worker.CancelAsync();
+            }
+            base.OnFormClosing(e);
         }
     }
 }

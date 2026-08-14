@@ -22,6 +22,27 @@ namespace ScriptEditor.TextEditorUtilities
 
         static List<string> missingFile = new List<string>();
 
+        private sealed class MessageCacheEntry
+        {
+            internal DateTime LastWriteTimeUtc;
+            internal long Length;
+            internal Dictionary<int, string> Messages;
+            internal Dictionary<int, int> Lines;
+        }
+
+        private sealed class ScriptListCacheEntry
+        {
+            internal DateTime LastWriteTimeUtc;
+            internal long Length;
+            internal string[] Lines;
+        }
+
+        private static readonly object CacheLock = new object();
+        private static readonly Dictionary<string, MessageCacheEntry> MessageCache =
+            new Dictionary<string, MessageCacheEntry>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, ScriptListCacheEntry> ScriptListCache =
+            new Dictionary<string, ScriptListCacheEntry>(StringComparer.OrdinalIgnoreCase);
+
         public static void UpdateMessageTextLangPath()
         {
             MessageTextSubPath = string.Format("..\\text\\{0}\\dialog\\", Settings.language);
@@ -98,7 +119,13 @@ namespace ScriptEditor.TextEditorUtilities
                 return false;
 
             try {
-                ParseMessages(tab, File.ReadAllLines(path, Settings.EncCodePage));
+                Dictionary<int, string> messages;
+                Dictionary<int, int> lines;
+                if (!TryGetCachedMessages(path, out messages, out lines))
+                    return false;
+                tab.messages.Clear();
+                foreach (KeyValuePair<int, string> message in messages)
+                    tab.messages[message.Key] = message.Value;
                 tab.msgFilePath = path;
                 return tab.messages.Count > 0;
             } catch (IOException) {
@@ -116,9 +143,18 @@ namespace ScriptEditor.TextEditorUtilities
                 return false;
 
             try {
-                var messageTab = new TabInfo();
-                ParseMessages(messageTab, File.ReadAllLines(path, Settings.EncCodePage));
-                return messageTab.messages.TryGetValue(messageNumber, out text);
+                if (tab.msgFileTab != null
+                    && String.Equals(tab.msgFileTab.filepath, path, StringComparison.OrdinalIgnoreCase)) {
+                    var openMessageTab = new TabInfo();
+                    ParseMessages(openMessageTab, tab.msgFileTab.textEditor.Document.TextContent.Split(
+                        new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.None));
+                    return openMessageTab.messages.TryGetValue(messageNumber, out text);
+                }
+
+                Dictionary<int, string> messages;
+                Dictionary<int, int> lines;
+                return TryGetCachedMessages(path, out messages, out lines)
+                    && messages.TryGetValue(messageNumber, out text);
             } catch (IOException) {
                 return false;
             } catch (UnauthorizedAccessException) {
@@ -138,9 +174,13 @@ namespace ScriptEditor.TextEditorUtilities
                 if (tab.msgFileTab != null
                     && String.Equals(tab.msgFileTab.filepath, path, StringComparison.OrdinalIgnoreCase))
                     source = tab.msgFileTab.textEditor.Document.TextContent;
-                if (source == null)
-                    source = File.ReadAllText(path, Settings.EncCodePage);
-                return TryFindMessageLine(source, messageNumber, out line);
+                if (source != null)
+                    return TryFindMessageLine(source, messageNumber, out line);
+
+                Dictionary<int, string> messages;
+                Dictionary<int, int> lines;
+                return TryGetCachedMessages(path, out messages, out lines)
+                    && lines.TryGetValue(messageNumber, out line);
             } catch (IOException) {
                 return false;
             } catch (UnauthorizedAccessException) {
@@ -262,7 +302,11 @@ namespace ScriptEditor.TextEditorUtilities
             string lstPath = Path.Combine(path, "scripts.lst");
 
             if (File.Exists(lstPath)) {
-                List<string> scriptsLST = new List<string>(File.ReadAllLines(lstPath));
+                string[] scriptsLST;
+                if (!TryGetCachedScriptList(lstPath, out scriptsLST)) {
+                    error = 1;
+                    return null;
+                }
                 try
                 {
                     string scriptID = scriptsLST[nameID - 1].TrimStart();
@@ -276,6 +320,94 @@ namespace ScriptEditor.TextEditorUtilities
                 error = -1;
 
             return name;
+        }
+
+        private static bool TryGetCachedMessages(string path, out Dictionary<int, string> messages,
+            out Dictionary<int, int> lines)
+        {
+            messages = null;
+            lines = null;
+            try {
+                string fullPath = Path.GetFullPath(path);
+                var info = new FileInfo(fullPath);
+                DateTime modified = info.LastWriteTimeUtc;
+                long length = info.Length;
+
+                lock (CacheLock) {
+                    MessageCacheEntry cached;
+                    if (MessageCache.TryGetValue(fullPath, out cached)
+                        && cached.LastWriteTimeUtc == modified && cached.Length == length) {
+                        messages = cached.Messages;
+                        lines = cached.Lines;
+                        return true;
+                    }
+                }
+
+                string[] sourceLines = File.ReadAllLines(fullPath, Settings.EncCodePage);
+                var parsedTab = new TabInfo();
+                ParseMessages(parsedTab, sourceLines);
+                var messageLines = new Dictionary<int, int>();
+                for (int i = 0; i < sourceLines.Length; i++) {
+                    string value = sourceLines[i].TrimStart();
+                    if (!value.StartsWith("{", StringComparison.Ordinal))
+                        continue;
+                    int close = value.IndexOf('}');
+                    int number;
+                    if (close > 1 && int.TryParse(value.Substring(1, close - 1).Trim(), out number)
+                        && !messageLines.ContainsKey(number))
+                        messageLines.Add(number, i + 1);
+                }
+
+                var entry = new MessageCacheEntry {
+                    LastWriteTimeUtc = modified,
+                    Length = length,
+                    Messages = new Dictionary<int, string>(parsedTab.messages),
+                    Lines = messageLines
+                };
+                lock (CacheLock)
+                    MessageCache[fullPath] = entry;
+                messages = entry.Messages;
+                lines = entry.Lines;
+                return true;
+            } catch (IOException) {
+                return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
+            }
+        }
+
+        private static bool TryGetCachedScriptList(string path, out string[] lines)
+        {
+            lines = null;
+            try {
+                string fullPath = Path.GetFullPath(path);
+                var info = new FileInfo(fullPath);
+                DateTime modified = info.LastWriteTimeUtc;
+                long length = info.Length;
+
+                lock (CacheLock) {
+                    ScriptListCacheEntry cached;
+                    if (ScriptListCache.TryGetValue(fullPath, out cached)
+                        && cached.LastWriteTimeUtc == modified && cached.Length == length) {
+                        lines = cached.Lines;
+                        return true;
+                    }
+                }
+
+                string[] loaded = File.ReadAllLines(fullPath);
+                lock (CacheLock)
+                    ScriptListCache[fullPath] = new ScriptListCacheEntry {
+                        LastWriteTimeUtc = modified,
+                        Length = length,
+                        Lines = loaded
+                    };
+                lines = loaded;
+                return true;
+            } catch (IOException) {
+                return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
+            }
         }
 
         /// <summary>

@@ -26,7 +26,6 @@ namespace ScriptEditor
         internal static volatile bool parserIsRunning;
         internal static bool parsingErrors = true;
 
-        private DateTime extParser_TimeNext, intParser_TimeNext;
         private Timer extParserTimer, intParserTimer;
         private WorkerArgs activeParserArgs;
 
@@ -109,18 +108,22 @@ namespace ScriptEditor
         // Parse script
         private void ParseScript(int delay = 2)
         {
+            int internalDelay;
             if (!Settings.enableParser) { // Parse Off
-                int iDelay = 0;
-                if (delay > 1) iDelay = delay / 2;
-                intParser_TimeNext = DateTime.Now + TimeSpan.FromSeconds(iDelay);
-                if (!intParserTimer.Enabled) intParserTimer.Start();
+                internalDelay = delay > 1 ? (delay / 2) * 1000 : 1;
             } else {
-                intParser_TimeNext = DateTime.Now + TimeSpan.FromMilliseconds(100);
-                if (!intParserTimer.Enabled) intParserTimer.Start();
+                internalDelay = 100;
             }
-            // Запустить так-же и внешний парсер (для полученния макросов)
-            extParser_TimeNext = DateTime.Now + TimeSpan.FromSeconds(delay);
-            if (!extParserTimer.Enabled) extParserTimer.Start(); // External Parser begin
+
+            RestartParserTimer(intParserTimer, internalDelay);
+            RestartParserTimer(extParserTimer, Math.Max(1, delay * 1000));
+        }
+
+        private static void RestartParserTimer(Timer timer, int interval)
+        {
+            timer.Stop();
+            timer.Interval = Math.Max(1, interval);
+            timer.Start();
         }
 
         //Force update parser data
@@ -170,63 +173,67 @@ namespace ScriptEditor
         // Delay timer for internal parsing
         void InternalParser_Tick(object sender, EventArgs e)
         {
+            intParserTimer.Stop();
             if (currentTab == null || !currentTab.shouldParse) {
-                intParserTimer.Stop();
                 DEBUGINFO("Stop: Internal Parser");
                 return;
             }
 
-            if (DateTime.Now >= intParser_TimeNext && !parserIsRunning) {
-                intParserTimer.Stop();
+            if (parserIsRunning) {
+                RestartParserTimer(intParserTimer, 100);
+                return;
+            }
 
-                DEBUGINFO("Run: Internal Parser");
+            DEBUGINFO("Run: Internal Parser");
 
-                try {
-                    if (!Settings.enableParser) { // Parser off
-                        tbOutputParse.Text = string.Empty;
-                        parserLabel.Text = "Parser: Get only macros";
-                        parserLabel.ForeColor = Color.Crimson;
-
-                        new ParserInternal(currentTab, this);
-                        CodeFolder.UpdateFolding(currentDocument, currentTab.filename, currentTab.parseInfo.procs);
-                        ParserCompleted(currentTab, false);
-                    } else {
-                        CodeFolder.UpdateFolding(currentDocument, currentTab.filepath);
-                        //Quick update procedure data
-                        ParserInternal.UpdateProcInfo(ref currentTab.parseInfo, currentDocument.TextContent, currentTab.filepath);
-                    }
-                } catch (Exception ex) {
-                    parserIsRunning = false;
-                    currentTab.needsParse = true;
-                    parserLabel.Text = "Parser: Error while processing incomplete code";
+            try {
+                if (!Settings.enableParser) { // Parser off
+                    tbOutputParse.Text = string.Empty;
+                    parserLabel.Text = "Parser: Get only macros";
                     parserLabel.ForeColor = Color.Crimson;
-                    DEBUGINFO("Internal parser error: " + ex);
+
+                    new ParserInternal(currentTab, this);
+                    CodeFolder.UpdateFolding(currentDocument, currentTab.filename, currentTab.parseInfo.procs);
+                    ParserCompleted(currentTab, false);
+                } else {
+                    CodeFolder.UpdateFolding(currentDocument, currentTab.filepath);
+                    ParserInternal.UpdateProcInfo(ref currentTab.parseInfo, currentDocument.TextContent, currentTab.filepath);
                 }
+            } catch (Exception ex) {
+                parserIsRunning = false;
+                currentTab.needsParse = true;
+                parserLabel.Text = "Parser: Error while processing incomplete code";
+                parserLabel.ForeColor = Color.Crimson;
+                DEBUGINFO("Internal parser error: " + ex);
             }
         }
 
         // Timer for external parsing
         void ExternalParser_Tick(object sender, EventArgs e)
         {
+            extParserTimer.Stop();
             if (currentTab == null || !currentTab.shouldParse) {
-                extParserTimer.Stop();
                 DEBUGINFO("Stop: External Parser");
                 return;
             }
 
-            if (DateTime.Now >= extParser_TimeNext && !bwSyntaxParser.IsBusy && !parserIsRunning) {
-                if (autoComplete.IsVisible) return;
-                parserIsRunning = true;
-                extParserTimer.Stop();
-
-                DEBUGINFO("Run: External Parser");
-
-                if (Settings.enableParser) {
-                    parserLabel.Text = "Parser: Working";
-                    parserLabel.ForeColor = Color.Crimson;
-                }
-                bwSyntaxParser.RunWorkerAsync(new WorkerArgs(currentDocument.TextContent, currentTab));
+            if (bwSyntaxParser.IsBusy || parserIsRunning) {
+                RestartParserTimer(extParserTimer, 100);
+                return;
             }
+            if (autoComplete.IsVisible) {
+                RestartParserTimer(extParserTimer, 250);
+                return;
+            }
+            parserIsRunning = true;
+
+            DEBUGINFO("Run: External Parser");
+
+            if (Settings.enableParser) {
+                parserLabel.Text = "Parser: Working";
+                parserLabel.ForeColor = Color.Crimson;
+            }
+            bwSyntaxParser.RunWorkerAsync(new WorkerArgs(currentDocument.TextContent, currentTab));
         }
 
         // External parse start
