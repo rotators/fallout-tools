@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
@@ -699,38 +699,15 @@ namespace ScriptEditor
 
             private void DrawArrowButton()
             {
-                ComboBoxInfo info = new ComboBoxInfo();
-                info.cbSize = Marshal.SizeOf(typeof(ComboBoxInfo));
-                Rectangle buttonBounds;
-                if (GetComboBoxInfo(comboBox.Handle, ref info)) {
-                    buttonBounds = Rectangle.FromLTRB(System.Math.Max(0, info.rcButton.Left - 2), info.rcButton.Top,
-                        info.rcButton.Right, info.rcButton.Bottom);
-                } else {
-                    int width = SystemInformation.VerticalScrollBarWidth;
-                    buttonBounds = new Rectangle(comboBox.ClientSize.Width - width, 0,
-                        width, comboBox.ClientSize.Height);
-                }
-
-                if (buttonBounds.Width < 1 || buttonBounds.Height < 1) return;
-                using (Graphics graphics = Graphics.FromHwnd(comboBox.Handle))
-                using (Brush buttonBrush = new SolidBrush(DarkControl))
-                using (Brush arrowBrush = new SolidBrush(DarkText))
-                using (Pen borderPen = new Pen(DarkBorder)) {
-                    graphics.FillRectangle(buttonBrush, buttonBounds);
-                    graphics.DrawRectangle(borderPen, buttonBounds.Left, buttonBounds.Top,
-                        buttonBounds.Width - 1, buttonBounds.Height - 1);
-                    int centerX = buttonBounds.Left + buttonBounds.Width / 2;
-                    int centerY = buttonBounds.Top + buttonBounds.Height / 2;
-                    Point[] arrow = {
-                        new Point(centerX - 4, centerY - 2),
-                        new Point(centerX + 4, centerY - 2),
-                        new Point(centerX, centerY + 2)
-                    };
-                    graphics.FillPolygon(arrowBrush, arrow);
-                }
+                DrawComboBoxSurface(DarkText);
             }
 
             private void DrawDisabledComboBox()
+            {
+                DrawComboBoxSurface(Color.FromArgb(170, 170, 175));
+            }
+
+            private void DrawComboBoxSurface(Color textColor)
             {
                 Rectangle bounds = new Rectangle(0, 0, comboBox.Width, comboBox.Height);
                 if (bounds.Width < 1 || bounds.Height < 1) return;
@@ -746,14 +723,14 @@ namespace ScriptEditor
                     buttonBounds = new Rectangle(System.Math.Max(0, bounds.Right - buttonWidth),
                         bounds.Top, System.Math.Min(buttonWidth, bounds.Width), bounds.Height);
                 }
+
                 Rectangle textBounds = new Rectangle(bounds.Left + 3, bounds.Top,
                     System.Math.Max(0, bounds.Width - buttonBounds.Width - 6), bounds.Height);
-                Color disabledText = Color.FromArgb(170, 170, 175);
 
                 using (Graphics graphics = Graphics.FromHwnd(comboBox.Handle))
                 using (Brush backgroundBrush = new SolidBrush(DarkBack))
                 using (Brush buttonBrush = new SolidBrush(DarkControl))
-                using (Brush arrowBrush = new SolidBrush(disabledText))
+                using (Brush arrowBrush = new SolidBrush(textColor))
                 using (Pen borderPen = new Pen(DarkBorder)) {
                     graphics.FillRectangle(backgroundBrush, bounds);
                     graphics.FillRectangle(buttonBrush, buttonBounds);
@@ -762,7 +739,7 @@ namespace ScriptEditor
                     graphics.DrawLine(borderPen, buttonBounds.Left, buttonBounds.Top,
                         buttonBounds.Left, buttonBounds.Bottom - 1);
                     TextRenderer.DrawText(graphics, comboBox.Text, comboBox.Font, textBounds,
-                        disabledText, TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
+                        textColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
                         TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
 
                     int centerX = buttonBounds.Left + buttonBounds.Width / 2;

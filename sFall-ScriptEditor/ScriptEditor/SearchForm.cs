@@ -326,46 +326,6 @@ namespace ScriptEditor
                 ? null : cbSearchPath.Text;
         }
     }
-    internal sealed class DarkDisabledCheckBox : CheckBox
-    {
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            if (!InterfaceTheme.IsDark) {
-                base.OnPaint(e);
-                return;
-            }
-
-            Color backColor = Color.FromArgb(53, 53, 56);
-            Color textColor = Enabled ? Color.Gainsboro : Color.FromArgb(170, 170, 175);
-            Color borderColor = Enabled ? Color.FromArgb(110, 110, 115) : Color.FromArgb(92, 92, 96);
-            e.Graphics.Clear(backColor);
-
-            int boxSize = DpiHelper.Scale(this, 13);
-            int boxY = (ClientSize.Height - boxSize) / 2;
-            Rectangle box = new Rectangle(0, boxY, boxSize, boxSize);
-            using (Brush boxBrush = new SolidBrush(Color.FromArgb(40, 40, 42)))
-            using (Pen borderPen = new Pen(borderColor)) {
-                e.Graphics.FillRectangle(boxBrush, box);
-                e.Graphics.DrawRectangle(borderPen, box);
-            }
-            if (Checked || CheckState == CheckState.Indeterminate) {
-                using (Pen checkPen = new Pen(textColor, DpiHelper.Scale(2.0f, DeviceDpi))) {
-                    e.Graphics.DrawLines(checkPen, new Point[] {
-                        new Point(DpiHelper.Scale(this, 3), boxY + DpiHelper.Scale(this, 7)),
-                        new Point(DpiHelper.Scale(this, 6), boxY + DpiHelper.Scale(this, 10)),
-                        new Point(DpiHelper.Scale(this, 11), boxY + DpiHelper.Scale(this, 3))
-                    });
-                }
-            }
-
-            int textGap = DpiHelper.Scale(this, 4);
-            Rectangle textBounds = new Rectangle(box.Right + textGap, 0,
-                System.Math.Max(0, ClientSize.Width - box.Right - textGap), ClientSize.Height);
-            TextRenderer.DrawText(e.Graphics, Text, Font, textBounds, textColor,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
-        }
-    }
-
     internal sealed class DarkDisabledButton : Button
     {
         protected override void OnPaint(PaintEventArgs e)

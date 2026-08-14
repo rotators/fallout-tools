@@ -32,7 +32,7 @@
             this.rbFolder = new System.Windows.Forms.RadioButton();
             this.label2 = new System.Windows.Forms.Label();
             this.bChange = new ScriptEditor.DarkDisabledButton();
-            this.cbSearchSubfolders = new ScriptEditor.DarkDisabledCheckBox();
+            this.cbSearchSubfolders = new System.Windows.Forms.CheckBox();
             this.bSearch = new System.Windows.Forms.Button();
             this.fbdSearchFolder = new System.Windows.Forms.FolderBrowserDialog();
             this.cbFindAll = new System.Windows.Forms.CheckBox();
@@ -83,21 +83,21 @@
             // 
             // rbCurrent
             // 
-            this.rbCurrent.AutoSize = true;
+            this.rbCurrent.AutoSize = false;
             this.rbCurrent.Location = new System.Drawing.Point(153, 91);
             this.rbCurrent.Name = "rbCurrent";
-            this.rbCurrent.Size = new System.Drawing.Size(125, 17);
+            this.rbCurrent.Size = new System.Drawing.Size(150, 17);
             this.rbCurrent.TabIndex = 2;
             this.rbCurrent.Text = "Find in current scripts";
             this.rbCurrent.UseVisualStyleBackColor = true;
             // 
             // rbAll
             // 
-            this.rbAll.AutoSize = true;
+            this.rbAll.AutoSize = false;
             this.rbAll.Checked = true;
             this.rbAll.Location = new System.Drawing.Point(153, 120);
             this.rbAll.Name = "rbAll";
-            this.rbAll.Size = new System.Drawing.Size(129, 17);
+            this.rbAll.Size = new System.Drawing.Size(155, 17);
             this.rbAll.TabIndex = 3;
             this.rbAll.TabStop = true;
             this.rbAll.Text = "Find in all open scripts";
@@ -105,10 +105,10 @@
             // 
             // rbFolder
             // 
-            this.rbFolder.AutoSize = true;
+            this.rbFolder.AutoSize = false;
             this.rbFolder.Location = new System.Drawing.Point(153, 149);
             this.rbFolder.Name = "rbFolder";
-            this.rbFolder.Size = new System.Drawing.Size(106, 17);
+            this.rbFolder.Size = new System.Drawing.Size(135, 17);
             this.rbFolder.TabIndex = 4;
             this.rbFolder.Text = "Find in files folder";
             this.rbFolder.UseVisualStyleBackColor = true;
@@ -235,12 +235,12 @@
             // cbCase
             // 
             this.cbCase.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbCase.AutoSize = true;
+            this.cbCase.AutoSize = false;
             this.cbCase.Checked = true;
             this.cbCase.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbCase.Location = new System.Drawing.Point(238, 3);
             this.cbCase.Name = "cbCase";
-            this.cbCase.Size = new System.Drawing.Size(82, 17);
+            this.cbCase.Size = new System.Drawing.Size(95, 17);
             this.cbCase.TabIndex = 22;
             this.cbCase.Text = "Match case";
             this.cbCase.UseVisualStyleBackColor = true;
@@ -315,7 +315,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(443, 272);
+            this.ClientSize = new System.Drawing.Size(520, 272);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.labelCount);
             this.Controls.Add(this.cbFileMask);
@@ -343,7 +343,7 @@
             this.KeyPreview = true;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(1280, 1024);
-            this.MinimumSize = new System.Drawing.Size(435, 303);
+            this.MinimumSize = new System.Drawing.Size(512, 303);
             this.Name = "SearchForm";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -374,7 +374,7 @@
         internal System.Windows.Forms.CheckBox cbCase;
         internal System.Windows.Forms.RadioButton rbCurrent;
         internal System.Windows.Forms.RadioButton rbAll;
-        private ScriptEditor.DarkDisabledCheckBox cbSearchSubfolders;
+        private System.Windows.Forms.CheckBox cbSearchSubfolders;
         internal System.Windows.Forms.CheckBox cbRegular;
         internal System.Windows.Forms.CheckBox cbFindAll;
         private ScriptEditor.DarkDisabledButton bChange;
