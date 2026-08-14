@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+using ICSharpCode.TextEditor.Document;
+
 using ScriptEditor.TextEditorUI.Function;
+using ScriptEditor.TextEditorUtilities;
 
 namespace ScriptEditor.CodeTranslation
 {
@@ -645,13 +648,147 @@ namespace ScriptEditor.CodeTranslation
         public static List<string> GetAllNodesName(Procedure[] procedures)
         {
             List<string> nodesName = new List<string>();
+            if (procedures == null)
+                return nodesName;
+
             foreach (var p in procedures)
             {
-                if ((p.Name.IndexOf("node") > -1) || p.Name == "talk_p_proc") {
+                if (p != null && ((p.Name.IndexOf("node") > -1) || p.Name == "talk_p_proc")) {
                     nodesName.Add(p.name);
                 }
             }
             return nodesName;
+        }
+
+        internal static List<string> GetAllNodesName(IDocument document, ProgramInfo programInfo)
+        {
+            var nodesName = new List<string>();
+            if (document == null || programInfo == null || programInfo.procs == null)
+                return nodesName;
+
+            var localProcedures = new Dictionary<string, Procedure>(StringComparer.OrdinalIgnoreCase);
+            var parsedProcedures = new Dictionary<string, List<DialogueParser>>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (Procedure procedure in programInfo.procs)
+            {
+                if (procedure == null || String.IsNullOrEmpty(procedure.name))
+                    continue;
+
+                string body = Utilities.GetProcedureCode(document, procedure);
+                if (body == null)
+                    continue;
+
+                localProcedures[procedure.name] = procedure;
+                parsedProcedures[procedure.name] = ParseProcedureForDiscovery(body, programInfo);
+            }
+
+            var discovered = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var pending = new Queue<string>();
+            Action<string> addProcedure = delegate(string name) {
+                if (!String.IsNullOrEmpty(name) && localProcedures.ContainsKey(name) && discovered.Add(name))
+                    pending.Enqueue(name);
+            };
+
+            foreach (Procedure procedure in programInfo.procs)
+            {
+                if (procedure == null || !parsedProcedures.ContainsKey(procedure.name))
+                    continue;
+
+                List<DialogueParser> operations = parsedProcedures[procedure.name];
+                if (procedure.Name == "talk_p_proc" || ContainsDialogOperation(operations))
+                    addProcedure(procedure.name);
+            }
+
+            while (pending.Count > 0)
+            {
+                string procedureName = pending.Dequeue();
+                List<DialogueParser> operations;
+                if (!parsedProcedures.TryGetValue(procedureName, out operations))
+                    continue;
+
+                foreach (DialogueParser operation in operations)
+                {
+                    if (!IsDialogNavigation(operation.opcode))
+                        continue;
+                    addProcedure(GetNodeIdentifier(operation.toNode));
+                }
+            }
+
+            foreach (Procedure procedure in programInfo.procs)
+            {
+                if (procedure != null && discovered.Contains(procedure.name))
+                    nodesName.Add(procedure.name);
+            }
+            return nodesName;
+        }
+
+        internal static bool ProcedureContainsPreviewableDialog(IDocument document, ProgramInfo programInfo,
+            Procedure procedure)
+        {
+            if (document == null || programInfo == null || procedure == null)
+                return false;
+            string body = Utilities.GetProcedureCode(document, procedure);
+            if (body == null)
+                return false;
+
+            foreach (DialogueParser operation in ParseProcedureForDiscovery(body, programInfo)) {
+                switch (operation.opcode) {
+                case OpcodeType.Reply:
+                case OpcodeType.gsay_reply:
+                case OpcodeType.Option:
+                case OpcodeType.gsay_option:
+                case OpcodeType.giq_option:
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static List<DialogueParser> ParseProcedureForDiscovery(string body, ProgramInfo programInfo)
+        {
+            var operations = new List<DialogueParser>();
+            try {
+                ParseNodeCode(body, operations, programInfo);
+            }
+            catch (ArgumentException) { }
+            catch (FormatException) { }
+            catch (IndexOutOfRangeException) { }
+            catch (KeyNotFoundException) { }
+            catch (OverflowException) { }
+            return operations;
+        }
+
+        private static bool ContainsDialogOperation(List<DialogueParser> operations)
+        {
+            foreach (DialogueParser operation in operations)
+            {
+                switch (operation.opcode) {
+                case OpcodeType.Option:
+                case OpcodeType.giq_option:
+                case OpcodeType.gsay_option:
+                case OpcodeType.Reply:
+                case OpcodeType.gsay_reply:
+                case OpcodeType.Message:
+                case OpcodeType.gsay_message:
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool IsDialogNavigation(OpcodeType opcode)
+        {
+            return opcode == OpcodeType.Option || opcode == OpcodeType.giq_option
+                || opcode == OpcodeType.gsay_option || opcode == OpcodeType.call
+                || opcode == OpcodeType.Call;
+        }
+
+        private static string GetNodeIdentifier(string value)
+        {
+            if (String.IsNullOrWhiteSpace(value))
+                return null;
+            Match match = Regex.Match(value.Trim().TrimStart('@'), @"^[A-Za-z_][A-Za-z0-9_]*");
+            return match.Success ? match.Value : null;
         }
 
         #region Помощники для парсинга кода

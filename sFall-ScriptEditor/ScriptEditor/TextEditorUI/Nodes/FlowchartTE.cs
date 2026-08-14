@@ -140,7 +140,7 @@ namespace ScriptEditor.TextEditorUI.Nodes
             timer.Tick += CodeChanged;
 
             if (allNodes == null)
-                allNodes = DialogueParser.GetAllNodesName(PI.procs);
+                allNodes = DialogueParser.GetAllNodesName(sourceTab.textEditor.Document, PI);
 
             cmbNodesName.Items.AddRange(allNodes.ToArray());
             cmbNodesName.SelectedIndex = 0;
@@ -282,14 +282,16 @@ namespace ScriptEditor.TextEditorUI.Nodes
                 string msgFile = (data.numberMsgFile == -1) ? sourceTab.msgFilePath : path; //MessageFile.GetMessageFilePath(data.numberMsgFile, curTab);
 
                 dgvMessages.Rows.Add(data.numberMsgLine, msg, Path.GetFileName(msgFile));
-                dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[0].Tag = data;
-                dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[2].Tag = msgFile;
+                DataGridViewRow row = dgvMessages.Rows[dgvMessages.Rows.Count - 1];
+                InterfaceTheme.ApplyDialogGridRow(row);
+                row.Cells[0].Tag = data;
+                row.Cells[2].Tag = msgFile;
 
                 if (error) {
-                    dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[1].ReadOnly = true;
-                    dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[1].Style.ForeColor = Color.Red;
+                    row.Cells[1].ReadOnly = true;
+                    row.Cells[1].Style.ForeColor = InterfaceTheme.DialogErrorTextColor;
                 } else if (data.opcode == OpcodeType.Option || data.opcode == OpcodeType.giq_option || data.opcode == OpcodeType.gsay_option)
-                    dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[1].Style.ForeColor = Color.Blue;
+                    row.Cells[1].Style.ForeColor = InterfaceTheme.DialogOptionTextColor;
             }
         }
 

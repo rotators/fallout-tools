@@ -180,7 +180,6 @@ namespace ScriptEditor {
             this.openHeaderFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator16 = new System.Windows.Forms.ToolStripSeparator();
             this.MSG_toolStripButton = new System.Windows.Forms.ToolStripSplitButton();
-            this.msgFileEditorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dialogNodesDiagramToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.previewDialogToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator24 = new System.Windows.Forms.ToolStripSeparator();
@@ -1912,7 +1911,6 @@ namespace ScriptEditor {
             // MSG_toolStripButton
             // 
             this.MSG_toolStripButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.msgFileEditorToolStripMenuItem,
             this.dialogNodesDiagramToolStripMenuItem,
             this.previewDialogToolStripMenuItem,
             this.toolStripSeparator24,
@@ -1926,15 +1924,6 @@ namespace ScriptEditor {
             this.MSG_toolStripButton.Text = "Dialog";
             this.MSG_toolStripButton.ToolTipText = "Open associate MSG file";
             this.MSG_toolStripButton.ButtonClick += new System.EventHandler(this.associateMsgToolStripMenuItem_Click);
-            // 
-            // msgFileEditorToolStripMenuItem
-            // 
-            this.msgFileEditorToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("msgFileEditorToolStripMenuItem.Image")));
-            this.msgFileEditorToolStripMenuItem.Name = "msgFileEditorToolStripMenuItem";
-            this.msgFileEditorToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
-            this.msgFileEditorToolStripMenuItem.Text = "Message file editor";
-            this.msgFileEditorToolStripMenuItem.Click += new System.EventHandler(this.msgFileEditorToolStripMenuItem_Click);
-            // 
             // dialogNodesDiagramToolStripMenuItem
             // 
             this.dialogNodesDiagramToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("dialogNodesDiagramToolStripMenuItem.Image")));
@@ -2900,7 +2889,6 @@ namespace ScriptEditor {
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator21;
         private System.Windows.Forms.ToolStripSplitButton MSG_toolStripButton;
         private System.Windows.Forms.ToolStripMenuItem previewDialogToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem msgFileEditorToolStripMenuItem;
         private System.Windows.Forms.ToolStrip SearchToolStrip;
         private System.Windows.Forms.ToolStripButton CaseButton;
         private System.Windows.Forms.ToolStripButton FindForwardButton;

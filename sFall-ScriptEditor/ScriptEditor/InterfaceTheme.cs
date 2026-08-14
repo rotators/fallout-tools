@@ -297,6 +297,24 @@ namespace ScriptEditor
             }
         }
 
+        internal static Color DialogOptionTextColor {
+            get { return IsDark ? Color.FromArgb(86, 156, 214) : Color.Blue; }
+        }
+
+        internal static Color DialogErrorTextColor {
+            get { return IsDark ? Color.FromArgb(244, 113, 116) : Color.Red; }
+        }
+
+        internal static void ApplyDialogGridRow(DataGridViewRow row)
+        {
+            if (row == null || !IsDark)
+                return;
+            foreach (DataGridViewCell cell in row.Cells) {
+                cell.Style.SelectionBackColor = DarkSelection;
+                cell.Style.SelectionForeColor = Color.White;
+            }
+        }
+
         private static void ApplyToolStripTypography(ToolStripItemCollection items)
         {
             foreach (ToolStripItem item in items) {

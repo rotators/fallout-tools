@@ -12,6 +12,8 @@ public class DraggableTabControl : TabControl
     private TabPage m_DraggedTab;
     private int m_X;
     private int m_HotTabIndex = -1;
+    private int m_HotCloseIndex = -1;
+    private bool m_OverflowHot;
     private int m_ClosePressedIndex = -1;
     private ContextMenuStrip m_OverflowMenu;
 
@@ -30,6 +32,7 @@ public class DraggableTabControl : TabControl
 
     public DraggableTabControl()
     {
+        SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
         MouseDown += OnMouseDown;
         MouseMove += OnMouseMove;
         MouseUp += OnMouseUp;
@@ -86,9 +89,8 @@ public class DraggableTabControl : TabControl
         {
             if (m.Msg == WM_ERASEBKGND)
             {
-                using (Graphics graphics = Graphics.FromHdc(m.WParam))
-                using (Brush brush = new SolidBrush(Color.FromArgb(53, 53, 56)))
-                    graphics.FillRectangle(brush, ClientRectangle);
+                // WM_PAINT covers the invalidated header area. Erasing it first produces
+                // a visible intermediate frame while the mouse moves between tabs.
                 m.Result = new IntPtr(1);
                 return;
             }
@@ -99,8 +101,21 @@ public class DraggableTabControl : TabControl
                 IntPtr hdc = BeginPaint(Handle, out paint);
                 try
                 {
-                    using (Graphics graphics = Graphics.FromHdc(hdc))
-                        DrawDarkTabControl(graphics);
+                    Rectangle updateBounds = Rectangle.FromLTRB(
+                        paint.PaintRect.Left, paint.PaintRect.Top,
+                        paint.PaintRect.Right, paint.PaintRect.Bottom);
+                    if (updateBounds.Width > 0 && updateBounds.Height > 0) {
+                        using (Graphics target = Graphics.FromHdc(hdc))
+                        // TextRenderer uses GDI and ignores Graphics transforms. Keep the
+                        // control's original coordinates in the buffer, then copy only the
+                        // invalidated rectangle to the window.
+                        using (Bitmap buffer = new Bitmap(
+                            Math.Max(1, updateBounds.Right), Math.Max(1, updateBounds.Bottom)))
+                        using (Graphics graphics = Graphics.FromImage(buffer)) {
+                            DrawDarkTabControl(graphics);
+                            target.DrawImage(buffer, updateBounds, updateBounds, GraphicsUnit.Pixel);
+                        }
+                    }
                 }
                 finally
                 {
@@ -234,7 +249,7 @@ public class DraggableTabControl : TabControl
         Rectangle bounds = GetCloseButtonRectangle(index);
         if (bounds.IsEmpty)
             return;
-        bool hovered = bounds.Contains(PointToClient(Cursor.Position));
+        bool hovered = m_HotCloseIndex == index;
         bool pressed = hovered && m_ClosePressedIndex == index;
         if (hovered)
         {
@@ -279,7 +294,7 @@ public class DraggableTabControl : TabControl
         Rectangle bounds = GetOverflowButtonRectangle();
         if (bounds.IsEmpty)
             return;
-        bool hovered = bounds.Contains(PointToClient(Cursor.Position));
+        bool hovered = m_OverflowHot;
         Color back = dark
             ? (hovered ? Color.FromArgb(70, 70, 74) : Color.FromArgb(53, 53, 56))
             : (hovered ? SystemColors.ControlLight : SystemColors.Control);
@@ -339,8 +354,26 @@ public class DraggableTabControl : TabControl
         int hotIndex = hoveredTab == null ? -1 : TabPages.IndexOf(hoveredTab);
         if (hotIndex != m_HotTabIndex)
         {
+            int previousHotIndex = m_HotTabIndex;
             m_HotTabIndex = hotIndex;
-            Invalidate();
+            InvalidateTabHeader(previousHotIndex);
+            InvalidateTabHeader(m_HotTabIndex);
+        }
+
+        int hotCloseIndex = hotIndex >= 0 && GetCloseButtonRectangle(hotIndex).Contains(e.Location)
+            ? hotIndex : -1;
+        if (hotCloseIndex != m_HotCloseIndex) {
+            InvalidateCloseButton(m_HotCloseIndex);
+            m_HotCloseIndex = hotCloseIndex;
+            InvalidateCloseButton(m_HotCloseIndex);
+        }
+
+        Rectangle overflow = GetOverflowButtonRectangle();
+        bool overflowHot = !overflow.IsEmpty && overflow.Contains(e.Location);
+        if (overflowHot != m_OverflowHot) {
+            m_OverflowHot = overflowHot;
+            if (!overflow.IsEmpty)
+                Invalidate(overflow, false);
         }
 
         if (e.Button != MouseButtons.Left || m_ClosePressedIndex >= 0 || m_DraggedTab == null || e.X == m_X)
@@ -379,15 +412,37 @@ public class DraggableTabControl : TabControl
             if (handler != null)
                 handler(this, new TabCloseRequestedEventArgs(closeIndex));
         }
-        Invalidate();
+        InvalidateCloseButton(closeIndex);
     }
 
     private void OnMouseLeave(object sender, EventArgs e)
     {
-        if (m_HotTabIndex == -1)
-            return;
+        int previousHotIndex = m_HotTabIndex;
+        int previousCloseIndex = m_HotCloseIndex;
+        Rectangle overflow = GetOverflowButtonRectangle();
         m_HotTabIndex = -1;
-        Invalidate();
+        m_HotCloseIndex = -1;
+        m_OverflowHot = false;
+        InvalidateTabHeader(previousHotIndex);
+        InvalidateCloseButton(previousCloseIndex);
+        if (!overflow.IsEmpty)
+            Invalidate(overflow, false);
+    }
+
+    private void InvalidateTabHeader(int index)
+    {
+        if (index < 0 || index >= TabCount)
+            return;
+        Rectangle bounds = GetTabRect(index);
+        bounds.Inflate(1, 1);
+        Invalidate(bounds, false);
+    }
+
+    private void InvalidateCloseButton(int index)
+    {
+        Rectangle bounds = GetCloseButtonRectangle(index);
+        if (!bounds.IsEmpty)
+            Invalidate(bounds, false);
     }
 
    /* private void OnMouseUp(object sender, MouseEventArgs e)

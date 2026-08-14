@@ -1163,6 +1163,7 @@ namespace ScriptEditor
             findDeclerationToolStripMenuItem.Enabled = false;
             findDefinitionToolStripMenuItem.Enabled = false;
             UpdateGoToMessageMenu();
+            UpdateDialogPreviewContextMenu();
             UpdateEditorToolStripMenu();
             collapseAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, false);
             expandAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, true);
@@ -1296,6 +1297,11 @@ namespace ScriptEditor
 
         private void previewDialogToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            ShowDialogPreview(null);
+        }
+
+        private void ShowDialogPreview(string initialProcedureName)
+        {
             if (currentTab == null || currentTab.parseInfo == null) return;
 
             if (!Path.GetExtension(currentTab.filename).Equals(".ssl", StringComparison.OrdinalIgnoreCase)) {
@@ -1312,7 +1318,7 @@ namespace ScriptEditor
 
             ScriptEditor.TextEditorUI.Function.DialogFunctionsRules.BuildOpcodesDictionary();
 
-            DialogPreview DialogView = new DialogPreview(currentTab);
+            DialogPreview DialogView = new DialogPreview(currentTab, initialProcedureName);
             if (!DialogView.InitReady) {
                 DialogView.Dispose();
                 MessageBox.Show("This script does not contain dialog procedures.", "Dialog Preview");

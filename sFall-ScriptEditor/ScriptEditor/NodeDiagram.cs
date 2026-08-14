@@ -149,7 +149,7 @@ namespace ScriptEditor
         private void InitData()
         {
             // получить имена всех Node процедур из скрипта
-            nodesProcedureName = DialogueParser.GetAllNodesName(scriptProc);
+            nodesProcedureName = DialogueParser.GetAllNodesName(scriptText, sourceTab.parseInfo);
             if (nodesProcedureName.Count == 0)
                 return;
 

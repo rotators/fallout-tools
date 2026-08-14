@@ -35,7 +35,7 @@ namespace ScriptEditor
         private const string COMMENT = "#";
         private const string pcMarker = "\u25CF ";
 
-        private Color pcColor = Color.FromArgb(0, 0, 220);
+        private Color pcColor = InterfaceTheme.DialogOptionTextColor;
         private Color cmColor;
 
         private Encoding enc = Settings.EncCodePage;
@@ -154,6 +154,7 @@ namespace ScriptEditor
             string message = (e.pcMark) ? pcMarker + e.msgText : e.msgText;
             dgvMessage.Rows.Add(e.msgLine, message, e.msglip);
             int row = dgvMessage.Rows.Count - 1;
+            InterfaceTheme.ApplyDialogGridRow(dgvMessage.Rows[row]);
             dgvMessage.Rows[row].Cells[0].Tag = e;
             dgvMessage.Rows[row].Cells[1].ToolTipText = e.description.Trim();
 
@@ -171,6 +172,7 @@ namespace ScriptEditor
             } else {
                 string message = (e.pcMark) ? pcMarker + e.msgText : e.msgText;
                 dgvMessage.Rows.Insert(i, e.msgLine, message, e.msglip);
+                InterfaceTheme.ApplyDialogGridRow(dgvMessage.Rows[i]);
                 dgvMessage.Rows[i].Cells[0].Tag = e;
             }
             if (e.commentLine)
@@ -202,13 +204,27 @@ namespace ScriptEditor
         private void SetCommentColor()
         {
             Color lineColumnColor;
-            switch ((CommentColor)Settings.msgHighlightColor)
-            {
+            if (InterfaceTheme.IsDark) {
+                lineColumnColor = Color.FromArgb(45, 45, 48);
+                switch ((CommentColor)Settings.msgHighlightColor) {
+                case CommentColor.Lavender:
+                    cmColor = Color.FromArgb(55, 50, 72);
+                    break;
+                case CommentColor.PaleGreen:
+                    cmColor = Color.FromArgb(42, 61, 46);
+                    break;
+                case CommentColor.LightYellow:
+                default:
+                    cmColor = Color.FromArgb(67, 61, 38);
+                    break;
+                }
+            } else {
+                switch ((CommentColor)Settings.msgHighlightColor) {
                 case CommentColor.LightYellow:
                 default:
                     cmColor = Color.FromArgb(255, 255, 200);
                     lineColumnColor = Color.LightYellow;
-                break;
+                    break;
                 case CommentColor.Lavender:
                     cmColor = Color.Lavender;
                     lineColumnColor = Color.FromArgb(240, 240, 250);
@@ -217,8 +233,13 @@ namespace ScriptEditor
                     cmColor = Color.FromArgb(195, 255, 195);
                     lineColumnColor = Color.FromArgb(215, 255, 215);
                     break;
+                }
             }
             dgvMessage.Columns[0].DefaultCellStyle.BackColor = lineColumnColor;
+            dgvMessage.Columns[0].DefaultCellStyle.ForeColor = InterfaceTheme.IsDark
+                ? Color.FromArgb(225, 166, 86) : Color.Chocolate;
+            dgvMessage.Columns[2].DefaultCellStyle.ForeColor = InterfaceTheme.IsDark
+                ? Color.Silver : Color.DimGray;
         }
 
         #region Initial form
@@ -226,17 +247,7 @@ namespace ScriptEditor
         public static MessageEditor MessageEditorInit(string msgPath, int line, TabInfo tab = null, bool sendState = false)
         {
             MessageEditor msgEdit = new MessageEditor(msgPath, tab);
-
-            for (int i = 0; i < msgEdit.dgvMessage.RowCount; i++)
-            {
-                int number;
-                if (int.TryParse(msgEdit.dgvMessage.Rows[i].Cells[0].Value.ToString(), out number))
-                    if (number == line) {
-                        msgEdit.dgvMessage.Rows[i].Cells[1].Selected = true;
-                        msgEdit.dgvMessage.FirstDisplayedScrollingRowIndex = (i <= 5) ? i : i - 5;
-                        break;
-                    }
-            }
+            msgEdit.SelectMessageNumber(line);
             msgEdit.SendStripButton.Enabled = sendState;
 
             return msgEdit;
@@ -263,6 +274,21 @@ namespace ScriptEditor
             //    msgEdit.WindowState = FormWindowState.Minimized;
 
             return msgEdit;
+        }
+
+        private void SelectMessageNumber(int number)
+        {
+            for (int i = 0; i < dgvMessage.RowCount; i++) {
+                int rowNumber;
+                object value = dgvMessage.Rows[i].Cells[0].Value;
+                if (value != null && int.TryParse(value.ToString(), out rowNumber) && rowNumber == number) {
+                    dgvMessage.ClearSelection();
+                    dgvMessage.Rows[i].Cells[1].Selected = true;
+                    dgvMessage.CurrentCell = dgvMessage.Rows[i].Cells[1];
+                    dgvMessage.FirstDisplayedScrollingRowIndex = (i <= 5) ? i : i - 5;
+                    break;
+                }
+            }
         }
 
         // for open custom message file
@@ -394,10 +420,11 @@ namespace ScriptEditor
                 {
                     switch (cells.ColumnIndex) {
                         case 0:
-                            cells.Style.ForeColor = Color.Chocolate;
+                            cells.Style.ForeColor = InterfaceTheme.IsDark
+                                ? Color.FromArgb(225, 166, 86) : Color.Chocolate;
                             break;
                         case 2:
-                            cells.Style.ForeColor = Color.Gray;
+                            cells.Style.ForeColor = InterfaceTheme.IsDark ? Color.Silver : Color.Gray;
                             break;
                         default:
                             if (entries.pcMark)
@@ -468,7 +495,7 @@ namespace ScriptEditor
                     break;
             }
             if (!isCancelEdit) {
-                dgvMessage.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.ForeColor = Color.Red;
+                dgvMessage.Rows[e.RowIndex].Cells[e.ColumnIndex].Style.ForeColor = InterfaceTheme.DialogErrorTextColor;
                 msgSaveButton.Enabled = true;
             }
             isCancelEdit = false;
@@ -1001,7 +1028,7 @@ namespace ScriptEditor
         {
             var _cell = dgvMessage.Rows[e.RowIndex].Cells[e.ColumnIndex];
             editColor = _cell.Style.BackColor;
-            _cell.Style.BackColor = Color.Beige;
+            _cell.Style.BackColor = InterfaceTheme.IsDark ? Color.FromArgb(70, 70, 74) : Color.Beige;
             dgvMessage.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
             isEditMode = true;
         }

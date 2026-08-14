@@ -46,22 +46,39 @@ namespace ScriptEditor
             get { return (MessagesData != null); }
         }
 
-        public DialogPreview(TabInfo sourceTab)
+        public DialogPreview(TabInfo sourceTab, string initialProcedureName = null)
         {
             InitializeComponent();
+            OptionsTextLabel.ForeColor = InterfaceTheme.DialogOptionTextColor;
             FormClosed += DialogPreview_FormClosed;
 
             this.Text += sourceTab.filename;
             this.sourceTab = sourceTab;
 
-            NodesComboBox.Items.AddRange(DialogueParser.GetAllNodesName(scrProc).ToArray());
+            List<string> nodes = DialogueParser.GetAllNodesName(document, sourceTab.parseInfo);
+            if (nodes.Count == 0)
+                return;
+            NodesComboBox.Items.AddRange(nodes.ToArray());
 
-            Procedure curProc = sourceTab.parseInfo.GetProcedureFromPosition(sourceTab.textEditor.ActiveTextAreaControl.Caret.Line);
-            if (curProc == null || !NodesComboBox.Items.Contains(curProc.name)) {
+            Procedure curProc = null;
+            if (!String.IsNullOrEmpty(initialProcedureName)
+                && nodes.Any(node => node.Equals(initialProcedureName, StringComparison.OrdinalIgnoreCase))) {
+                int initialIndex = sourceTab.parseInfo.GetProcedureIndex(initialProcedureName);
+                if (initialIndex != -1)
+                    curProc = scrProc[initialIndex];
+            }
+            if (curProc == null)
+                curProc = sourceTab.parseInfo.GetProcedureFromPosition(sourceTab.textEditor.ActiveTextAreaControl.Caret.Line);
+            if (curProc == null || !nodes.Any(node => node.Equals(curProc.name, StringComparison.OrdinalIgnoreCase))) {
                 int indx = sourceTab.parseInfo.GetProcedureIndex("talk_p_proc");
-                if (indx == -1)
-                    return;
-                curProc = scrProc[indx];
+                if (indx != -1 && nodes.Any(node => node.Equals(scrProc[indx].name, StringComparison.OrdinalIgnoreCase)))
+                    curProc = scrProc[indx];
+                else {
+                    indx = sourceTab.parseInfo.GetProcedureIndex(nodes[0]);
+                    if (indx == -1)
+                        return;
+                    curProc = scrProc[indx];
+                }
             }
             
             MessagesData = File.ReadAllLines(sourceTab.msgFilePath, Settings.EncCodePage);
@@ -141,16 +158,18 @@ namespace ScriptEditor
                     msg = "<" + line.shortcode + ">";
 skip:
                 dgvMessages.Rows.Add(line.toNode.Trim('"', ' '), msg, line.iq, (line.numberMsgLine > 0) ? n + line.numberMsgLine : line.numberMsgLine);
-                dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[0].Tag = line.opcode;
+                DataGridViewRow row = dgvMessages.Rows[dgvMessages.Rows.Count - 1];
+                InterfaceTheme.ApplyDialogGridRow(row);
+                row.Cells[0].Tag = line.opcode;
                 if (line.opcode == OpcodeType.Option || line.opcode == OpcodeType.giq_option || line.opcode == OpcodeType.gsay_option) {
-                    dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[1].Value = (char)0x25CF + " " + msg;
+                    row.Cells[1].Value = (char)0x25CF + " " + msg;
                     if (!error)
-                        dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[1].Style.ForeColor = Color.Blue;
+                        row.Cells[1].Style.ForeColor = InterfaceTheme.DialogOptionTextColor;
                 }
                 if (line.numberMsgFile != -1)
-                    dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[3].Tag = msgPath;
+                    row.Cells[3].Tag = msgPath;
                 if (error)
-                    dgvMessages.Rows[dgvMessages.Rows.Count - 1].Cells[1].Style.ForeColor = Color.Red;
+                    row.Cells[1].Style.ForeColor = InterfaceTheme.DialogErrorTextColor;
             }
         }
 
@@ -256,8 +275,17 @@ skip:
             if (!needUpdate)
                 return;
             
-            List<string> nodes = DialogueParser.GetAllNodesName(scrProc);
-            if (NodesComboBox.Items.Count != nodes.Count) {
+            List<string> nodes = DialogueParser.GetAllNodesName(document, sourceTab.parseInfo);
+            bool nodesChanged = NodesComboBox.Items.Count != nodes.Count;
+            if (!nodesChanged) {
+                for (int index = 0; index < nodes.Count; index++) {
+                    if (!nodes[index].Equals(NodesComboBox.Items[index].ToString(), StringComparison.Ordinal)) {
+                        nodesChanged = true;
+                        break;
+                    }
+                }
+            }
+            if (nodesChanged) {
                 var sItem = NodesComboBox.SelectedItem;
                 
                 allow = false;

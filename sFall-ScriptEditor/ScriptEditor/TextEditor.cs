@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 using ICSharpCode.TextEditor;
@@ -13,6 +14,7 @@ using ScriptEditor.CodeTranslation;
 using ScriptEditor.SyntaxRules;
 
 using ScriptEditor.TextEditorUI;
+using ScriptEditor.TextEditorUI.Function;
 using ScriptEditor.TextEditorUI.CompleteList;
 using ScriptEditor.TextEditorUI.ToolTips;
 
@@ -41,6 +43,8 @@ namespace ScriptEditor
         private ToolStripMenuItem expandAllProceduresMenuItem;
         private ToolStripMenuItem collapseOtherProceduresMenuItem;
         private ToolStripMenuItem goToMessageMenuItem;
+        private ToolStripMenuItem previewDialogContextMenuItem;
+        private Procedure previewDialogContextProcedure;
         private Image collapseProceduresImage;
         private Image expandProceduresImage;
         private int editorContextLine = -1;
@@ -103,9 +107,13 @@ namespace ScriptEditor
         public TextEditor(string[] args)
         {
             InitializeComponent();
+            // The form is created by Application.Run immediately after this constructor.
+            // Keep its partially initialized controls out of the first visible frame.
+            Opacity = 0D;
             ConfigureHelpMenu();
             ConfigureEditorFoldingMenu();
             ConfigureMessageNavigationMenu();
+            ConfigureDialogPreviewContextMenu();
             ConfigureOutlineButton();
             ConfigureMainToolbar();
             ConfigureStatusNotifications();
@@ -183,6 +191,7 @@ namespace ScriptEditor
 
             this.Text = AppTitle;
             tbOutput.Text = "***** " +  AboutBox.appName + " v." + AboutBox.appVersion + AboutBox.appDescription + " *****";
+            InterfaceTheme.Apply(this);
         }
 
         private void ConfigureHelpMenu()
@@ -225,6 +234,44 @@ namespace ScriptEditor
             editorMenuStrip.Items.Insert(editorMenuStrip.Items.IndexOf(toolStripSeparator6), goToMessageMenuItem);
         }
 
+        private void ConfigureDialogPreviewContextMenu()
+        {
+            previewDialogContextMenuItem = new ToolStripMenuItem("Preview dialog");
+            previewDialogContextMenuItem.Enabled = false;
+            previewDialogContextMenuItem.Click += PreviewDialogContextMenuItem_Click;
+            editorMenuStrip.Items.Insert(editorMenuStrip.Items.IndexOf(toolStripSeparator6), previewDialogContextMenuItem);
+        }
+
+        private void UpdateDialogPreviewContextMenu()
+        {
+            previewDialogContextMenuItem.Enabled = false;
+            previewDialogContextProcedure = null;
+            if (currentTab == null || currentTab.parseInfo == null || currentTab.filepath == null
+                || !Path.GetExtension(currentTab.filepath).Equals(".ssl", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            int line = EditorContextLine + 1;
+            foreach (Procedure procedure in currentTab.parseInfo.procs) {
+                if (procedure == null || line < procedure.d.start || line > procedure.d.end
+                    || !String.Equals(procedure.fstart, currentTab.filepath, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                DialogFunctionsRules.BuildOpcodesDictionary();
+                if (DialogueParser.ProcedureContainsPreviewableDialog(currentDocument,
+                        currentTab.parseInfo, procedure)) {
+                    previewDialogContextProcedure = procedure;
+                    previewDialogContextMenuItem.Enabled = true;
+                }
+                break;
+            }
+        }
+
+        private void PreviewDialogContextMenuItem_Click(object sender, EventArgs e)
+        {
+            if (previewDialogContextProcedure != null)
+                ShowDialogPreview(previewDialogContextProcedure.name);
+        }
+
         private void ConfigureOutlineButton()
         {
             collapseProceduresImage = new Bitmap(Outline_toolStripButton.Image);
@@ -260,32 +307,55 @@ namespace ScriptEditor
         {
             goToMessageMenuItem.Enabled = false;
             goToMessageMenuItem.Tag = null;
-            if (currentTab == null || currentTab.filepath == null
-                || !Path.GetExtension(currentTab.filepath).Equals(".ssl", StringComparison.OrdinalIgnoreCase))
+            KeyValuePair<string, int> target;
+            if (!TryGetMessageTarget(EditorContextPosition, out target))
                 return;
 
-            TextLocation position = EditorContextPosition;
-            if (position == TextLocation.Empty)
-                return;
-
-            int offset = currentDocument.PositionToOffset(position);
-            string word = TextUtilities.GetWordAt(currentDocument, offset);
-            int messageNumber;
-            if (!int.TryParse(word, out messageNumber))
-                return;
-
-            string scriptToken;
-            if (!ToolTipRequest.TryGetMessageScriptToken(currentTab, currentDocument.TextContent,
-                    offset, messageNumber, out scriptToken))
-                scriptToken = null;
-
-            string path;
-            int line;
-            if (!MessageFile.TryGetMessageLocation(currentTab, scriptToken, messageNumber, out path, out line))
-                return;
-
-            goToMessageMenuItem.Tag = new KeyValuePair<string, int>(path, messageNumber);
+            goToMessageMenuItem.Tag = target;
             goToMessageMenuItem.Enabled = true;
+        }
+
+        private bool TryGetMessageTarget(TextLocation position, out KeyValuePair<string, int> target)
+        {
+            target = default(KeyValuePair<string, int>);
+            if (currentTab == null || currentTab.filepath == null || position == TextLocation.Empty
+                || !Path.GetExtension(currentTab.filepath).Equals(".ssl", StringComparison.OrdinalIgnoreCase)
+                || position.Line < 0 || position.Line >= currentDocument.TotalNumberOfLines)
+                return false;
+
+            LineSegment segment = currentDocument.GetLineSegment(position.Line);
+            string lineText = currentDocument.GetText(segment.Offset, segment.Length);
+            int preferredOffset = currentDocument.PositionToOffset(position);
+            var candidates = new List<KeyValuePair<int, int>>();
+            foreach (Match match in Regex.Matches(lineText, @"(?<![A-Za-z_])[0-9]+(?![A-Za-z_])")) {
+                int messageNumber;
+                if (!int.TryParse(match.Value, out messageNumber))
+                    continue;
+                int offset = segment.Offset + match.Index;
+                var candidate = new KeyValuePair<int, int>(offset, messageNumber);
+                if (preferredOffset >= offset && preferredOffset <= offset + match.Length)
+                    candidates.Insert(0, candidate);
+                else
+                    candidates.Add(candidate);
+            }
+
+            foreach (var candidate in candidates) {
+                string scriptToken;
+                if (!ToolTipRequest.TryGetMessageScriptToken(currentTab, currentDocument.TextContent,
+                        candidate.Key, candidate.Value, out scriptToken))
+                    scriptToken = null;
+
+                string path;
+                int physicalLine;
+                if (!MessageFile.TryGetMessageLocation(currentTab, scriptToken, candidate.Value,
+                        out path, out physicalLine))
+                    continue;
+                if (String.IsNullOrEmpty(scriptToken))
+                    currentTab.msgFilePath = path;
+                target = new KeyValuePair<string, int>(path, candidate.Value);
+                return true;
+            }
+            return false;
         }
 
         private void GoToMessage_Click(object sender, EventArgs e)
@@ -293,7 +363,11 @@ namespace ScriptEditor
             if (!(goToMessageMenuItem.Tag is KeyValuePair<string, int>))
                 return;
 
-            var target = (KeyValuePair<string, int>)goToMessageMenuItem.Tag;
+            NavigateToMessage((KeyValuePair<string, int>)goToMessageMenuItem.Tag);
+        }
+
+        private void NavigateToMessage(KeyValuePair<string, int> target)
+        {
             TabInfo messageTab = Open(target.Key, OpenType.File, false, alreadyOpen: false);
             if (messageTab == null)
                 return;
@@ -458,9 +532,30 @@ namespace ScriptEditor
             if (!Settings.firstRun)
                 Settings_ToolStripMenuItem.PerformClick();
 
+            this.Activated += TextEditor_Activated;
+            this.Deactivate += TextEditor_Deactivate;
+            SingleInstanceManager.SendEditorOpenMessage();
+            InterfaceTheme.Apply(this);
+            Refresh();
+            Opacity = 1D;
+
+            // Give Windows one complete painted frame before restoring documents.
+            // Session tabs are useful startup state, but they must not delay the shell.
+            var startupDocumentsTimer = new Timer { Interval = 50 };
+            startupDocumentsTimer.Tick += delegate {
+                startupDocumentsTimer.Stop();
+                startupDocumentsTimer.Dispose();
+                if (!IsDisposed && !isClosing)
+                    RestoreStartupDocuments();
+            };
+            startupDocumentsTimer.Start();
+        }
+
+        private void RestoreStartupDocuments()
+        {
             bool restoredPreviousSession = RestorePreviousSession();
 
-            // open documents passed from command line
+            // Open documents passed from the command line after the application shell is visible.
             foreach (string fArg in commandsArgs)
             {
                 string file = fArg;
@@ -469,10 +564,6 @@ namespace ScriptEditor
                     Open(file, TextEditor.OpenType.File, commandline: true, fcdOpen: fcd);
             }
 
-            this.Activated += TextEditor_Activated;
-            this.Deactivate += TextEditor_Deactivate;
-            SingleInstanceManager.SendEditorOpenMessage();
-            InterfaceTheme.Apply(this);
             if (restoredPreviousSession)
                 BeginInvoke((MethodInvoker)ExpandRestoredProcedureGroups);
         }
@@ -1315,11 +1406,10 @@ namespace ScriptEditor
                 return;
             }
 
-            if (msgAutoOpenEditorStripMenuItem.Checked) {
-                MessageEditor msgForm = MessageEditor.MessageEditorInit(currentTab, this);
-                if (msgForm != null)
-                    msgForm.SendMsgLine += AcceptMsgLine;
-            } else
+            KeyValuePair<string, int> target;
+            if (TryGetMessageTarget(currentActiveTextAreaCtrl.Caret.Position, out target))
+                NavigateToMessage(target);
+            else
                 AssociateMsg(currentTab, true);
         }
 
@@ -1590,18 +1680,6 @@ namespace ScriptEditor
         {
             Utilities.HighlightingSelectedText(currentActiveTextAreaCtrl);
             currentTab.textEditor.Refresh();
-        }
-
-        private void msgFileEditorToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (!msgAutoOpenEditorStripMenuItem.Checked && currentTab != null) {
-                MessageEditor msgForm = MessageEditor.MessageEditorInit(currentTab, this);
-                if (msgForm != null) {
-                    msgForm.SendMsgLine += AcceptMsgLine;
-                    return;
-                }
-            }
-            MessageEditor.MessageEditorInit(null, this);
         }
 
         private void pDefineStripComboBox_SelectedIndexChanged(object sender, EventArgs e)

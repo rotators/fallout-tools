@@ -31,6 +31,7 @@ namespace SfallScriptEditor.Tests
             Run("invalid parser line ranges are rejected", InvalidParserRangesAreRejected);
             Run("atomic document save replaces content", AtomicDocumentSaveReplacesContent);
             Run("procedure folding commands affect member bodies", ProcedureFoldingCommandsAffectMemberBodies);
+            Run("dialog procedures are discovered from their content", DialogProceduresAreDiscoveredFromContent);
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
@@ -556,6 +557,56 @@ namespace SfallScriptEditor.Tests
 
             True(!CodeFolder.CollapseAllExceptProcedure(document, 7),
                 "A line outside a procedure should not trigger the command.");
+        }
+
+        private static void DialogProceduresAreDiscoveredFromContent()
+        {
+            IDocument document = new DocumentFactory().CreateDocument();
+            document.TextContent =
+                "procedure Helper begin\r\n"
+                + "   set_local_var(0, 1);\r\n"
+                + "end\r\n"
+                + "procedure Gizmo01 begin\r\n"
+                + "   Reply(101);\r\n"
+                + "   NOption(102, Gizmo02, 4);\r\n"
+                + "end\r\n"
+                + "procedure Gizmo02 begin\r\n"
+                + "   NOption(104, DialogExit, 4);\r\n"
+                + "end\r\n"
+                + "procedure DialogExit begin\r\n"
+                + "   NMessage(103);\r\n"
+                + "end\r\n";
+
+            var program = new ProgramInfo(4, 0);
+            program.procs[0] = TestProcedure("Helper", 1, 3);
+            program.procs[1] = TestProcedure("Gizmo01", 4, 7);
+            program.procs[2] = TestProcedure("Gizmo02", 8, 10);
+            program.procs[3] = TestProcedure("DialogExit", 11, 13);
+            program.RebuildProcedureDictionary();
+            ScriptEditor.TextEditorUI.Function.DialogFunctionsRules.BuildOpcodesDictionary();
+
+            List<string> nodes = DialogueParser.GetAllNodesName(document, program);
+            True(nodes.SequenceEqual(new[] { "Gizmo01", "Gizmo02", "DialogExit" }),
+                "Dialog operations and their linked procedures should be discovered without requiring '*node*' names or talk_p_proc.");
+            True(DialogueParser.ProcedureContainsPreviewableDialog(document, program, program.procs[1]),
+                "A procedure containing Reply should enable direct dialog preview.");
+            True(!DialogueParser.ProcedureContainsPreviewableDialog(document, program, program.procs[0]),
+                "A procedure without dialog operations should not enable direct dialog preview.");
+            True(DialogueParser.ProcedureContainsPreviewableDialog(document, program, program.procs[2]),
+                "A procedure containing an option without a reply should enable direct dialog preview.");
+        }
+
+        private static Procedure TestProcedure(string name, int start, int end)
+        {
+            return new Procedure {
+                name = name,
+                fdeclared = "dialog.ssl",
+                fstart = "dialog.ssl",
+                filename = "dialog.ssl",
+                d = new ProcedureData { start = start, end = end, declared = start - 1 },
+                variables = new Variable[0],
+                references = new Reference[0]
+            };
         }
 
         private static void MultilineObjectMacrosRetainTheirIdentifier()
