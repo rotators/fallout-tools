@@ -20,6 +20,7 @@ namespace SfallScriptEditor.Tests
         private static int Main()
         {
             Run("compiler diagnostic lookahead", CompilerDiagnosticLookahead);
+            Run("diagnostic suppressions are configurable", DiagnosticSuppressionsAreConfigurable);
             Run("document revision rejects stale parser result", DocumentRevisionRejectsStaleResult);
             Run("UTF-8 BOM encoding is preserved", Utf8BomEncodingIsPreserved);
             Run("UTF-8 without BOM is preserved", Utf8WithoutBomEncodingIsPreserved);
@@ -45,6 +46,35 @@ namespace SfallScriptEditor.Tests
                 Console.WriteLine("FAIL  " + name);
                 Console.WriteLine("      " + ex.Message);
             }
+        }
+
+        private static void DiagnosticSuppressionsAreConfigurable()
+        {
+            WithTempDirectory(directory => {
+                string config = Path.Combine(directory, DiagnosticSuppressionRules.ConfigFileName);
+                File.WriteAllText(config,
+                    "# Example suppression\r\n"
+                    + "malformed rule\r\n"
+                    + "Warning|debug.h|16|Illegal multi-byte character sequence\r\n");
+
+                const string output = "[Warning] <debug.h>:16: Illegal multi-byte character sequence in quotation:\r\n"
+                    + "#define STYLE_debug(text) ANSI_SGR('1;38;2;60;248;0') + text\r\n"
+                    + "[Warning] <debug.h>:17: A useful warning.\r\n"
+                    + "Additional warning context.\r\n";
+                var errors = new List<Error>();
+                Error.BuildLog(errors, output, @"C:\scripts\test.ssl", config);
+                Equal(1, errors.Count);
+                Equal(17, errors[0].line);
+
+                File.WriteAllText(config, "Warning|*|*|A useful warning\r\n");
+                Error.BuildLog(errors, output, @"C:\scripts\test.ssl", config);
+                Equal(1, errors.Count);
+                Equal(16, errors[0].line);
+
+                File.WriteAllText(config, "Warning|debug.h|not-a-line|A useful warning\r\n");
+                Error.BuildLog(errors, output, @"C:\scripts\test.ssl", config);
+                Equal(2, errors.Count);
+            });
         }
 
         private static void CompilerDiagnosticLookahead()
@@ -74,6 +104,17 @@ namespace SfallScriptEditor.Tests
                 "foo bar;"
             };
             Equal(1, CompilerDiagnosticLineResolver.Resolve(1, 8, assignmentError, line => sameLineError[line]));
+            Equal("Unexpected identifier 'foo'; assignment operator expected.",
+                CompilerDiagnosticLineResolver.Clarify(assignmentError, 1, 1, 8, line => sameLineError[line]));
+
+            string[] trailingIdentifier = {
+                "remove_wm_town_names(true);q",
+                "town_list := [ AREA_VAULT_13 ];"
+            };
+            Equal("Unexpected identifier 'q'; assignment operator expected.",
+                CompilerDiagnosticLineResolver.Clarify(assignmentError, 1, 0, 10, line => trailingIdentifier[line]));
+            Equal("Unexpected token.",
+                CompilerDiagnosticLineResolver.Clarify("Unexpected token.", 1, 0, 10, line => trailingIdentifier[line]));
         }
 
         private static int ResolveDiagnostic(int reportedLine, int reportedColumn, string message, string previousLine)

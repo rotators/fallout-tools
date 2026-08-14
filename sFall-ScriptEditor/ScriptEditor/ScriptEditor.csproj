@@ -130,6 +130,7 @@
     </Compile>
     <Compile Include="TextEditorUI\ColorTheme.cs" />
     <Compile Include="TextEditorUI\CompilerDiagnosticLineResolver.cs" />
+    <Compile Include="TextEditorUI\DiagnosticSuppressionRules.cs" />
     <Compile Include="InterfaceTheme.cs" />
     <Compile Include="TextEditorUI\CompiledStatus.cs">
       <SubType>Form</SubType>
@@ -310,6 +311,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="IgnoredDiagnostics.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Descriptions\Functions.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

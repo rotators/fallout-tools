@@ -354,7 +354,7 @@ namespace ScriptEditor
                 tbOutput.Text = tab.buildLog;
                 if (tsmShowBuildLog.Checked && tab.buildErrors.Count > 0) {
                     dgvErrors.Rows.Add("Build Log");
-                    dgvErrors.Rows[dgvErrors.Rows.Count - 1].DefaultCellStyle.BackColor = Color.Gainsboro;
+                    InterfaceTheme.ApplyGridSectionRow(dgvErrors.Rows[dgvErrors.Rows.Count - 1]);
                     foreach (Error err in tab.buildErrors)
                         dgvErrors.Rows.Add(err.type.ToString(), Path.GetFileName(err.fileName), err.line, err);
                 }

@@ -8,6 +8,9 @@ namespace ScriptEditor.TextEditorUI
         private static readonly Regex TrailingStrayIdentifier = new Regex(
             @"(?:^|[;{}])\s*[A-Za-z_][A-Za-z0-9_]*\s*;?\s*$",
             RegexOptions.Compiled);
+        private static readonly Regex Identifier = new Regex(
+            @"[A-Za-z_][A-Za-z0-9_]*",
+            RegexOptions.Compiled);
 
         internal static int Resolve(int reportedLine, int reportedColumn, string message, Func<int, string> getLine)
         {
@@ -34,6 +37,40 @@ namespace ScriptEditor.TextEditorUI
                 return TrailingStrayIdentifier.IsMatch(code.Trim()) ? line : reportedLine;
             }
             return reportedLine;
+        }
+
+        internal static string Clarify(string message, int reportedLine, int resolvedLine,
+            int reportedColumn, Func<int, string> getLine)
+        {
+            if (String.IsNullOrEmpty(message) || getLine == null)
+                return message;
+
+            bool assignmentError = message.StartsWith("Assignment operator expected", StringComparison.OrdinalIgnoreCase);
+            bool unknownNameError = message.StartsWith("Unknown name identifier", StringComparison.OrdinalIgnoreCase);
+            if (!assignmentError && !unknownNameError)
+                return message;
+
+            string code = getLine(resolvedLine) ?? String.Empty;
+            bool insideBlockComment = false;
+            code = RemoveComments(code, ref insideBlockComment);
+            MatchCollection identifiers = Identifier.Matches(code);
+            if (identifiers.Count == 0)
+                return message;
+
+            Match offending = identifiers[identifiers.Count - 1];
+            if (resolvedLine == reportedLine && reportedColumn > 0) {
+                for (int i = 1; i < identifiers.Count; i++) {
+                    Match lookahead = identifiers[i];
+                    if (reportedColumn <= lookahead.Index + lookahead.Length + 1) {
+                        offending = identifiers[i - 1];
+                        break;
+                    }
+                }
+            }
+
+            return assignmentError
+                ? String.Format("Unexpected identifier '{0}'; assignment operator expected.", offending.Value)
+                : String.Format("Unknown identifier '{0}'.", offending.Value);
         }
 
         private static int PreviousCodeLine(int reportedLine, Func<int, string> getLine)

@@ -13,6 +13,7 @@ namespace ScriptEditor
         private static readonly Color DarkText = Color.Gainsboro;
         private static readonly Color DarkSelection = Color.FromArgb(85, 85, 90);
         private static readonly Color DarkBorder = Color.FromArgb(68, 68, 72);
+        private static readonly object GridSectionRowTag = new object();
         private static readonly Dictionary<Form, bool> AppliedForms = new Dictionary<Form, bool>();
         private static readonly HashSet<TabControl> ThemedTabs = new HashSet<TabControl>();
         private static readonly Dictionary<TabControl, TabAppearance> TabAppearances = new Dictionary<TabControl, TabAppearance>();
@@ -70,6 +71,21 @@ ApplyControl(form, dark);
                 if (!AppliedForms.TryGetValue(form, out appliedDark) || appliedDark != dark)
                     Apply(form);
             }
+        }
+
+        internal static void ApplyGridSectionRow(DataGridViewRow row)
+        {
+            if (row == null) return;
+            row.Tag = GridSectionRowTag;
+            ApplyGridSectionRow(row, IsDark);
+        }
+
+        private static void ApplyGridSectionRow(DataGridViewRow row, bool dark)
+        {
+            row.DefaultCellStyle.BackColor = dark ? DarkControl : Color.Gainsboro;
+            row.DefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.ControlText;
+            row.DefaultCellStyle.SelectionBackColor = dark ? DarkSelection : SystemColors.Highlight;
+            row.DefaultCellStyle.SelectionForeColor = dark ? Color.White : SystemColors.HighlightText;
         }
 
         private static bool IsSystemDark()
@@ -137,6 +153,10 @@ ApplyControl(form, dark);
                 grid.ColumnHeadersDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.ControlText;
                 grid.RowHeadersDefaultCellStyle.BackColor = dark ? DarkControl : SystemColors.Control;
                 grid.RowHeadersDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.ControlText;
+                foreach (DataGridViewRow row in grid.Rows) {
+                    if (object.ReferenceEquals(row.Tag, GridSectionRowTag))
+                        ApplyGridSectionRow(row, dark);
+                }
             }
 
             ButtonBase button = control as ButtonBase;

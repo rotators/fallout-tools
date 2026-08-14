@@ -69,7 +69,13 @@ namespace ScriptEditor.TextEditorUI
         // for compile
         public static void BuildLog(List<Error> errors, string output, string srcfile)
         {
+            BuildLog(errors, output, srcfile, DiagnosticSuppressionRules.DefaultPath);
+        }
+
+        internal static void BuildLog(List<Error> errors, string output, string srcfile, string suppressionPath)
+        {
             errors.Clear();
+            DiagnosticSuppressionRules suppressions = DiagnosticSuppressionRules.Load(suppressionPath);
             string[] log = output.Split(new string[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries);
             for (int s = 0; s < log.Length; s++)
             {
@@ -82,6 +88,9 @@ namespace ScriptEditor.TextEditorUI
                         error.type = ErrorType.Error;
 
                     GetLogText(log, s, error);
+
+                    if (suppressions.IsIgnored(error))
+                        continue;
 
                     // File path correct
                     if ((Settings.useMcpp || Settings.useWatcom) && error.fileName != "none") {
@@ -195,8 +204,16 @@ namespace ScriptEditor.TextEditorUI
                     sameFile = String.Equals(Path.GetFileName(error.fileName), tab.filename, StringComparison.OrdinalIgnoreCase);
                 }
 
-                if (sameFile)
-                    AddWaveMarker(tab, GetBuildErrorMarkerLine(tab, error), error.message, BuildErrorColor);
+                if (sameFile) {
+                    int markerLine = GetBuildErrorMarkerLine(tab, error);
+                    int reportedLine = Math.Max(0, Math.Min(error.line - 1, tab.textEditor.Document.TotalNumberOfLines - 1));
+                    error.message = CompilerDiagnosticLineResolver.Clarify(error.message, reportedLine, markerLine,
+                        error.column, line => {
+                            LineSegment segment = tab.textEditor.Document.GetLineSegment(line);
+                            return tab.textEditor.Document.GetText(segment);
+                        });
+                    AddWaveMarker(tab, markerLine, error.message, BuildErrorColor);
+                }
             }
             tab.textEditor.Refresh();
         }
