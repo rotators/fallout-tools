@@ -635,6 +635,7 @@ namespace ScriptEditor
             if (ext != ".ssl" && ext != ".h") return;
 
             TextLocation _position = currentActiveTextAreaCtrl.Caret.Position;
+            UpdateOutlineButtonState();
             int curLine = _position.Line + 1;
             LineStripStatusLabel.Text = "Line: " + curLine;
             ColStripStatusLabel.Text = "Col: " + (_position.Column + 1);

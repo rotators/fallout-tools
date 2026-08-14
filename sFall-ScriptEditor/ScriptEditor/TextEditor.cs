@@ -40,7 +40,11 @@ namespace ScriptEditor
         private ToolStripMenuItem collapseAllProceduresMenuItem;
         private ToolStripMenuItem expandAllProceduresMenuItem;
         private ToolStripMenuItem collapseOtherProceduresMenuItem;
+        private ToolStripMenuItem goToMessageMenuItem;
+        private Image collapseProceduresImage;
+        private Image expandProceduresImage;
         private int editorContextLine = -1;
+        private TextLocation editorContextPosition = TextLocation.Empty;
 
         private SearchForm sf;
         private GoToLine goToLine;
@@ -101,6 +105,8 @@ namespace ScriptEditor
             InitializeComponent();
             ConfigureHelpMenu();
             ConfigureEditorFoldingMenu();
+            ConfigureMessageNavigationMenu();
+            ConfigureOutlineButton();
             ConfigureMainToolbar();
             ConfigureStatusNotifications();
 
@@ -211,6 +217,93 @@ namespace ScriptEditor
             editorMenuStrip.Items.Add(foldingMenu);
         }
 
+        private void ConfigureMessageNavigationMenu()
+        {
+            goToMessageMenuItem = new ToolStripMenuItem("Go to message");
+            goToMessageMenuItem.Enabled = false;
+            goToMessageMenuItem.Click += GoToMessage_Click;
+            editorMenuStrip.Items.Insert(editorMenuStrip.Items.IndexOf(toolStripSeparator6), goToMessageMenuItem);
+        }
+
+        private void ConfigureOutlineButton()
+        {
+            collapseProceduresImage = new Bitmap(Outline_toolStripButton.Image);
+            expandProceduresImage = new Bitmap(collapseProceduresImage);
+            expandProceduresImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+            Outline_toolStripButton.Image = collapseProceduresImage;
+        }
+
+        private void UpdateOutlineButtonState()
+        {
+            if (currentTab == null || currentTab.parseInfo == null) {
+                Outline_toolStripButton.Enabled = false;
+                Outline_toolStripButton.ToolTipText = "No procedures available";
+                return;
+            }
+
+            int line = currentActiveTextAreaCtrl.Caret.Line;
+            bool hasOtherProcedures = CodeFolder.HasProcedureOutsideLine(currentDocument, line);
+            Outline_toolStripButton.Enabled = hasOtherProcedures;
+            if (!hasOtherProcedures) {
+                Outline_toolStripButton.ToolTipText = "No other procedures available";
+                return;
+            }
+
+            bool collapse = CodeFolder.HasUnfoldedProcedureOutsideLine(currentDocument, line);
+            Outline_toolStripButton.Image = collapse ? collapseProceduresImage : expandProceduresImage;
+            Outline_toolStripButton.ToolTipText = collapse
+                ? "Collapse other procedures"
+                : "Expand other procedures";
+        }
+
+        private void UpdateGoToMessageMenu()
+        {
+            goToMessageMenuItem.Enabled = false;
+            goToMessageMenuItem.Tag = null;
+            if (currentTab == null || currentTab.filepath == null
+                || !Path.GetExtension(currentTab.filepath).Equals(".ssl", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            TextLocation position = EditorContextPosition;
+            if (position == TextLocation.Empty)
+                return;
+
+            int offset = currentDocument.PositionToOffset(position);
+            string word = TextUtilities.GetWordAt(currentDocument, offset);
+            int messageNumber;
+            if (!int.TryParse(word, out messageNumber))
+                return;
+
+            string scriptToken;
+            if (!ToolTipRequest.TryGetMessageScriptToken(currentTab, currentDocument.TextContent,
+                    offset, messageNumber, out scriptToken))
+                scriptToken = null;
+
+            string path;
+            int line;
+            if (!MessageFile.TryGetMessageLocation(currentTab, scriptToken, messageNumber, out path, out line))
+                return;
+
+            goToMessageMenuItem.Tag = new KeyValuePair<string, int>(path, messageNumber);
+            goToMessageMenuItem.Enabled = true;
+        }
+
+        private void GoToMessage_Click(object sender, EventArgs e)
+        {
+            if (!(goToMessageMenuItem.Tag is KeyValuePair<string, int>))
+                return;
+
+            var target = (KeyValuePair<string, int>)goToMessageMenuItem.Tag;
+            TabInfo messageTab = Open(target.Key, OpenType.File, false, alreadyOpen: false);
+            if (messageTab == null)
+                return;
+
+            int line;
+            if (!MessageFile.TryFindMessageLine(messageTab.textEditor.Document.TextContent, target.Value, out line))
+                return;
+            SelectLine(target.Key, line);
+        }
+
         private void ConfigureMainToolbar()
         {
             ToolStripMain.GripStyle = ToolStripGripStyle.Hidden;
@@ -260,6 +353,15 @@ namespace ScriptEditor
                 if (editorContextLine >= 0)
                     return editorContextLine;
                 return currentTab == null ? -1 : currentActiveTextAreaCtrl.Caret.Line;
+            }
+        }
+
+        private TextLocation EditorContextPosition
+        {
+            get {
+                if (editorContextPosition != TextLocation.Empty)
+                    return editorContextPosition;
+                return currentTab == null ? TextLocation.Empty : currentActiveTextAreaCtrl.Caret.Position;
             }
         }
 
@@ -644,6 +746,7 @@ namespace ScriptEditor
             TextArea textArea = sender as TextArea;
             if (textArea == null || textArea.Document.TotalNumberOfLines == 0) {
                 editorContextLine = -1;
+                editorContextPosition = TextLocation.Empty;
                 return;
             }
 
@@ -651,6 +754,8 @@ namespace ScriptEditor
                 Math.Max(0, e.X - textArea.TextView.DrawingPosition.X),
                 e.Y - textArea.TextView.DrawingPosition.Y);
             editorContextLine = Math.Max(0, Math.Min(textArea.Document.TotalNumberOfLines - 1, location.Y));
+            LineSegment line = textArea.Document.GetLineSegment(editorContextLine);
+            editorContextPosition = new TextLocation(Math.Max(0, Math.Min(line.Length, location.X)), editorContextLine);
         }
 
         void TextArea_MouseDoubleClick(object sender, MouseEventArgs e) {
@@ -695,10 +800,7 @@ namespace ScriptEditor
             ShowTabsSpaces();
             ShowLineNumbers(null, null);
 
-            if (currentTab.parseInfo != null && currentDocument.FoldingManager.FoldMarker.Count > 0) //currentTab.parseInfo.procs.Length
-                Outline_toolStripButton.Enabled = true;
-            else
-                Outline_toolStripButton.Enabled = false;
+            UpdateOutlineButtonState();
 
             SetBackForwardButtonState();
 
@@ -1095,14 +1197,9 @@ namespace ScriptEditor
                 return;
 
             int cline = currentActiveTextAreaCtrl.Caret.Line;
-            foreach (FoldMarker fm in currentDocument.FoldingManager.FoldMarker)
-            {
-                if (cline >= fm.StartLine && cline <= fm.EndLine)
-                    continue;
-                if (fm.FoldType == FoldType.MemberBody)
-                    fm.IsFolded = !fm.IsFolded;
-            }
-            currentDocument.FoldingManager.NotifyFoldingsChanged(null);
+            bool collapse = CodeFolder.HasUnfoldedProcedureOutsideLine(currentDocument, cline);
+            CodeFolder.SetProceduresOutsideLineFolded(currentDocument, cline, collapse);
+            UpdateOutlineButtonState();
             currentActiveTextAreaCtrl.CenterViewOn(cline, 0);
         }
 

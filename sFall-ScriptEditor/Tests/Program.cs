@@ -40,6 +40,7 @@ namespace SfallScriptEditor.Tests
             Run("message_str resolves explicit message file", MessageStrResolvesExplicitMessageFile);
             Run("message wrapper macro resolves explicit message file", MessageWrapperMacroResolvesExplicitMessageFile);
             Run("random message range populates tooltip text", RandomMessageRangePopulatesTooltipText);
+            Run("message navigation resolves file and physical line", MessageNavigationResolvesFileAndPhysicalLine);
 
             Console.WriteLine();
             Console.WriteLine("Tests: {0} passed, {1} failed", passed, failed);
@@ -348,6 +349,64 @@ namespace SfallScriptEditor.Tests
             });
         }
 
+        private static void MessageNavigationResolvesFileAndPhysicalLine()
+        {
+            const string source = "# comment\n\n{115}{}{The dog seems to think you are his owner.}\n";
+            int line;
+            True(MessageFile.TryFindMessageLine(source, 115, out line),
+                "The message entry should be found after comments and blank lines.");
+            Equal(3, line);
+
+            WithTempDirectory(directory => {
+                string scriptsDirectory = Path.Combine(directory, "scripts");
+                string dialogDirectory = Path.Combine(directory, "text", Settings.language, "dialog");
+                Directory.CreateDirectory(scriptsDirectory);
+                Directory.CreateDirectory(dialogDirectory);
+
+                string[] scripts = Enumerable.Repeat("unused.int", 968).ToArray();
+                scripts[622] = "Katja.int";
+                scripts[967] = "AllDogs.int";
+                File.WriteAllLines(Path.Combine(scriptsDirectory, "scripts.lst"), scripts);
+
+                string katjaPath = Path.Combine(dialogDirectory, "katja.msg");
+                string allDogsPath = Path.Combine(dialogDirectory, "alldogs.msg");
+                File.WriteAllText(katjaPath, "\n{310}{}{I'm here.}\n");
+                File.WriteAllText(allDogsPath, source);
+
+                string oldOutputDir = Settings.outputDir;
+                Encoding oldEncoding = Settings.EncCodePage;
+                try {
+                    Settings.outputDir = scriptsDirectory;
+                    Settings.EncCodePage = Encoding.UTF8;
+                    var info = new ProgramInfo(0, 0);
+                    info.macros.Add("NAME", new Macro("NAME", "NAME", "SCRIPT_KATJA", "katja.ssl", 1, null));
+                    info.macros.Add("SCRIPT_KATJA", new Macro("SCRIPT_KATJA", "SCRIPT_KATJA", "(623)", "scripts.h", 635, null));
+                    info.macros.Add("SCRIPT_ALLDOGS", new Macro("SCRIPT_ALLDOGS", "SCRIPT_ALLDOGS", "(968)", "scripts.h", 982, null));
+                    var tab = new TabInfo {
+                        filepath = Path.Combine(directory, "katja.ssl"),
+                        filename = "katja.ssl",
+                        parseInfo = info
+                    };
+
+                    string path;
+                    True(MessageFile.TryGetMessageLocation(tab, null, 310, out path, out line),
+                        "A normal message number should resolve through the script NAME.");
+                    True(String.Equals(katjaPath, path, StringComparison.OrdinalIgnoreCase),
+                        "The normal message path should match regardless of filename casing.");
+                    Equal(2, line);
+
+                    True(MessageFile.TryGetMessageLocation(tab, "SCRIPT_ALLDOGS", 115, out path, out line),
+                        "An explicit message script token should resolve its own file.");
+                    True(String.Equals(allDogsPath, path, StringComparison.OrdinalIgnoreCase),
+                        "The explicit message path should match regardless of filename casing.");
+                    Equal(3, line);
+                } finally {
+                    Settings.outputDir = oldOutputDir;
+                    Settings.EncCodePage = oldEncoding;
+                }
+            });
+        }
+
         private static void Utf8BomEncodingIsPreserved()
         {
             WithTempDirectory(directory => {
@@ -480,6 +539,20 @@ namespace SfallScriptEditor.Tests
             True(first.IsFolded && !second.IsFolded,
                 "Only the procedure at the target line should remain expanded.");
             True(!variables.IsFolded, "Other folding regions must remain unchanged.");
+
+            True(CodeFolder.HasProcedureOutsideLine(document, 4),
+                "The toolbar should detect procedures other than the active one.");
+            True(!CodeFolder.HasUnfoldedProcedureOutsideLine(document, 4),
+                "When all other procedures are folded, the next toolbar action should expand them.");
+            CodeFolder.SetProceduresOutsideLineFolded(document, 4, false);
+            True(!first.IsFolded && !second.IsFolded,
+                "The expand action should unfold procedures other than the active one.");
+            True(CodeFolder.HasUnfoldedProcedureOutsideLine(document, 4),
+                "An unfolded procedure should switch the next toolbar action to collapse.");
+            CodeFolder.SetProceduresOutsideLineFolded(document, 4, true);
+            True(first.IsFolded && !second.IsFolded,
+                "The collapse action should fold procedures other than the active one.");
+            True(!variables.IsFolded, "Toolbar folding must not affect non-procedure regions.");
 
             True(!CodeFolder.CollapseAllExceptProcedure(document, 7),
                 "A line outside a procedure should not trigger the command.");

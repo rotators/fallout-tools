@@ -111,19 +111,8 @@ namespace ScriptEditor.TextEditorUtilities
         public static bool TryGetMessageText(TabInfo tab, string scriptToken, int messageNumber, out string text)
         {
             text = null;
-            int scriptID;
-            if (!TryResolveScriptID(tab, scriptToken, out scriptID))
-                return false;
-
-            string outputDir = Settings.outputDir ?? Path.GetDirectoryName(tab.filepath);
-            int error;
-            string fileName = GetMessageFileNameID(outputDir, scriptID, out error);
-            if (error != 0 || String.IsNullOrEmpty(fileName))
-                return false;
-
             string path;
-            string defaultDir;
-            if (!CheckPath(tab.filepath, fileName, out path, out defaultDir))
+            if (!TryGetMessagePath(tab, scriptToken, out path))
                 return false;
 
             try {
@@ -135,6 +124,88 @@ namespace ScriptEditor.TextEditorUtilities
             } catch (UnauthorizedAccessException) {
                 return false;
             }
+        }
+
+        public static bool TryGetMessageLocation(TabInfo tab, string scriptToken, int messageNumber,
+            out string path, out int line)
+        {
+            line = -1;
+            if (!TryGetMessagePath(tab, scriptToken, out path))
+                return false;
+
+            try {
+                string source = null;
+                if (tab.msgFileTab != null
+                    && String.Equals(tab.msgFileTab.filepath, path, StringComparison.OrdinalIgnoreCase))
+                    source = tab.msgFileTab.textEditor.Document.TextContent;
+                if (source == null)
+                    source = File.ReadAllText(path, Settings.EncCodePage);
+                return TryFindMessageLine(source, messageNumber, out line);
+            } catch (IOException) {
+                return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
+            }
+        }
+
+        internal static bool TryFindMessageLine(string source, int messageNumber, out int line)
+        {
+            line = -1;
+            if (String.IsNullOrEmpty(source))
+                return false;
+
+            string[] lines = source.Split(new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.None);
+            for (int i = 0; i < lines.Length; i++) {
+                string value = lines[i].TrimStart();
+                if (!value.StartsWith("{", StringComparison.Ordinal))
+                    continue;
+                int close = value.IndexOf('}');
+                int parsed;
+                if (close > 1 && int.TryParse(value.Substring(1, close - 1).Trim(), out parsed)
+                    && parsed == messageNumber) {
+                    line = i + 1;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool TryGetMessagePath(TabInfo tab, string scriptToken, out string path)
+        {
+            path = null;
+            if (tab == null || String.IsNullOrEmpty(tab.filepath))
+                return false;
+
+            if (String.IsNullOrWhiteSpace(scriptToken)
+                && !String.IsNullOrEmpty(tab.msgFilePath) && File.Exists(tab.msgFilePath)) {
+                path = tab.msgFilePath;
+                return true;
+            }
+
+            string fileName = null;
+            int scriptID;
+            if (!String.IsNullOrWhiteSpace(scriptToken)) {
+                if (!TryResolveScriptID(tab, scriptToken, out scriptID))
+                    return false;
+            } else {
+                scriptID = tab.parseInfo == null ? -1 : tab.parseInfo.ScriptNameID;
+            }
+
+            if (scriptID > 0) {
+                string outputDir = Settings.outputDir ?? Path.GetDirectoryName(tab.filepath);
+                int error;
+                fileName = GetMessageFileNameID(outputDir, scriptID, out error);
+                if (error != 0)
+                    return false;
+            } else if (String.IsNullOrWhiteSpace(scriptToken)) {
+                fileName = Path.ChangeExtension(tab.filename, ".msg");
+            }
+
+            if (String.IsNullOrEmpty(fileName))
+                return false;
+
+            string defaultDir;
+            return CheckPath(tab.filepath, fileName, out path, out defaultDir);
         }
 
         private static bool TryResolveScriptID(TabInfo tab, string token, out int scriptID)

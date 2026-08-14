@@ -207,6 +207,10 @@ namespace ScriptEditor
             te.TextChanged += textChanged;
             SetActiveAreaEvents(te);
             te.ContextMenuStrip = editorMenuStrip;
+            te.Document.FoldingManager.FoldingsChanged += delegate {
+                if (currentTab == ti)
+                    UpdateOutlineButtonState();
+            };
             //
             if (tabControl1.TabPages.Count > 1) {
                 if (seltab)
@@ -1158,6 +1162,7 @@ namespace ScriptEditor
             findReferencesToolStripMenuItem.Enabled = false;
             findDeclerationToolStripMenuItem.Enabled = false;
             findDefinitionToolStripMenuItem.Enabled = false;
+            UpdateGoToMessageMenu();
             UpdateEditorToolStripMenu();
             collapseAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, false);
             expandAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, true);
@@ -1171,6 +1176,7 @@ namespace ScriptEditor
             findDefinitionToolStripMenuItem.Enabled = true;
             openIncludeToolStripMenuItem.Enabled = true;
             editorContextLine = -1;
+            editorContextPosition = TextLocation.Empty;
         }
         #endregion
 

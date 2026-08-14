@@ -138,6 +138,43 @@ namespace ScriptEditor.CodeTranslation
             return true;
         }
 
+        internal static bool HasUnfoldedProcedureOutsideLine(IDocument document, int line)
+        {
+            FoldMarker activeProcedure = FindProcedureAtLine(document, line);
+            foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
+                if (marker.FoldType == FoldType.MemberBody
+                    && !object.ReferenceEquals(marker, activeProcedure) && !marker.IsFolded)
+                    return true;
+            }
+            return false;
+        }
+
+        internal static bool HasProcedureOutsideLine(IDocument document, int line)
+        {
+            FoldMarker activeProcedure = FindProcedureAtLine(document, line);
+            foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
+                if (marker.FoldType == FoldType.MemberBody
+                    && !object.ReferenceEquals(marker, activeProcedure))
+                    return true;
+            }
+            return false;
+        }
+
+        internal static void SetProceduresOutsideLineFolded(IDocument document, int line, bool folded)
+        {
+            FoldMarker activeProcedure = FindProcedureAtLine(document, line);
+            bool changed = false;
+            foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
+                if (marker.FoldType != FoldType.MemberBody
+                    || object.ReferenceEquals(marker, activeProcedure) || marker.IsFolded == folded)
+                    continue;
+                marker.IsFolded = folded;
+                changed = true;
+            }
+            if (changed)
+                document.FoldingManager.NotifyFoldingsChanged(null);
+        }
+
         private static FoldMarker FindProcedureAtLine(IDocument document, int line)
         {
             foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
