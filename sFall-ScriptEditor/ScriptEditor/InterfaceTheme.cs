@@ -15,6 +15,10 @@ namespace ScriptEditor
         private static readonly Color DarkSelection = Color.FromArgb(85, 85, 90);
         private static readonly Color DarkBorder = Color.FromArgb(68, 68, 72);
         private static readonly Color DarkAccent = Color.FromArgb(0, 120, 212);
+        private static readonly Font UiFont = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+        private static readonly Font UiFontBold = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+        private static readonly Font UiFontItalic = new Font("Segoe UI", 9F, FontStyle.Italic, GraphicsUnit.Point);
+        private static readonly Font UiFontBoldItalic = new Font("Segoe UI", 9F, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Point);
         private static readonly object GridSectionRowTag = new object();
         private static readonly Dictionary<Form, bool> AppliedForms = new Dictionary<Form, bool>();
         private static readonly HashSet<Form> TitleBarHookedForms = new HashSet<Form>();
@@ -107,6 +111,7 @@ namespace ScriptEditor
         private static void ApplyControl(Control control, bool dark)
         {
             RegisterDynamicTheming(control);
+            ApplyTypography(control);
             ApplyNativeTheme(control, dark);
             if (control is ICSharpCode.TextEditor.TextEditorControl) {
                 ApplyNativeThemeToChildren(control, dark);
@@ -267,6 +272,49 @@ namespace ScriptEditor
             foreach (Control child in control.Controls) ApplyControl(child, dark);
         }
 
+        private static void ApplyTypography(Control control)
+        {
+            if (control is ICSharpCode.TextEditor.TextEditorControl)
+                return;
+
+            if (UsesLegacyUiFont(control.Font))
+                control.Font = GetUiFont(control.Font.Style);
+
+            ToolStrip toolStrip = control as ToolStrip;
+            if (toolStrip != null) {
+                toolStrip.Font = UiFont;
+                ApplyToolStripTypography(toolStrip.Items);
+            }
+        }
+
+        private static void ApplyToolStripTypography(ToolStripItemCollection items)
+        {
+            foreach (ToolStripItem item in items) {
+                if (UsesLegacyUiFont(item.Font))
+                    item.Font = GetUiFont(item.Font.Style);
+                ToolStripDropDownItem dropDown = item as ToolStripDropDownItem;
+                if (dropDown != null)
+                    ApplyToolStripTypography(dropDown.DropDownItems);
+            }
+        }
+
+        private static bool UsesLegacyUiFont(Font font)
+        {
+            if (font == null) return false;
+            string name = font.FontFamily.Name;
+            return name == "Microsoft Sans Serif" || name == "Arial" || name == "Tahoma";
+        }
+
+        private static Font GetUiFont(FontStyle style)
+        {
+            bool bold = (style & FontStyle.Bold) != 0;
+            bool italic = (style & FontStyle.Italic) != 0;
+            if (bold && italic) return UiFontBoldItalic;
+            if (bold) return UiFontBold;
+            if (italic) return UiFontItalic;
+            return UiFont;
+        }
+
         private static void ApplyTabControl(TabControl tabControl, bool dark)
         {
             TabAppearance appearance;
@@ -307,7 +355,7 @@ namespace ScriptEditor
             using (Brush backgroundBrush = new SolidBrush(background))
                 e.Graphics.FillRectangle(backgroundBrush, bounds);
 
-            const int glyphSize = 13;
+            int glyphSize = DpiHelper.Scale(checkBox, 13);
             Rectangle glyph = new Rectangle(0, System.Math.Max(0, (bounds.Height - glyphSize) / 2), glyphSize, glyphSize);
             bool hovered = checkBox.Enabled && glyph.Contains(checkBox.PointToClient(Cursor.Position));
             bool active = checkBox.CheckState != CheckState.Unchecked;
@@ -326,25 +374,26 @@ namespace ScriptEditor
             if (active) {
                 Color markColor = checkBox.Enabled ? Color.White : Color.FromArgb(205, 205, 210);
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using (Pen markPen = new Pen(markColor, 2F)) {
+                using (Pen markPen = new Pen(markColor, DpiHelper.Scale(2F, checkBox.DeviceDpi))) {
                     markPen.StartCap = LineCap.Square;
                     markPen.EndCap = LineCap.Square;
                     if (checkBox.CheckState == CheckState.Indeterminate) {
-                        e.Graphics.DrawLine(markPen, glyph.Left + 3, glyph.Top + 6,
-                            glyph.Right - 4, glyph.Top + 6);
+                        e.Graphics.DrawLine(markPen, glyph.Left + DpiHelper.Scale(checkBox, 3), glyph.Top + DpiHelper.Scale(checkBox, 6),
+                            glyph.Right - DpiHelper.Scale(checkBox, 4), glyph.Top + DpiHelper.Scale(checkBox, 6));
                     } else {
                         e.Graphics.DrawLines(markPen, new Point[] {
-                            new Point(glyph.Left + 3, glyph.Top + 6),
-                            new Point(glyph.Left + 5, glyph.Top + 9),
-                            new Point(glyph.Left + 10, glyph.Top + 3)
+                            new Point(glyph.Left + DpiHelper.Scale(checkBox, 3), glyph.Top + DpiHelper.Scale(checkBox, 6)),
+                            new Point(glyph.Left + DpiHelper.Scale(checkBox, 5), glyph.Top + DpiHelper.Scale(checkBox, 9)),
+                            new Point(glyph.Left + DpiHelper.Scale(checkBox, 10), glyph.Top + DpiHelper.Scale(checkBox, 3))
                         });
                     }
                 }
                 e.Graphics.SmoothingMode = SmoothingMode.None;
             }
 
-            Rectangle textBounds = new Rectangle(glyph.Right + 5, 0,
-                System.Math.Max(0, bounds.Width - glyph.Right - 5), bounds.Height);
+            int textGap = DpiHelper.Scale(checkBox, 5);
+            Rectangle textBounds = new Rectangle(glyph.Right + textGap, 0,
+                System.Math.Max(0, bounds.Width - glyph.Right - textGap), bounds.Height);
             Color textColor = checkBox.Enabled ? DarkText : Color.FromArgb(155, 155, 160);
             TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
             if (!checkBox.UseMnemonic) flags |= TextFormatFlags.NoPrefix;

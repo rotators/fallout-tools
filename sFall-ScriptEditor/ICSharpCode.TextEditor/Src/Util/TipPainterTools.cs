@@ -136,9 +136,10 @@ namespace ICSharpCode.TextEditor.Util
 				
 				TipSpacer countSpacer = new TipSpacer(graphics, new SizeF(IsVisibleText(countMessage) ? 4 : 0, 0));
 				
-				TipText descriptionTip = new TipText(graphics, font, basicDescription);
+				Font titleFont = CreateTitleFont(font, documentation);
+				TipText descriptionTip = new TipText(graphics, titleFont, basicDescription);
 				
-				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 4 : 0));
+				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 6 : 0));
 				
 				TipText docTip = new TipText(graphics, font, documentation);
 				
@@ -159,6 +160,7 @@ namespace ICSharpCode.TextEditor.Util
 				
 				// Show it.
 				Size size = TipPainter.GetTipSize(control, graphics, mainSplitter2);
+				if (!Object.ReferenceEquals(titleFont, font)) titleFont.Dispose();
 				DrawingRectangle1 = countMessageTip.DrawingRectangle1;
 				DrawingRectangle2 = countMessageTip.DrawingRectangle2;
 				return size;
@@ -180,9 +182,10 @@ namespace ICSharpCode.TextEditor.Util
 				
 				TipSpacer countSpacer = new TipSpacer(graphics, new SizeF(IsVisibleText(countMessage) ? 4 : 0, 0));
 				
-				TipText descriptionTip = new TipText(graphics, font, basicDescription);
+				Font titleFont = CreateTitleFont(font, documentation);
+				TipText descriptionTip = new TipText(graphics, titleFont, basicDescription);
 				
-				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 4 : 0));
+				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 6 : 0));
 				
 				TipText docTip = new TipText(graphics, font, documentation);
 				
@@ -203,6 +206,7 @@ namespace ICSharpCode.TextEditor.Util
 				
 				// Show it.
 				Size size = TipPainter.GetLeftHandSideTipSize(control, graphics, mainSplitter2, p);
+				if (!Object.ReferenceEquals(titleFont, font)) titleFont.Dispose();
 				return size;
 			}
 			return Size.Empty;
@@ -221,18 +225,14 @@ namespace ICSharpCode.TextEditor.Util
 				
 				TipSpacer countSpacer = new TipSpacer(graphics, new SizeF(IsVisibleText(countMessage) ? 4 : 0, 0));
 				
-				Font boldfont = font;
-				if (boldTile && documentation != null)
-					boldfont = new Font(font.FontFamily, 9.75f, FontStyle.Bold);
+				Font titleFont = CreateTitleFont(font, documentation);
+				TipText descriptionTip = new TipText(graphics, titleFont, basicDescription);
+				descriptionTip.Color = TipPainter.TipTextColor;
 				
-				TipText descriptionTip = new TipText(graphics, boldfont, basicDescription);
-				
-				if (boldTile && documentation != null)
-					descriptionTip.Color = (TipPainter.darkScheme) ? Color.WhiteSmoke : Color.FromArgb(50, 50, 50);
-				
-				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 4 : 0));
+				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 6 : 0));
 				
 				TipText docTip = new TipText(graphics, font, documentation);
+				docTip.Color = TipPainter.TipSecondaryTextColor;
 				
 				// Now put them together.
 				TipSplitter descSplitter = new TipSplitter(graphics, false,
@@ -251,6 +251,7 @@ namespace ICSharpCode.TextEditor.Util
 				
 				// Show it.
 				Size size = TipPainter.DrawTip(control, graphics, mainSplitter2);
+				if (!Object.ReferenceEquals(titleFont, font)) titleFont.Dispose();
 				DrawingRectangle1 = countMessageTip.DrawingRectangle1;
 				DrawingRectangle2 = countMessageTip.DrawingRectangle2;
 				return size;
@@ -272,11 +273,14 @@ namespace ICSharpCode.TextEditor.Util
 				
 				TipSpacer countSpacer = new TipSpacer(graphics, new SizeF(IsVisibleText(countMessage) ? 4 : 0, 0));
 				
-				TipText descriptionTip = new TipText(graphics, font, basicDescription);
+				Font titleFont = CreateTitleFont(font, documentation);
+				TipText descriptionTip = new TipText(graphics, titleFont, basicDescription);
+				descriptionTip.Color = TipPainter.TipTextColor;
 				
-				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 4 : 0));
+				TipSpacer docSpacer = new TipSpacer(graphics, new SizeF(0, IsVisibleText(documentation) ? 6 : 0));
 				
 				TipText docTip = new TipText(graphics, font, documentation);
+				docTip.Color = TipPainter.TipSecondaryTextColor;
 				
 				// Now put them together.
 				TipSplitter descSplitter = new TipSplitter(graphics, false,
@@ -295,6 +299,7 @@ namespace ICSharpCode.TextEditor.Util
 				
 				// Show it.
 				Size size = TipPainter.DrawFixedWidthTip(control, graphics, mainSplitter2);
+				if (!Object.ReferenceEquals(titleFont, font)) titleFont.Dispose();
 				DrawingRectangle1 = countMessageTip.DrawingRectangle1;
 				DrawingRectangle2 = countMessageTip.DrawingRectangle2;
 				return size;
@@ -305,6 +310,12 @@ namespace ICSharpCode.TextEditor.Util
 		static bool IsVisibleText(string text)
 		{
 			return text != null && text.Length > 0;
+		}
+
+		static Font CreateTitleFont(Font font, string documentation)
+		{
+			if (!IsVisibleText(documentation)) return font;
+			return new Font(font.FontFamily, font.Size, FontStyle.Bold, font.Unit);
 		}
 	}
 }

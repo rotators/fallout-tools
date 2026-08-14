@@ -56,7 +56,8 @@ namespace ScriptEditor.TextEditorUI.ToolTips
                 e.Graphics.DrawRectangle(new Pen(ColorTheme.TipBorderFrame), border);
 
                 Point locationText = e.Bounds.Location;
-                locationText.Offset(3, 1);
+                locationText.Offset(DpiHelper.Scale(3, (int)e.Graphics.DpiX),
+                    DpiHelper.Scale(1, (int)e.Graphics.DpiY));
                 e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
                 Font font;
                 if (e.Font.Size > 11.5f) {

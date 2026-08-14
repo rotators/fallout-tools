@@ -13,15 +13,42 @@ namespace ICSharpCode.TextEditor.Util
 {
 	static class TipPainter
 	{
-		const float HorizontalBorder = 8;
-		const float VerticalBorder   = 6;
+		const float HorizontalBorder = 12;
+		const float VerticalBorder   = 8;
+		const float LogicalDpi       = 96;
+
+		static float ScaleX(Graphics graphics, float value)
+		{
+			return value * graphics.DpiX / LogicalDpi;
+		}
+
+		static float ScaleY(Graphics graphics, float value)
+		{
+			return value * graphics.DpiY / LogicalDpi;
+		}
 		
 		internal static bool darkScheme = false;
 		
         //static Color tipTextColor = Color.Black;
-        public static Color TipTextColor
+		public static Color TipTextColor
 		{
-            get { return darkScheme ? Color.AliceBlue : Color.Black;  }
+			get { return darkScheme ? Color.FromArgb(242, 242, 242) : Color.FromArgb(32, 32, 32); }
+		}
+
+		public static Color TipSecondaryTextColor {
+			get { return darkScheme ? Color.FromArgb(205, 205, 210) : Color.FromArgb(65, 65, 65); }
+		}
+
+		public static Color TipBackgroundColor {
+			get { return darkScheme ? Color.FromArgb(37, 37, 38) : Color.FromArgb(252, 252, 252); }
+		}
+
+		public static Color TipBorderColor {
+			get { return darkScheme ? Color.FromArgb(86, 86, 91) : Color.FromArgb(190, 190, 190); }
+		}
+
+		public static Color TipAccentColor {
+			get { return darkScheme ? Color.FromArgb(55, 148, 255) : Color.FromArgb(0, 120, 212); }
 		}
 
 		//static StringFormat centerTipFormat = CreateTipStringFormat();
@@ -50,8 +77,10 @@ namespace ICSharpCode.TextEditor.Util
 			
 			PointF screenLocation = control.PointToScreen(Point.Empty);
 			
-			SizeF maxLayoutSize = new SizeF(workingArea.Right - screenLocation.X - HorizontalBorder * 2,
-			                                workingArea.Bottom - screenLocation.Y - VerticalBorder * 2);
+			float horizontalBorder = ScaleX(graphics, HorizontalBorder);
+			float verticalBorder = ScaleY(graphics, VerticalBorder);
+			SizeF maxLayoutSize = new SizeF(workingArea.Right - screenLocation.X - horizontalBorder * 2,
+			                                workingArea.Bottom - screenLocation.Y - verticalBorder * 2);
 			
 			if (maxLayoutSize.Width > 0 && maxLayoutSize.Height > 0) {
 				graphics.TextRenderingHint =
@@ -61,8 +90,7 @@ namespace ICSharpCode.TextEditor.Util
 				tipSizeF = tipData.GetRequiredSize();
 				tipData.SetAllocatedSize(tipSizeF);
 				
-				tipSizeF += new SizeF(HorizontalBorder * 2,
-				                      VerticalBorder   * 2);
+				tipSizeF += new SizeF(horizontalBorder * 2, verticalBorder * 2);
 				tipSize = Size.Ceiling(tipSizeF);
 			}
 			
@@ -82,8 +110,10 @@ namespace ICSharpCode.TextEditor.Util
 			
 			PointF screenLocation = p;
 			
-			SizeF maxLayoutSize = new SizeF(screenLocation.X - HorizontalBorder * 2,
-			                                workingArea.Bottom - screenLocation.Y - VerticalBorder * 2);
+			float horizontalBorder = ScaleX(graphics, HorizontalBorder);
+			float verticalBorder = ScaleY(graphics, VerticalBorder);
+			SizeF maxLayoutSize = new SizeF(screenLocation.X - horizontalBorder * 2,
+			                                workingArea.Bottom - screenLocation.Y - verticalBorder * 2);
 			
 			if (maxLayoutSize.Width > 0 && maxLayoutSize.Height > 0) {
 				graphics.TextRenderingHint =
@@ -93,8 +123,7 @@ namespace ICSharpCode.TextEditor.Util
 				tipSizeF = tipData.GetRequiredSize();
 				tipData.SetAllocatedSize(tipSizeF);
 				
-				tipSizeF += new SizeF(HorizontalBorder * 2,
-				                      VerticalBorder   * 2);
+				tipSizeF += new SizeF(horizontalBorder * 2, verticalBorder * 2);
 				tipSize = Size.Ceiling(tipSizeF);
 			}
 			
@@ -115,8 +144,10 @@ namespace ICSharpCode.TextEditor.Util
 			
 			RectangleF workingArea = GetWorkingArea(control);
 			
-			SizeF maxLayoutSize = new SizeF(workingArea.Right - screenLocation.X - HorizontalBorder * 2,
-			                                workingArea.Bottom - screenLocation.Y - VerticalBorder * 2);
+			float horizontalBorder = ScaleX(graphics, HorizontalBorder);
+			float verticalBorder = ScaleY(graphics, VerticalBorder);
+			SizeF maxLayoutSize = new SizeF(workingArea.Right - screenLocation.X - horizontalBorder * 2,
+			                                workingArea.Bottom - screenLocation.Y - verticalBorder * 2);
 			
 			if (maxLayoutSize.Width > 0 && maxLayoutSize.Height > 0) {
 				graphics.TextRenderingHint =
@@ -127,8 +158,7 @@ namespace ICSharpCode.TextEditor.Util
 				tipSizeF = tipData.GetRequiredSize();
 				tipData.SetAllocatedSize(tipSizeF);
 				
-				tipSizeF += new SizeF(HorizontalBorder * 2,
-				                      VerticalBorder   * 2);
+				tipSizeF += new SizeF(horizontalBorder * 2, verticalBorder * 2);
 				tipSize = Size.Ceiling(tipSizeF);
 			}
 			
@@ -141,16 +171,16 @@ namespace ICSharpCode.TextEditor.Util
 					(Point.Empty, tipSize - new Size(1, 1));
 				
 				RectangleF displayRectangle = new RectangleF
-					(HorizontalBorder, VerticalBorder,
-					 tipSizeF.Width - HorizontalBorder * 2,
-					 tipSizeF.Height - VerticalBorder * 2);
+					(horizontalBorder, verticalBorder,
+					 tipSizeF.Width - horizontalBorder * 2,
+					 tipSizeF.Height - verticalBorder * 2);
 				
-				Pen borderFrame = new Pen((darkScheme) ? Color.FromArgb(0x70, 0x70, 0x80) : Color.Black);
-				
-				// DrawRectangle draws from Left to Left + Width. A bug? :-/
-				graphics.DrawRectangle(borderFrame,
-				                       borderRectangle);
-				tipData.Draw(new PointF(HorizontalBorder, VerticalBorder));
+				using (Pen borderFrame = new Pen(TipBorderColor))
+					graphics.DrawRectangle(borderFrame, borderRectangle);
+				using (Brush accentBrush = new SolidBrush(TipAccentColor))
+					graphics.FillRectangle(accentBrush, ScaleX(graphics, 1), ScaleY(graphics, 1),
+						ScaleX(graphics, 3), System.Math.Max(0, tipSize.Height - ScaleY(graphics, 2)));
+				tipData.Draw(new PointF(horizontalBorder, verticalBorder));
 			}
 			return tipSize;
 		}
@@ -164,8 +194,10 @@ namespace ICSharpCode.TextEditor.Util
 			
 			RectangleF workingArea = GetWorkingArea(control);
 			
-			SizeF maxLayoutSize = new SizeF(screenLocation.X - HorizontalBorder * 2,
-			                                workingArea.Bottom - screenLocation.Y - VerticalBorder * 2);
+			float horizontalBorder = ScaleX(graphics, HorizontalBorder);
+			float verticalBorder = ScaleY(graphics, VerticalBorder);
+			SizeF maxLayoutSize = new SizeF(screenLocation.X - horizontalBorder * 2,
+			                                workingArea.Bottom - screenLocation.Y - verticalBorder * 2);
 			
 			if (maxLayoutSize.Width > 0 && maxLayoutSize.Height > 0) {
 				graphics.TextRenderingHint =
@@ -175,8 +207,7 @@ namespace ICSharpCode.TextEditor.Util
 				tipSizeF = tipData.GetRequiredSize();
 				tipData.SetAllocatedSize(tipSizeF);
 				
-				tipSizeF += new SizeF(HorizontalBorder * 2,
-				                      VerticalBorder   * 2);
+				tipSizeF += new SizeF(horizontalBorder * 2, verticalBorder * 2);
 				tipSize = Size.Ceiling(tipSizeF);
 			}
 			
@@ -189,14 +220,17 @@ namespace ICSharpCode.TextEditor.Util
 					(Point.Empty, control.Size - new Size(1, 1));
 				
 				RectangleF displayRectangle = new RectangleF
-					(HorizontalBorder, VerticalBorder,
-					 tipSizeF.Width - HorizontalBorder * 2,
-					 tipSizeF.Height - VerticalBorder * 2);
+					(horizontalBorder, verticalBorder,
+					 tipSizeF.Width - horizontalBorder * 2,
+					 tipSizeF.Height - verticalBorder * 2);
 				
 				// DrawRectangle draws from Left to Left + Width. A bug? :-/
-				graphics.DrawRectangle(SystemPens.WindowFrame,
-				                       borderRectangle);
-				tipData.Draw(new PointF(HorizontalBorder, VerticalBorder));
+				using (Pen borderFrame = new Pen(TipBorderColor))
+					graphics.DrawRectangle(borderFrame, borderRectangle);
+				using (Brush accentBrush = new SolidBrush(TipAccentColor))
+					graphics.FillRectangle(accentBrush, ScaleX(graphics, 1), ScaleY(graphics, 1),
+						ScaleX(graphics, 3), System.Math.Max(0, control.Height - ScaleY(graphics, 2)));
+				tipData.Draw(new PointF(horizontalBorder, verticalBorder));
 			}
 			return tipSize;
 		}

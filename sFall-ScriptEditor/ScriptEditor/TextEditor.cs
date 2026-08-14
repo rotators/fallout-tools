@@ -100,6 +100,7 @@ namespace ScriptEditor
             InitializeComponent();
             ConfigureHelpMenu();
             ConfigureEditorFoldingMenu();
+            ConfigureMainToolbar();
 
             tabControl3.TabPages.RemoveAt(2); // скрываем от пользователя еще нереализованный функционал
 
@@ -206,6 +207,49 @@ namespace ScriptEditor
             foldingMenu.DropDownItems.Add(collapseOtherProceduresMenuItem);
             editorMenuStrip.Items.Add(new ToolStripSeparator());
             editorMenuStrip.Items.Add(foldingMenu);
+        }
+
+        private void ConfigureMainToolbar()
+        {
+            ToolStripMain.GripStyle = ToolStripGripStyle.Hidden;
+            ToolStripMain.ShowItemToolTips = true;
+
+            ApplyDpiMetrics();
+            HandleCreated += delegate { ApplyDpiMetrics(); };
+            DpiChanged += delegate { ApplyDpiMetrics(); };
+
+            // File commands form one group; these dividers only added visual noise.
+            toolStripSeparator7.Visible = false;
+            toolStripSeparator13.Visible = false;
+            toolStripSeparator8.Visible = false;
+            toolStripSeparator42.Visible = false;
+
+            // Help is right-aligned, so separators beside its old position were redundant.
+            toolStripSeparator4.Visible = false;
+            toolStripSeparator14.Visible = false;
+
+            tsbSaveAll.ToolTipText = "Save all scripts [Ctrl+Shift+S]";
+            GotoProc_StripButton.ToolTipText = "Go to the procedure under the cursor [Alt+P]";
+        }
+
+        private void ApplyDpiMetrics()
+        {
+            ToolStripMain.ImageScalingSize = DpiHelper.Scale(this, new Size(18, 18));
+            ToolStripMain.Height = DpiHelper.Scale(this, 32);
+            ToolStripMain.Padding = DpiHelper.Scale(this, new Padding(5, 3, 5, 3));
+
+            foreach (ToolStripItem item in ToolStripMain.Items) {
+                if (item is ToolStripSeparator)
+                    item.Margin = DpiHelper.Scale(this, new Padding(2, 1, 2, 1));
+                else {
+                    item.Margin = DpiHelper.Scale(this, new Padding(1, 0, 1, 0));
+                    item.Padding = DpiHelper.Scale(this, new Padding(2, 0, 2, 0));
+                }
+            }
+
+            VarTree.Indent = DpiHelper.Scale(this, 16);
+            VarTree.ItemHeight = DpiHelper.Scale(this, 14);
+            VarTab.Padding = DpiHelper.Scale(this, new Padding(0, 2, 2, 2));
         }
 
         private int EditorContextLine
@@ -433,8 +477,8 @@ namespace ScriptEditor
             VarTree.HotTracking = true;
             VarTree.ShowNodeToolTips = true;
             VarTree.ShowRootLines = false;
-            VarTree.Indent = 16;
-            VarTree.ItemHeight = 14;
+            VarTree.Indent = DpiHelper.Scale(this, 16);
+            VarTree.ItemHeight = DpiHelper.Scale(this, 14);
             VarTree.MouseDoubleClick += TreeView_DClickMouse;
             VarTree.AfterSelect += TreeView_AfterSelect;
             VarTree.AfterCollapse += Tree_AfterExpandCollapse;
@@ -442,7 +486,7 @@ namespace ScriptEditor
             VarTree.Dock = DockStyle.Fill;
             VarTree.BackColor = Color.FromArgb(250, 250, 255);
             VarTree.Cursor = Cursors.Hand;
-            VarTab.Padding = new Padding(0, 2, 2, 2);
+            VarTab.Padding = DpiHelper.Scale(this, new Padding(0, 2, 2, 2));
             VarTab.BackColor = SystemColors.ControlLightLight;
             VarTab.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             VarTab.Controls.Add(VarTree);

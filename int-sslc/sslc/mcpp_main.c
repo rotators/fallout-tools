@@ -251,7 +251,7 @@ static void     put_a_line( char * out);
                 /* Put out the processed line       */
 
 static char* second_include_dir = NULL;
-void mcpp_add_include_dir(char* dir) /* added fakels */
+void mcpp_add_include_dir(char* dir) /* added - Fakels */
 {
 	second_include_dir = dir;
 }

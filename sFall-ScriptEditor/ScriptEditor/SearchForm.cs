@@ -209,7 +209,7 @@ namespace ScriptEditor
             Color borderColor = Enabled ? Color.FromArgb(110, 110, 115) : Color.FromArgb(92, 92, 96);
             e.Graphics.Clear(backColor);
 
-            int boxSize = 13;
+            int boxSize = DpiHelper.Scale(this, 13);
             int boxY = (ClientSize.Height - boxSize) / 2;
             Rectangle box = new Rectangle(0, boxY, boxSize, boxSize);
             using (Brush boxBrush = new SolidBrush(Color.FromArgb(40, 40, 42)))
@@ -218,17 +218,18 @@ namespace ScriptEditor
                 e.Graphics.DrawRectangle(borderPen, box);
             }
             if (Checked || CheckState == CheckState.Indeterminate) {
-                using (Pen checkPen = new Pen(textColor, 2.0f)) {
+                using (Pen checkPen = new Pen(textColor, DpiHelper.Scale(2.0f, DeviceDpi))) {
                     e.Graphics.DrawLines(checkPen, new Point[] {
-                        new Point(3, boxY + 7),
-                        new Point(6, boxY + 10),
-                        new Point(11, boxY + 3)
+                        new Point(DpiHelper.Scale(this, 3), boxY + DpiHelper.Scale(this, 7)),
+                        new Point(DpiHelper.Scale(this, 6), boxY + DpiHelper.Scale(this, 10)),
+                        new Point(DpiHelper.Scale(this, 11), boxY + DpiHelper.Scale(this, 3))
                     });
                 }
             }
 
-            Rectangle textBounds = new Rectangle(box.Right + 4, 0,
-                System.Math.Max(0, ClientSize.Width - box.Right - 4), ClientSize.Height);
+            int textGap = DpiHelper.Scale(this, 4);
+            Rectangle textBounds = new Rectangle(box.Right + textGap, 0,
+                System.Math.Max(0, ClientSize.Width - box.Right - textGap), ClientSize.Height);
             TextRenderer.DrawText(e.Graphics, Text, Font, textBounds, textColor,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
         }
@@ -255,9 +256,10 @@ namespace ScriptEditor
 
             Size textSize = TextRenderer.MeasureText(Text, Font, Size.Empty, TextFormatFlags.NoPadding);
             int imageWidth = Image == null ? 0 : Image.Width;
-            int spacing = Image == null || Text.Length == 0 ? 0 : 4;
+            int spacing = Image == null || Text.Length == 0 ? 0 : DpiHelper.Scale(this, 4);
             int contentWidth = imageWidth + spacing + textSize.Width;
-            int x = System.Math.Max(2, (ClientSize.Width - contentWidth) / 2);
+            int edge = DpiHelper.Scale(this, 2);
+            int x = System.Math.Max(edge, (ClientSize.Width - contentWidth) / 2);
             if (Image != null) {
                 int imageY = (ClientSize.Height - Image.Height) / 2;
                 if (Enabled)
@@ -267,13 +269,14 @@ namespace ScriptEditor
                 x += imageWidth + spacing;
             }
             Rectangle textBounds = new Rectangle(x, 0,
-                System.Math.Max(0, ClientSize.Width - x - 2), ClientSize.Height);
+                System.Math.Max(0, ClientSize.Width - x - edge), ClientSize.Height);
             TextRenderer.DrawText(e.Graphics, Text, Font, textBounds, textColor,
                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
 
             if (Enabled && Focused && ShowFocusCues) {
                 Rectangle focusBounds = ClientRectangle;
-                focusBounds.Inflate(-3, -3);
+                int focusInset = DpiHelper.Scale(this, 3);
+                focusBounds.Inflate(-focusInset, -focusInset);
                 ControlPaint.DrawFocusRectangle(e.Graphics, focusBounds, textColor, backColor);
             }
         }

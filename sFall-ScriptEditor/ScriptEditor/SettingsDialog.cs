@@ -9,6 +9,7 @@ namespace ScriptEditor
         private string outPath;
         private string scriptsHPath;
         private string headersFilesPath;
+        private GroupBox groupFileAssociation;
 
         public SettingsDialog()
         {
@@ -73,14 +74,14 @@ namespace ScriptEditor
 
         private void ConfigureFileAssociationSection()
         {
-            groupBox3.Size = new Size(330, 100);
-            msgPathlistView.Size = new Size(318, 75);
-            columnHeader1.Width = 310;
+            groupBox3.Size = DpiHelper.Scale(this, new Size(330, 100));
+            msgPathlistView.Size = DpiHelper.Scale(this, new Size(318, 75));
+            columnHeader1.Width = DpiHelper.Scale(this, 310);
 
-            GroupBox groupFileAssociation = new GroupBox();
-            groupFileAssociation.Location = new Point(341, 385);
+            groupFileAssociation = new GroupBox();
+            groupFileAssociation.Location = DpiHelper.Scale(this, new Point(341, 385));
             groupFileAssociation.Name = "groupFileAssociation";
-            groupFileAssociation.Size = new Size(161, 68);
+            groupFileAssociation.Size = DpiHelper.Scale(this, new Size(161, 68));
             groupFileAssociation.TabIndex = 44;
             groupFileAssociation.TabStop = false;
             groupFileAssociation.Text = "File association";
@@ -88,15 +89,15 @@ namespace ScriptEditor
             label3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             label3.AutoSize = false;
             label3.Font = Font;
-            label3.Location = new Point(8, 16);
-            label3.Size = new Size(145, 26);
+            label3.Location = DpiHelper.Scale(this, new Point(8, 16));
+            label3.Size = DpiHelper.Scale(this, new Size(145, 26));
             label3.Text = "Choose which supported files Windows opens with this editor.";
             label3.TextAlign = ContentAlignment.TopLeft;
 
             bAssociate.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             bAssociate.Font = Font;
-            bAssociate.Location = new Point(8, 42);
-            bAssociate.Size = new Size(145, 23);
+            bAssociate.Location = DpiHelper.Scale(this, new Point(8, 42));
+            bAssociate.Size = DpiHelper.Scale(this, new Size(145, 23));
             bAssociate.Text = "Choose default apps...";
 
             groupFileAssociation.Controls.Add(label3);

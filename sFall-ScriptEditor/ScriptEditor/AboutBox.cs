@@ -133,8 +133,8 @@ namespace ScriptEditor
             SuspendLayout();
             tableLayoutPanel.SuspendLayout();
 
-            ClientSize = new Size(520, 420);
-            Padding = new Padding(8);
+            ClientSize = DpiHelper.Scale(this, new Size(520, 420));
+            Padding = DpiHelper.Scale(this, new Padding(8));
 
             tableLayoutPanel.Controls.Remove(logoPictureBox);
             logoPictureBox.Visible = false;
@@ -143,14 +143,14 @@ namespace ScriptEditor
             tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel.RowStyles.Clear();
             tableLayoutPanel.RowCount = 8;
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 32F));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 24F));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 28F));
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(32F, DeviceDpi)));
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(28F, DeviceDpi)));
             tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
+            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(36F, DeviceDpi)));
 
             labelProductName.AutoSize = false;
             labelProductName.MaximumSize = Size.Empty;
@@ -196,7 +196,7 @@ namespace ScriptEditor
 
             tableLayoutPanel.SetRow(textBoxDescription, 6);
             tableLayoutPanel.SetColumn(textBoxDescription, 0);
-            textBoxDescription.Margin = new Padding(0, 0, 0, 8);
+            textBoxDescription.Margin = DpiHelper.Scale(this, new Padding(0, 0, 0, 8));
             textBoxDescription.BorderStyle = BorderStyle.None;
             textBoxDescription.Font = new Font("Segoe UI", 9F);
             textBoxDescription.WordWrap = true;
@@ -204,7 +204,7 @@ namespace ScriptEditor
 
             tableLayoutPanel.SetRow(okButton, 7);
             tableLayoutPanel.SetColumn(okButton, 0);
-            okButton.Size = new Size(90, 28);
+            okButton.Size = DpiHelper.Scale(this, new Size(90, 28));
 
             tableLayoutPanel.ResumeLayout(true);
             ResumeLayout(true);

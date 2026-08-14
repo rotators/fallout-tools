@@ -67,14 +67,15 @@ namespace ScriptEditor.TextEditorUI.CompleteList
     public class AutoComplete
     {
         private const int countItems = 12;
-        private const int height = 17;
+        private const int logicalItemHeight = 17;
+        private const int logicalShiftX = 20;
 
         private int x, y, itemWidth, itemHeight;
+        private int scaledItemHeight;
+        private int shiftX;
         private bool hidden;
 
-        private LinearGradientBrush SelectItemBrush = new LinearGradientBrush(
-                                        new PointF(0, 0), new PointF(0, height),
-                                        Color.White, Color.FromArgb(240, 190, 100));
+        private LinearGradientBrush SelectItemBrush;
 
         public bool ShiftCaret { get; set; } // используется для возврата курсора каретки на ключевое слово.
 
@@ -105,9 +106,6 @@ namespace ScriptEditor.TextEditorUI.CompleteList
 
             AutoComleteList = new CompleteListBox();
             AutoComleteList.Cursor = Cursors.Help;
-            AutoComleteList.ItemHeight = height;
-            AutoComleteList.MaximumSize = new Size(350, (countItems * height) + 4);
-            AutoComleteList.MinimumSize = new Size(120, height + 3);
             AutoComleteList.Font = colored ? font.BoldFont : font.RegularFont;
             AutoComleteList.Visible = false;
             AutoComleteList.DrawMode = DrawMode.OwnerDrawFixed;
@@ -121,6 +119,9 @@ namespace ScriptEditor.TextEditorUI.CompleteList
             AutoComleteList.PreviewKeyDown += ACL_PreviewKeyDown;
             AutoComleteList.MouseClick += ACL_MouseClick;
             AutoComleteList.KeyDown += ACL_KeyDown;
+
+            ApplyDpiMetrics();
+            panel.DpiChangedAfterParent += delegate { ApplyDpiMetrics(); };
 
             tipAC = new ToolTip();
             tipAC.OwnerDraw = true;
@@ -267,21 +268,21 @@ namespace ScriptEditor.TextEditorUI.CompleteList
                     AutoComleteList.EndUpdate();
 
                     // size
-                    AutoComleteList.Height = AutoComleteList.PreferredHeight - 3;
-                    AutoComleteList.Width = (maxLen * 10) + shift_x
-                                             + ((AutoComleteList.Items.Count > countItems) ? 15 : 0);
+                    AutoComleteList.Height = AutoComleteList.PreferredHeight - DpiHelper.Scale(panel, 3);
+                    AutoComleteList.Width = DpiHelper.Scale(panel, maxLen * 10) + shiftX
+                                             + ((AutoComleteList.Items.Count > countItems) ? DpiHelper.Scale(panel, 15) : 0);
 
                     if (!AutoComleteList.Visible || back) {
                         var caretPos = TAC.Caret.ScreenPosition;
                         var tePos = TAC.FindForm().PointToClient(TAC.Parent.PointToScreen(TAC.Location));
                         tePos.Offset(caretPos);
                         if (back)
-                            tePos.Offset(-6, 18);
+                            tePos.Offset(-DpiHelper.Scale(panel, 6), DpiHelper.Scale(panel, 18));
                         else
                             tePos.Offset(pressKeyAutoComplite ? 0 : 10, 18);
 
                         if (showTip != null && (bool)showTip)
-                            tePos.Offset(0, 22);
+                            tePos.Offset(0, DpiHelper.Scale(panel, 22));
 
                         if (!back || AutoComleteList.Location.X > tePos.X) {
                             AutoComleteList.Location = tePos;
@@ -307,7 +308,7 @@ namespace ScriptEditor.TextEditorUI.CompleteList
             var caretPos = tac.Caret.ScreenPosition;
 
             tePos.Offset(caretPos);
-            tePos.Offset(0, 18);
+            tePos.Offset(0, DpiHelper.Scale(panel, 18));
 
             if (!hidden && (tePos.Y > bottom || tePos.Y < tac.Location.Y + shiftY)) {
                 Close();
@@ -434,7 +435,19 @@ namespace ScriptEditor.TextEditorUI.CompleteList
         // Specify custom text formatting flags
         static StringFormat sf = new StringFormat() { Trimming = StringTrimming.EllipsisCharacter };
 
-        const int shift_x = 20;
+        private void ApplyDpiMetrics()
+        {
+            scaledItemHeight = DpiHelper.Scale(panel, logicalItemHeight);
+            shiftX = DpiHelper.Scale(panel, logicalShiftX);
+            AutoComleteList.ItemHeight = scaledItemHeight;
+            AutoComleteList.MaximumSize = new Size(DpiHelper.Scale(panel, 350),
+                (countItems * scaledItemHeight) + DpiHelper.Scale(panel, 4));
+            AutoComleteList.MinimumSize = new Size(DpiHelper.Scale(panel, 120),
+                scaledItemHeight + DpiHelper.Scale(panel, 3));
+            if (SelectItemBrush != null) SelectItemBrush.Dispose();
+            SelectItemBrush = new LinearGradientBrush(new PointF(0, 0),
+                new PointF(0, scaledItemHeight), Color.White, Color.FromArgb(240, 190, 100));
+        }
 
         private void ACL_Draw(object s, DrawItemEventArgs e)
         {
@@ -455,10 +468,12 @@ namespace ScriptEditor.TextEditorUI.CompleteList
                 e.Graphics.FillRectangle(SelectItemBrush, e.Bounds);
                 e.Graphics.DrawImage(image, x + 2, y, 16, 16);
                 e.Graphics.DrawRectangle(new Pen(Color.Peru, 1), x, y, itemWidth - 1, itemHeight - 1);
-                e.Graphics.DrawString(acItem.Name, e.Font, Brushes.Black, new RectangleF(x + shift_x, y, itemWidth - shift_x + 5, itemHeight), sf);
+                e.Graphics.DrawString(acItem.Name, e.Font, Brushes.Black, new RectangleF(x + shiftX, y,
+                    itemWidth - shiftX + DpiHelper.Scale(panel, 5), itemHeight), sf);
             } else {
                 e.Graphics.DrawImage(image, x + 2, y, 16, 16);
-                e.Graphics.DrawString(acItem.Name, e.Font, acItem.GetBrush(colored), new RectangleF(x + shift_x, y, itemWidth - shift_x + 5, itemHeight), sf);
+                e.Graphics.DrawString(acItem.Name, e.Font, acItem.GetBrush(colored), new RectangleF(x + shiftX, y,
+                    itemWidth - shiftX + DpiHelper.Scale(panel, 5), itemHeight), sf);
             }
         }
     }

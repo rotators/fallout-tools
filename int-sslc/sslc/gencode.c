@@ -14,6 +14,10 @@
 
 #include "gencode.h"
 
+#ifndef _WIN32
+#include "compat.h"
+#endif
+
 extern int shortCircuit;
 
 static Program *currentProgram;
@@ -24,14 +28,11 @@ static int startOffset;
 
 typedef struct {
 	int startPos;
-	int numBreaks;
 	int numContinue;
 } LoopInfo;
 
 LoopInfo loopStack[100]; // pointers to beginning of while loops
 int loopStackPos = 0;
-int breakStack[2048]; // pointers to arguments to JMP (break statements)
-int breakStackPos = 0;
 int continueStack[2048]; // pointers to arguments to JMP (continue statements)
 int continueStackPos = 0;
 
@@ -95,28 +96,24 @@ static void writenamelist(FILE *f, char *namelist) {
 }
 
 static void writeProcAddress(NodeList *n, int i, FILE *f) {
-	int isRef = 0;
 	switch(n->nodes[i].token) {
 	case T_SYMBOL:
 
 		writeInt(n->nodes[i].value.intData, f);
-		/*if (n->nodes[i].flags & P_REFERENCE)
-			isRef = 1;  */
 		if (!(n->nodes[i].value.type & P_PROCEDURE)) {
+			// We're trying to call on a variable. We can't know value type at compile. But engine handler expects it to be int.
+			// So we must assume string value type and insert proc lookup opcode.
 			if (n->nodes[i].value.type & P_LOCAL) {
 				writeOp(O_FETCH, f);
-				if (!isRef)
-					writeOp(O_LOOKUP_STRING_PROC, f);
+				writeOp(O_LOOKUP_STRING_PROC, f);
 			}
 			else if (n->nodes[i].value.type & P_GLOBAL) {
 				writeOp(O_FETCH_GLOBAL, f);
-				if (!isRef)
-					writeOp(O_LOOKUP_STRING_PROC, f);
+				writeOp(O_LOOKUP_STRING_PROC, f);
 			}
 			else if (n->nodes[i].value.type & P_EXTERN) {
 				writeOp(O_FETCH_EXTERNAL, f);
-				if (!isRef)
-					writeOp(O_LOOKUP_STRING_PROC, f);
+				writeOp(O_LOOKUP_STRING_PROC, f);
 			}
 		}
 		break;
@@ -248,7 +245,7 @@ int writeNode(NodeList *n, int i, FILE *f) {
 		int args;
 		i = writeCallFunc(n, i, f, &args);
 		break;
-					  }
+	}
 	case T_CONSTANT:
 		switch(n->nodes[i].value.type) {
 		case V_STRING: writeString(n->nodes[i].value.stringData, f); break;
@@ -259,8 +256,8 @@ int writeNode(NodeList *n, int i, FILE *f) {
 		break;
 	case T_SYMBOL:
 		if (n->nodes[i].value.type & P_PROCEDURE) {
-			if (n->nodes[i].stringify) {  // special case when passing procedure as reference
-				writeString(n->nodes[i].stringify, f);
+			if (n->nodes[i].value.type & P_STRINGIFY) {  // special case when passing procedure as reference
+				writeString(currentProgram->procedures.procedures[n->nodes[i].value.intData].stringifiedName, f);
 			} else
 				writeInt(n->nodes[i].value.intData, f);
 		}
@@ -303,8 +300,7 @@ int writeNode(NodeList *n, int i, FILE *f) {
 		n->nodes[i].token = T_OR;
 		goto shCircuit;
 	case T_AND:
-	case T_OR:
-	{
+	case T_OR: {
 		// this is encountered after left argument expression was written, so we have it's result on stack top
 		if (shortCircuit) { // phobos2077 - short circuit evaluation of logical operators
 			int skipAddr;
@@ -556,7 +552,7 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 
 			writeOp(O_CALL_AT, f);
 			break;
-						}
+		}
 		case T_CALL_CONDITION: {
 			int addr = outputTell(f), proc, cond, flag = 0;
 
@@ -611,7 +607,7 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 			}
 			writeOp(O_CALL_CONDITION, f);
 			break;
-							   }
+		}
 		case T_CALL: {
 			int ret = outputTell(f), proc;
 			int args = 0;
@@ -661,11 +657,11 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 				parseError("Internal error, no ending event.");
 			i++;
 			break;
-					 }
+		}
 		case T_IF: {
-			int true, false, j;
+			int trueAddr, falseAddr, j;
 
-			false = outputTell(f);
+			falseAddr = outputTell(f);
 			writeInt(0, f);
 			j = i;
 			i = writeExpression(n, i+1, f);
@@ -683,11 +679,11 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 			else i = writeStatement(n, i, f);
 
 			if (n->nodes[i].token == T_ELSE) {
-				true = outputTell(f);
+				trueAddr = outputTell(f);
 				writeInt(0, f);
 				writeOp(O_JMP, f);
 
-				patchOffset(false+OPCODE_SIZE, outputTell(f), f);
+				patchOffset(falseAddr+OPCODE_SIZE, outputTell(f), f);
 
 				i++;
 				if (n->nodes[i].token == T_BEGIN) {
@@ -697,23 +693,22 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 					i++;
 				}
 				else i = writeStatement(n, i, f);
-				patchOffset(true+OPCODE_SIZE, outputTell(f), f);
+				patchOffset(trueAddr+OPCODE_SIZE, outputTell(f), f);
 			}
 			else {
 				unsigned long a = outputTell(f);
-				patchOffset(false+OPCODE_SIZE, a, f);
+				patchOffset(falseAddr+OPCODE_SIZE, a, f);
 			}
 
 			break;
-				   }
+		}
 		case T_WHILE: {
-			int false, top, j, pos;
+			int falseAddr, top, j, pos;
 
-			false = outputTell(f);
+			falseAddr = outputTell(f);
 			writeInt(0, f);
 			top = outputTell(f);
 			loopStack[++loopStackPos].startPos = top;
-			loopStack[loopStackPos].numBreaks = 0;
 			loopStack[loopStackPos].numContinue = 0;
 			i = writeExpression(n, i+1, f);
 			writeOp(O_WHILE, f);
@@ -733,17 +728,14 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 			writeOp(O_JMP, f);
 
 			pos = outputTell(f);
-			patchOffset(false+OPCODE_SIZE, pos, f);
+			patchOffset(falseAddr+OPCODE_SIZE, pos, f);
 
-			for (j = 0; j < loopStack[loopStackPos].numBreaks; j++) { // for each break, change it's JMP argument to proper address
-				patchOffset(breakStack[breakStackPos--] + OPCODE_SIZE, pos, f);
-			}
 			continueStackPos -= loopStack[loopStackPos].numContinue; // remove all "continue" pointers found in current loop from the stack,
 																     // this will only apply to "WHILE" loops
 			loopStackPos--;
 
 			break;
-					  }
+		}
 		case T_ASSIGN_ADD:
 		case T_ASSIGN_MUL:
 		case T_ASSIGN_SUB:
@@ -788,7 +780,7 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 				writeOp(O_STORE_EXTERNAL, f);
 			}
 			break;
-						   }
+		}
 		case T_ASSIGN: {
 			int j = i-1;
 			i = writeExpression(n, i+1, f);
@@ -806,16 +798,16 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 			}
 			else parseError("Error, unknown type for symbol %x\n", n->nodes[j].value.type);
 			break;
-					   }
-					   EXP(WAIT, 1);
-					   EXP(FORK, 1);
-					   EXP(SPAWN, 1);
-					   EXP(CALLSTART, 1);
-					   EXP(EXEC, 1);
-					   EXP(DETACH, 0);
-					   EXP(EXIT, 0);
-					   EXP(STARTCRITICAL, 0);
-					   EXP(ENDCRITICAL, 0);
+		}
+			EXP(WAIT, 1);
+			EXP(FORK, 1);
+			EXP(SPAWN, 1);
+			EXP(CALLSTART, 1);
+			EXP(EXEC, 1);
+			EXP(DETACH, 0);
+			EXP(EXIT, 0);
+			EXP(STARTCRITICAL, 0);
+			EXP(ENDCRITICAL, 0);
 		case T_RETURN: {
 			int value = 0;
 
@@ -841,7 +833,7 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 
 			writeOp(O_POP_RETURN, f);
 			break;
-					   }
+		}
 		case T_CONTINUE:
 			loopStack[loopStackPos].numContinue++;
 			continueStack[++continueStackPos] = outputTell(f); // address will be patched to point to end of loop for FOR and FOREACH loops
@@ -850,9 +842,10 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 			i++;
 			break;
 		case T_BREAK:
-			loopStack[loopStackPos].numBreaks++;
-			breakStack[++breakStackPos] = outputTell(f); // address will be patched to point to exit from loop
-			writeInt(0, f);
+			// "break" statement is only allowed inside for/foreach/while loops.
+			// All of them are implemented using O_WHILE which requires stack
+			// to have an address where to jump when condition is false.
+			// So we just using this address to jump to the end of loop.
 			writeOp(O_JMP, f);
 			i++;
 			break;
@@ -864,7 +857,7 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 			}
 			loopStack[loopStackPos].numContinue = 0;
 			i++;
-						 }
+		}
 			break;
 		default: i = writeLibStatement(n, i, f); break;
 		}
@@ -872,7 +865,7 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 	return i+1;
 }
 
-static int writeBlock(NodeList *n, int i, FILE *f) {
+int writeBlock(NodeList *n, int i, FILE *f) {
 	if (n->nodes[i].token != T_BEGIN)
 		parseError("begin expected");
 

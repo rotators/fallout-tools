@@ -14,7 +14,6 @@ typedef struct {
 } LexData;
 
 extern LexData lexData;
-extern char *tokens[];
 
 #include <stdio.h>
 

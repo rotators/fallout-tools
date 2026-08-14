@@ -1,0 +1,46 @@
+#include <say_hello.h>
+
+variable test_suite_errors := 0;
+variable test_suite_verbose := true;
+
+
+#ifndef assertEquals
+    procedure assertEquals(variable desc, variable a, variable b) begin
+       if (a != b or typeof(a) != typeof(b)) then begin
+          display_msg("Assertion failed \""+desc+"\": "+a+" != "+b);
+          test_suite_errors ++;
+       end else if (test_suite_verbose) then begin
+          display_msg("Assert \""+desc+"\" ok");
+       end
+    end
+    
+    procedure assertNotEquals(variable desc, variable a, variable b) begin
+       if (a == b) then begin
+          display_msg("Assertion failed \""+desc+"\": "+a+" == "+b);
+          test_suite_errors ++;
+       end else if (test_suite_verbose) then begin
+          display_msg("Assert \""+desc+"\" ok");
+       end
+    end
+#endif
+
+procedure some_tests begin
+    variable var1;
+    var1 = "test1";
+
+    test_suite_errors := 0;
+    display_msg("Testing something...");
+    call assertEquals("test1", var1, true);
+
+    display_msg("All done");
+end
+
+
+procedure map_enter_p_proc begin
+    call sayHello("Main file");
+    display_msg("Starting tests");
+    call some_tests();
+ end
+
+
+ 

@@ -1,0 +1,100 @@
+procedure some_noop(variable param) begin
+end
+
+procedure test_loops() begin
+    variable i;
+
+    display_msg("Break in while loop...");
+    i = 0;
+    while (i < 5) do begin
+        call some_noop("while loop begin");
+        if i == 2 then begin
+            break;
+        end
+        i++;
+        call some_noop("while loop end");
+    end
+
+    display_msg("Continue in while loop...");
+    i = 0;
+    while (i < 5) do begin
+        call some_noop("while loop begin");
+        if i == 2 then begin
+            i += 2;
+            continue;
+        end
+        i++;
+        call some_noop("while loop end");
+    end
+
+    display_msg("Break in for loop...");
+    for (i := 0; i < 5; i++) begin
+        call some_noop("for loop begin");
+        if i == 2 then begin
+            break;
+        end
+        call some_noop("for loop end");
+    end
+
+    display_msg("Continue in for loop...");
+    for (i := 0; i < 5; i++) begin
+        call some_noop("for loop begin");
+        if i == 2 then begin
+            continue;
+        end
+        call some_noop("for loop end");
+    end    
+
+    variable arr := [1, 2, 3, 4, 5];
+    display_msg("Break in foreach loop...");
+    foreach (i in arr) begin
+        call some_noop("foreach loop begin");
+        if i == 2 then begin
+            break;
+        end
+        call some_noop("foreach loop end");
+    end
+    display_msg("Continue in foreach loop...");
+    foreach (i in arr) begin
+        call some_noop("foreach loop begin");
+        if i == 2 then begin
+            continue;
+        end
+        call some_noop("foreach loop end");
+    end
+
+
+    display_msg("End of testing break/continue in loops");
+end  
+
+procedure test_nested_loop begin
+    display_msg("Testing break in nested loop...");
+    variable i, value;
+    for (i := 0; i < 5; i++) begin
+        display_msg("======== Item: " + i);
+        if i == 1 then begin
+            value = 1;
+        end else begin
+            value = 0;
+        end
+        display_msg("Value: " + value);
+        if (value != 0) then begin
+            display_msg("Interesting item: " + i);
+            while (value != 0) do begin
+                display_msg("While loop for item: " + i);
+                break; // should do nothing
+                display_msg("This should not be displayed for item: " + i); // Never displayed
+            end
+            display_msg("After while loop for item: " + i + ", value: " + value);
+        end else begin
+            display_msg("Not interesting item: " + i);
+        end
+        display_msg("End of item " + i);
+    end
+    display_msg("Finished testing nesting loops.");
+end
+
+procedure start begin
+    call test_loops();
+    call test_nested_loop();
+end

@@ -1,0 +1,8 @@
+procedure start begin
+    whatisthis;
+end
+
+// After the first error the compiler stops so this is ignored until the first error is fixed
+procedure someproc2 begin 
+    whatisthis2;
+end

@@ -7,6 +7,10 @@
 #include "parselib.h"
 #include "extra.h"
 
+#ifndef _WIN32
+#include "compat.h"
+#endif
+
 LexData lexData;
 static char *tokens[256+T_END_TOKEN];
 static struct {
@@ -33,6 +37,7 @@ static void AppendToAssignCache() {
 }
 
 extern int backwardcompat;
+extern int shortCircuit;
 
 static int ungotToken = -1;
 static int lastToken = -1;
@@ -633,6 +638,38 @@ top:
 						ungetChar();
 				}
 			}
+			else if (_stricmp(buf[which], "pragma") == 0) { // pragma directives
+				do {
+					c = getChar();
+				} while(c != EOF && c != '\n' && !validSymbolChar(c));
+
+				if (c == EOF) {
+					ungetChar();
+				}
+				else if (validSymbolChar(c)) {
+
+					buf[which][0] = c;
+
+					i = 0;
+					while(1) {
+						c = getChar();
+
+						if (!validSymbolChar(c) && c != '-')
+							break;
+
+						buf[which][i+1] = c;
+						i++;
+					}
+
+					buf[which][i+1] = 0;
+
+					if (_stricmp(buf[which], "sce") == 0 && !shortCircuit) {
+						shortCircuit = 1;
+					}
+					if (c == EOF)
+						ungetChar();
+				}
+			}
 			else if (c == EOF) {
 				ungetChar();
 			}
@@ -688,20 +725,20 @@ top:
 		ret = T_CONSTANT;
 		break;
 
-/* added for alternative assigned operator '=' */
+/* added for alternative assignment operator '=' */
 #define EXPECT_ASSIGN(c, x, y, z) case c: ret = expect(x, y, z); break;
 		EXPECT_ASSIGN('=', '=', T_EQUAL, T_ASSIGN);
 
 #define EXPECT(x, y, z) case x: ret = expect(y, z, x); break;
 		EXPECT(':', '=', T_ASSIGN);
-//		EXPECT('=', '=', T_EQUAL); // remove for single assigned character
+//		EXPECT('=', '=', T_EQUAL); // remove for single character assignment operator
 		EXPECT('>', '=', T_GREATER_EQUAL);
 		EXPECT('<', '=', T_LESS_EQUAL);
 		EXPECT('!', '=', T_NOT_EQUAL);
 
 	case '+':
-		if(expect('=', T_ASSIGN_ADD, 0)) ret = T_ASSIGN_ADD;
-		else if(expect('+', T_INC, 0)) ret = T_INC;
+		if (expect('=', T_ASSIGN_ADD, 0)) ret = T_ASSIGN_ADD;
+		else if (expect('+', T_INC, 0)) ret = T_INC;
 		else ret = '+';
 		break;
 	case '-':
@@ -759,6 +796,7 @@ top:
 		ret = lookupConstant(buf[which]);
 
 		if (ret == -1) {
+			lexData.type = T_SYMBOL;
 			lexData.stringData = buf[which];
 			ret = T_SYMBOL;
 		}

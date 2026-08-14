@@ -17,6 +17,8 @@ namespace ICSharpCode.TextEditor.Util
 		
 		public CountTipText(Graphics graphics, Font font, string text) : base(graphics, font, text)
 		{
+			triHeight = 10 * graphics.DpiY / 96f;
+			triWidth = 10 * graphics.DpiX / 96f;
 		}
 		
 		void DrawTriangle(float x, float y, bool flipped)

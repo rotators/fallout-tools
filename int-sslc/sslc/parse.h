@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-extern int	compilerErrorTotal;
+extern int compilerErrorTotal;
 extern char compilerSyntaxError;
 
 enum { V_INT=1, V_FLOAT, V_STRING };
@@ -45,7 +45,7 @@ typedef struct {
    int numRefs;
    Value value;
    int type;   // this type is where it was declared
-   int arrayLen;
+   int arrayLen; // OBSOLETE, kept for compatibility with Sfall Script Editor
    int declared;
    const char* fdeclared;
    int uses;
@@ -57,14 +57,12 @@ typedef struct {
    int numVariables;
 } VariableList;
 
-#define P_REFERENCE 0x08000000
 typedef struct {
    int token;
    const char* file;
    int lineNum;
    Value value;
    int column;
-   int stringify;
 } Node;
 
 typedef struct {
@@ -79,6 +77,7 @@ typedef struct {
 #define P_CRITICAL     0x10
 #define P_PURE         0x20
 #define P_INLINE       0x40
+
 typedef struct {
    int  name;          /* offset into main program's namelist    */
    int type;           /* timed, conditional, or system procedure */
@@ -102,6 +101,7 @@ typedef struct {
    NodeList nodes;
    int minArgs; // minimum number of arguments for call
    int deftype; // set to 1 if this has been define (and not just declared)
+   int stringifiedName;  // offset into program's string space, this used when procedure is referenced via stringify operator
 } Procedure;
 
 typedef struct {
@@ -154,10 +154,14 @@ extern int expectToken(int expectToken);
 extern void freeCurrentProgram(void);
 extern char *getName(int offset, char *namelist);
 
+extern int addVariable(VariableList *var, char **namelist, int type, char *name);
+extern int findVariableIndex(char *var, VariableList *v, char *namelist);
+
 #define P_GLOBAL    0x80000000
 #define P_LOCAL     0x40000000
 #define P_PROCEDURE 0x20000000
 #define P_EXTERN    0x10000000
+#define P_STRINGIFY 0x08000000
 
 #include "opcodes.h"
 

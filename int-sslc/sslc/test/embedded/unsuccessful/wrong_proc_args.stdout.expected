@@ -1,0 +1,5 @@
+Set include directory: ../include
+Compiling wrong_proc_args.ssl
+[Error] <Semantic> <wrong_proc_args.ssl>:12:14: Wrong number of arguments to procedure sum, must be from 2 to 2.
+
+*** THERE WERE ERRORS (1 of them) ***

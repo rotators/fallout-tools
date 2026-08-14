@@ -110,6 +110,9 @@
     <None Include="testscript.ssl" />
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="win2kcompat.asm" />
+  </ItemGroup>
+  <ItemGroup>
     <ResourceCompile Include="sslc.rc" />
   </ItemGroup>
 </Project>

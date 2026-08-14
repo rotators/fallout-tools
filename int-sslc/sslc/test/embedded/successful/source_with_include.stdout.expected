@@ -1,0 +1,11 @@
+Set include directory: ../include
+Compiling source_with_include.ssl
+[Warning] <source_with_include.ssl>:46: End of input with no newline, supplemented newline
+     
+[Message] <source_with_include.ssl>:17:75: Eliminating procedure assertNotEquals
+[Message] <source_with_include.ssl>:12:40: Constant propagating global variable test_suite_verbose
+[Message] <none>:-1: Eliminating unused global variable test_suite_verbose
+[Message] <source_with_include.ssl>:12:51: Eliminating constant if expression (true)
+[Message] <none>:-1: Removing unused string 'assertNotEquals' from program namespace
+[Message] <none>:-1: Removing unused string 'test_suite_verbose' from program namespace
+[Message] <none>:-1: Removing unused string ' == ' from program stringspace

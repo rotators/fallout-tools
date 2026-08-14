@@ -12,16 +12,24 @@ namespace ScriptEditor.TextEditorUI
 
         public ProgressBarForm(Form owner, int max, string str = "Loading message file...")
         {
-            bar = new ProgressBar() { Width = 305, Height = 15, Top = 14, Maximum = max};
-            var lb = new Label() { Text = str, Top = 0, Left = 10, AutoSize = true};
-
             progressForm = new Form()
             {
-                MinimumSize = new Size(200, 20), Width = 312, Height = 20,
+                AutoScaleDimensions = new SizeF(96F, 96F), AutoScaleMode = AutoScaleMode.Dpi,
                 ControlBox = false, ShowIcon = false, ShowInTaskbar = false,
                 StartPosition = (owner.Location.IsEmpty) ? FormStartPosition.CenterScreen : FormStartPosition.Manual,
                 FormBorderStyle = FormBorderStyle.FixedSingle
             };
+            int dpi = owner.DeviceDpi;
+            bar = new ProgressBar() {
+                Width = DpiHelper.Scale(305, dpi), Height = DpiHelper.Scale(15, dpi),
+                Top = DpiHelper.Scale(14, dpi), Maximum = max
+            };
+            var lb = new Label() {
+                Text = str, Top = 0, Left = DpiHelper.Scale(10, dpi), AutoSize = true
+            };
+            progressForm.MinimumSize = DpiHelper.Scale(owner, new Size(200, 20));
+            progressForm.Width = DpiHelper.Scale(312, dpi);
+            progressForm.Height = DpiHelper.Scale(20, dpi);
             progressForm.Controls.Add(lb);
             progressForm.Controls.Add(bar);
 

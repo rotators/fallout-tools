@@ -1,0 +1,11 @@
+#include <missing_file_1.ssl>
+#include <missing_file_2.ssl>
+
+#include "include_loop_1.ssl"
+
+// This will not be reached
+#include <missing_file_3.ssl>
+
+
+procedure start begin
+end

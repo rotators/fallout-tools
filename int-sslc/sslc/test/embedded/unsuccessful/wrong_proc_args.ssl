@@ -1,0 +1,15 @@
+/**
+ * @arg {integer} a
+ * @arg {integer} b
+ */
+procedure sum(variable a, variable b) begin
+  variable out;
+  out = a + b;
+  return out;
+end
+
+procedure start begin
+  call sum(1);
+
+end
+

@@ -184,22 +184,12 @@
 /* stdin, stdout, stderr, FILE, NULL, fgets(), fputs() and other functions. */
 #include    "stdio.h"
 
-/* PATHMAX is the maximum length of path-list on the host system.   */
-/* _POSIX_* only to get PATH_MAX    */
-#define _POSIX_             1
-#define _POSIX_SOURCE       1
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE     1
-#define _POSIX_C_SOURCE_defined     1
+#ifdef _WIN32
+#define PATHMAX     _MAX_PATH
+#else
+#include "limits.h"
+#define PATHMAX     PATH_MAX
 #endif
-#include    "limits.h"
-#undef  _POSIX_
-#undef  _POSIX_SOURCE
-#ifdef  _POSIX_C_SOURCE_defined
-#undef  _POSIX_C_SOURCE
-#undef  _POSIX_C_SOURCE_defined
-#endif
-#define PATHMAX     PATH_MAX        /* Posix macro  */
 
 /* islower(), isupper(), toupper(), isdigit(), isxdigit(), iscntrl()        */
 #include    "ctype.h"

@@ -8,7 +8,6 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Drawing.Drawing2D;
 
 using ICSharpCode.TextEditor.Util;
 using ICSharpCode.TextEditor.Document;
@@ -29,8 +28,6 @@ namespace ICSharpCode.TextEditor.Gui.CompletionWindow
 	{
 		string description = String.Empty;
 		bool fixedWidth;
-		
-		HighlightColor tipGradient;
 		
 		public string Description {
 			get {
@@ -76,15 +73,14 @@ namespace ICSharpCode.TextEditor.Gui.CompletionWindow
 			SetStyle(ControlStyles.ResizeRedraw, true);
 
 			StartPosition   = FormStartPosition.Manual;
+			AutoScaleDimensions = new SizeF(96F, 96F);
+			AutoScaleMode = AutoScaleMode.Dpi;
 			FormBorderStyle = FormBorderStyle.None;
 			Owner           = parent;
 			ShowInTaskbar   = false;
 			Size            = new Size(0, 0);
+			Font            = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
 			base.CreateHandle();
-
-			tipGradient = textArea.Document.HighlightingStrategy.GetColorFor("TipsGradient");
-
-			//Font = new Font(FontFamily.GenericSansSerif, 9.5f, FontStyle.Regular, GraphicsUnit.Point);
 		}
 		
 		protected override CreateParams CreateParams {
@@ -131,12 +127,8 @@ namespace ICSharpCode.TextEditor.Gui.CompletionWindow
 		
 		protected override void OnPaintBackground(PaintEventArgs pe)
 		{
-			// Draw gradient background
-			LinearGradientBrush gradient = new LinearGradientBrush(pe.ClipRectangle, 
-																   tipGradient.Color,
-																   tipGradient.BackgroundColor,
-																   LinearGradientMode.Vertical);
-			pe.Graphics.FillRectangle(gradient, pe.ClipRectangle);
+			using (Brush background = new SolidBrush(TipPainter.TipBackgroundColor))
+				pe.Graphics.FillRectangle(background, pe.ClipRectangle);
 		}
 	}
 }

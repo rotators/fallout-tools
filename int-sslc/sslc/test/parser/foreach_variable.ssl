@@ -1,0 +1,7 @@
+procedure start begin
+   variable values := [1, 2, 3];
+
+   foreach (variable value in values) begin
+      display_msg(value);
+   end
+end

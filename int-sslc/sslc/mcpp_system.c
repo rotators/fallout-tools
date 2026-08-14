@@ -39,7 +39,12 @@
 #include    "system.H"
 #include    "internal.H"
 
-#include    "direct.h"
+#ifdef _WIN32
+#include <direct.h>
+#else
+#include "compat.h"
+#endif
+
 #define getcwd( buf, size)  _getcwd( buf, size)
 #include    "sys/types.h"
 #include    "sys/stat.h"                        /* For stat()       */
@@ -47,8 +52,13 @@
 #define S_ISREG( mode)  (mode & S_IFREG)
 #define S_ISDIR( mode)  (mode & S_IFDIR)
 #endif
+#if     ! defined( S_IFREG)
 #define S_IFREG     _S_IFREG
+#endif
+#if     ! defined( S_IFDIR)
 #define S_IFDIR     _S_IFDIR
+#endif
+
 #define stat( path, stbuf)  _stat( path, stbuf)
 
 /* Function to compare path-list    */
@@ -904,7 +914,7 @@ static int  open_include(
         has_dir = has_dir_src || has_dir_fname
                 || (**(infile->dirp) != EOS);
     }
-#ifdef BUILDING_DLL     /* Reordered search include files for DLL (fakels) */
+#ifdef BUILDING_DLL     /* Reordered search include files for DLL (Fakels) */
     if (full_path) {
         if (open_file( &null, NULL, filename, FALSE, FALSE, FALSE))
             return  TRUE;
@@ -936,7 +946,7 @@ static int  open_include(
     if (search_dir( filename, searchlocal, next))
         return  TRUE;
 
-#ifdef BUILDING_DLL     /* Reordered search include files for DLL (fakels) */
+#ifdef BUILDING_DLL     /* Reordered search include files for DLL (Fakels) */
     if ((searchlocal && ((search_rule & CURRENT) || !has_dir))) {
         /*
          * Look in local directory.

@@ -1,0 +1,7 @@
+Set include directory: ../include
+Compiling unknown_identifier.ssl
+[Warning] <unknown_identifier.ssl>:8: End of input with no newline, supplemented newline
+    end
+[Error] <Semantic> <unknown_identifier.ssl>:2:16: Unknown name identifier whatisthis.
+
+*** THERE WERE ERRORS (1 of them) ***

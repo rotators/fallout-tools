@@ -123,24 +123,36 @@ namespace ScriptEditor.TextEditorUI
         public static string ParserLog(string log, TabInfo tab)
         {
             ClearParserErrors(tab);
+            DiagnosticSuppressionRules suppressions = DiagnosticSuppressionRules.Load(DiagnosticSuppressionRules.DefaultPath);
 
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("------ Script: {0} < Parse Time: {1} > ------\r\n",
                             tab.filename, DateTime.Now.ToString("HH:mm:ss"));
-            bool warn = false, errSection = false;
+            bool warn = false, errSection = false, suppressedErrorSection = false;
             string[] sLog = log.Split(new string[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < sLog.Length; i++)
             {
+                if (suppressedErrorSection && sLog[i].TrimStart().StartsWith("from")) {
+                    continue;
+                }
                 if (TextEditor.parsingErrors && errSection && sLog[i].TrimStart().StartsWith("from")) {
                     HighlightErrorFrom(sLog[i], tab);
                 }
                 else if (sLog[i].StartsWith("[Error]")) {
+                    Error suppressionCandidate = GetParserSuppressionCandidate(sLog[i]);
+                    suppressedErrorSection = suppressions.IsIgnored(suppressionCandidate);
+                    if (suppressedErrorSection) {
+                        warn = false;
+                        errSection = false;
+                        continue;
+                    }
                     sb.AppendLine();
                     warn = false;
                     errSection = true;
                     HighlightError(sLog[i], tab);
                 }
                 else if (sLog[i].StartsWith("[Warning]")) {
+                    suppressedErrorSection = false;
                     errSection = false;
                     if (!Settings.parserWarn) {
                         warn = true;
@@ -157,6 +169,18 @@ namespace ScriptEditor.TextEditorUI
             tab.textEditor.Refresh();
 
             return sb.ToString();
+        }
+
+        private static Error GetParserSuppressionCandidate(string diagnostic)
+        {
+            Match match = Regex.Match(diagnostic ?? String.Empty, pattern);
+            int line;
+            if (!match.Success || !Int32.TryParse(match.Groups[3].Value, out line)) return null;
+
+            int column;
+            if (!Int32.TryParse(match.Groups[4].Value, out column)) column = 0;
+            return new Error(ErrorType.Parser, match.Groups[5].Value.TrimEnd(),
+                match.Groups[2].Value, line, column - 1);
         }
 
         public static void ClearParserErrors(TabInfo tab)

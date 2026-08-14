@@ -1,0 +1,13 @@
+Set include directory: ../include
+Compiling gl_break_statement.ssl
+[Message] <gl_break_statement.ssl>:1:42: Eliminating variable id 0
+[Message] <gl_break_statement.ssl>:8:6: Using constant variable store for initializer
+[Message] <gl_break_statement.ssl>:8:8: Eating dead store to variable 0
+[Message] <gl_break_statement.ssl>:50:23: Using constant variable store for initializer
+[Message] <gl_break_statement.ssl>:50:23: Eating dead store to variable 3
+[Message] <gl_break_statement.ssl>:58:23: Using constant variable store for initializer
+[Message] <gl_break_statement.ssl>:58:23: Eating dead store to variable 6
+[Message] <gl_break_statement.ssl>:73:11: Using constant variable store for initializer
+[Message] <gl_break_statement.ssl>:73:14: Eating dead store to variable 0
+[Message] <gl_break_statement.ssl>:86:28: Eating statement hidden by return
+[Message] <none>:-1: Removing unused string 'This should not be displayed for item: ' from program stringspace

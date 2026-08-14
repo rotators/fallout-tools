@@ -1,0 +1,5 @@
+Set include directory: ../include
+Compiling missing_parenthesis.ssl
+[Error] <missing_parenthesis.ssl>:3:11: Expression expected.
+
+*** THERE WERE ERRORS (1 of them) ***

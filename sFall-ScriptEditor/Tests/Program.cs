@@ -30,6 +30,7 @@ namespace SfallScriptEditor.Tests
             Run("atomic document save replaces content", AtomicDocumentSaveReplacesContent);
             Run("procedure folding commands affect member bodies", ProcedureFoldingCommandsAffectMemberBodies);
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
+            Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
 
             Console.WriteLine();
             Console.WriteLine("Tests: {0} passed, {1} failed", passed, failed);
@@ -76,6 +77,13 @@ namespace SfallScriptEditor.Tests
                 File.WriteAllText(config, "Warning|debug.h|not-a-line|A useful warning\r\n");
                 Error.BuildLog(errors, output, @"C:\scripts\test.ssl", config);
                 Equal(2, errors.Count);
+
+                File.WriteAllText(config, "Parser|lib.arrays.h|268|Expected symbol\r\n");
+                DiagnosticSuppressionRules rules = DiagnosticSuppressionRules.Load(config);
+                True(rules.IsIgnored(new Error(ErrorType.Parser, "Expected symbol", "lib.arrays.h", 268)),
+                    "A parser-only rule should suppress the matching live-parser diagnostic.");
+                True(!rules.IsIgnored(new Error(ErrorType.Error, "Expected symbol", "lib.arrays.h", 268)),
+                    "A parser-only rule must not suppress a genuine compiler error.");
             });
         }
 
@@ -255,6 +263,16 @@ namespace SfallScriptEditor.Tests
                 "A multiline object-like macro must be stored under its declared identifier.");
             Equal(macroName, macros[macroName].token);
             Equal(1, macros[macroName].declared);
+        }
+
+        private static void DpiMetricsUseLogicalUnits()
+        {
+            Equal(13, DpiHelper.Scale(13, 96));
+            Equal(16, DpiHelper.Scale(13, 120));
+            Equal(20, DpiHelper.Scale(13, 144));
+            Equal(26, DpiHelper.Scale(13, 192));
+            Equal(1, DpiHelper.Scale(1, 120));
+            Equal(2, DpiHelper.Scale(1, 144));
         }
 
         private static void WithTempDirectory(Action<string> action)

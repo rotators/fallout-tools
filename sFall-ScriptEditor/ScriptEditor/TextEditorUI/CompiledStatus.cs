@@ -19,13 +19,15 @@ namespace ScriptEditor.TextEditorUI
 
             Cursor          = Cursors.IBeam;
             StartPosition   = FormStartPosition.Manual;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode   = AutoScaleMode.Dpi;
             FormBorderStyle = FormBorderStyle.None;
             Owner           = frm;
             ShowInTaskbar   = false;
-            MinimumSize     = new Size(96, 96);
+            MinimumSize     = DpiHelper.Scale(frm, new Size(96, 96));
             Size            = MinimumSize;
-            Location        = new Point(frm.Location.X + (frm.Size.Width / 2) - 48,
-                                        frm.Location.Y + (frm.Size.Height / 2) - 48);
+            Location        = new Point(frm.Location.X + (frm.Size.Width - Width) / 2,
+                                        frm.Location.Y + (frm.Size.Height - Height) / 2);
 
             BackgroundImageLayout = ImageLayout.Stretch;
             BackgroundImage = ColorTheme.IsDarkTheme ? Properties.Resources.compiled_dark 
@@ -34,9 +36,9 @@ namespace ScriptEditor.TextEditorUI
                                                      : Color.FromArgb(250, 250, 250);
 
             Label lbl0 = new Label() {
-                Size = new Size(96, 15),
-                Top = 2,
-                Left = 1,
+                Size = DpiHelper.Scale(frm, new Size(96, 15)),
+                Top = DpiHelper.Scale(frm, 2),
+                Left = DpiHelper.Scale(frm, 1),
                 TextAlign = ContentAlignment.MiddleCenter,
 
                 Text = status ? "Successfully" : "Failed"
@@ -44,8 +46,8 @@ namespace ScriptEditor.TextEditorUI
 
             Label lbl1 =  new Label() {
                 AutoSize = true,
-                Top = 75,
-                Left = 12,
+                Top = DpiHelper.Scale(frm, 75),
+                Left = DpiHelper.Scale(frm, 12),
 
                 Text = "Compiled"
             };

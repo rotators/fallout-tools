@@ -1,15 +1,18 @@
+//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
 // Used by sslc.rc
 
-#define VERSION_C          1,2,3,0
-#define VERSION_S         "1.2.3.0"
+#pragma once
 
-#define PRODUCT_VERSION    4,2,9,0
-#define PRODUCT_VERSION_S "4.2.9"
+#define VERSION_MAJOR 4
+#define VERSION_MINOR 5
+#define VERSION_BUILD 0
+#define VERSION_REV 0
+
+#define VERSION_STRING "4.5"
 
 #ifdef BUILDING_DLL
-#define FILE_S  "parser.dll"
+#define FILE_STRING "parser.dll"
 #else
-#define FILE_S  "compile.exe"
+#define FILE_STRING "compile.exe"
 #endif
-
