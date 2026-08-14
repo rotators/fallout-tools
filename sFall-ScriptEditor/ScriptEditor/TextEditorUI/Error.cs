@@ -207,9 +207,10 @@ namespace ScriptEditor.TextEditorUI
             int reportedLine = Math.Max(0, Math.Min(error.line - 1, lastLine));
             if (reportedLine == 0 || String.IsNullOrEmpty(error.message)) return reportedLine;
 
-            LineSegment previous = tab.textEditor.Document.GetLineSegment(reportedLine - 1);
-            string previousText = tab.textEditor.Document.GetText(previous);
-            return CompilerDiagnosticLineResolver.Resolve(reportedLine, error.message, previousText);
+            return CompilerDiagnosticLineResolver.Resolve(reportedLine, error.column, error.message, line => {
+                LineSegment segment = tab.textEditor.Document.GetLineSegment(line);
+                return tab.textEditor.Document.GetText(segment);
+            });
         }
 
         private static void HighlightError(string error, TabInfo tab)

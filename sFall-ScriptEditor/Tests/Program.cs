@@ -50,12 +50,37 @@ namespace SfallScriptEditor.Tests
         private static void CompilerDiagnosticLookahead()
         {
             const string assignmentError = "Assignment operator expected.";
-            Equal(8, CompilerDiagnosticLineResolver.Resolve(9, assignmentError, "skill := has_skill_party(SKILL_OUTDOORSMAN);k"));
-            Equal(8, CompilerDiagnosticLineResolver.Resolve(9, assignmentError, "endjjj"));
-            Equal(9, CompilerDiagnosticLineResolver.Resolve(9, assignmentError, "skill := 100;"));
-            Equal(9, CompilerDiagnosticLineResolver.Resolve(9, "Unexpected token.", "endjjj"));
+            Equal(8, ResolveDiagnostic(9, -1, assignmentError, "skill := has_skill_party(SKILL_OUTDOORSMAN);k"));
+            Equal(8, ResolveDiagnostic(9, -1, assignmentError, "endjjj"));
+            Equal(9, ResolveDiagnostic(9, -1, assignmentError, "skill := 100;"));
+            Equal(9, ResolveDiagnostic(9, -1, "Unexpected token.", "endjjj"));
+
+            string[] separatedByComments = {
+                "register_hook_proc(HOOK_GAMEMODECHANGE, mark_locations);j",
+                String.Empty,
+                "// Removes the location names under green circles",
+                "remove_wm_town_names(true);"
+            };
+            Equal(0, CompilerDiagnosticLineResolver.Resolve(3, -1, assignmentError, line => separatedByComments[line]));
+
+            string[] malformedKeyword = {
+                "if (game_loaded) then beginj",
+                "set_global_script_type(0);"
+            };
+            Equal(0, CompilerDiagnosticLineResolver.Resolve(1, 23, assignmentError, line => malformedKeyword[line]));
+
+            string[] sameLineError = {
+                "procedure start begin",
+                "foo bar;"
+            };
+            Equal(1, CompilerDiagnosticLineResolver.Resolve(1, 8, assignmentError, line => sameLineError[line]));
         }
 
+        private static int ResolveDiagnostic(int reportedLine, int reportedColumn, string message, string previousLine)
+        {
+            return CompilerDiagnosticLineResolver.Resolve(reportedLine, reportedColumn, message,
+                line => line == reportedLine - 1 ? previousLine : String.Empty);
+        }
         private static void DocumentRevisionRejectsStaleResult()
         {
             var tab = new TabInfo();
