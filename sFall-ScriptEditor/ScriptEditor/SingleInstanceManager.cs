@@ -11,7 +11,8 @@ namespace ScriptEditor
     {
         private const int HWND_BROADCAST = 0xffff;
 
-        private static readonly string CommandLineFile = Path.Combine(Path.GetTempPath(), "commandline.txt");
+        private static readonly CommandLineQueue CommandLineArguments = new CommandLineQueue(
+            Path.Combine(Path.GetTempPath(), "SfallScriptEditor-4-commandline"), TimeSpan.FromMinutes(5));
 
         [DllImport("user32")]
         private static extern bool PostMessage(IntPtr hwnd, int msg, IntPtr wparam, IntPtr lparam);
@@ -41,8 +42,8 @@ namespace ScriptEditor
                 fullArgs[i] = Path.IsPathRooted(args[i])
                     ? args[i]
                     : Path.GetFullPath(args[i]);
-                File.AppendAllText(SingleInstanceManager.CommandLineFile, fullArgs[i] + Environment.NewLine);
             }
+            CommandLineArguments.Enqueue(fullArgs);
         }
 
         /// <summary>
@@ -51,17 +52,12 @@ namespace ScriptEditor
         /// <returns></returns>
         public static string[] LoadCommandLine() 
         {
-            if (File.Exists(SingleInstanceManager.CommandLineFile)) {
-                string[] read = File.ReadAllLines(SingleInstanceManager.CommandLineFile);
-                DeleteCommandLine();
-                return read;
-            }
-            return new string[0];
+            return CommandLineArguments.DequeueAll();
         }
 
         public static void DeleteCommandLine()
         {
-            File.Delete(CommandLineFile);
+            CommandLineArguments.Clear();
         }
     }
 }

@@ -246,7 +246,8 @@ namespace ScriptEditor.TextEditorUtilities
             {
                 if (File.Exists(fileMatches.Key) && !originalFiles.ContainsKey(fileMatches.Key))
                     originalFiles.Add(fileMatches.Key, File.ReadAllBytes(fileMatches.Key));
-                string textContent = System.IO.File.ReadAllText(fileMatches.Key);
+                TextFileContents fileContents = TextFileEncoding.Read(fileMatches.Key);
+                string textContent = fileContents.Text;
                 total += fileMatches.Value.Count;
 
                 int replace_count = 0;
@@ -262,7 +263,7 @@ namespace ScriptEditor.TextEditorUtilities
                     isAdjustSpaces = 0;
                 }
                 if (replace_count > 0) {
-                    TabInfo.WriteAllTextAtomic(fileMatches.Key, textContent, (Settings.saveScriptUTF8) ? new UTF8Encoding(false) : Encoding.Default);
+                    TabInfo.WriteAllTextAtomic(fileMatches.Key, textContent, fileContents.Encoding);
                 }
                 if (pf != null) pf.IncProgress();
             }
@@ -281,8 +282,11 @@ namespace ScriptEditor.TextEditorUtilities
                                 "Rename global macro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             } finally {
                 if (pf != null) pf.Dispose();
-                foreach (TabInfo tab in affectedTabs)
+                foreach (TabInfo tab in affectedTabs) {
                     tab.DisableParseAndStatusChange = false;
+                    tab.MarkTextChanged();
+                    tab.needsParse = tab.shouldParse;
+                }
             }
         }
 

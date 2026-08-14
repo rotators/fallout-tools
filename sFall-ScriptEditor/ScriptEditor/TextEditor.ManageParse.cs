@@ -40,6 +40,7 @@ namespace ScriptEditor
             if (changedTab == null || savingRunning || changedTab.DisableParseAndStatusChange)
                 return;
 
+            changedTab.MarkTextChanged();
             Error.ClearBuildErrorMarkers(changedTab);
 
             if (!changedTab.changed) {
@@ -225,12 +226,19 @@ namespace ScriptEditor
         {
             WorkerArgs args = (WorkerArgs)eventArgs.Argument;
             activeParserArgs = args;
+            if (bwSyntaxParser.CancellationPending) {
+                eventArgs.Cancel = true;
+                return;
+            }
             try {
                 var ExtParser = new ParserExternal(false);
                 args.parseInfo = ExtParser.Parse(args.text, args.tab.filepath, args.previousParseInfo);
                 args.status = ExtParser.LastStatus;
                 //args.parseIsFail = prevStatus & (args.status > 0);
-                eventArgs.Result = args;
+                if (bwSyntaxParser.CancellationPending)
+                    eventArgs.Cancel = true;
+                else
+                    eventArgs.Result = args;
             } finally {
                 parserIsRunning = false;
             }
@@ -243,7 +251,7 @@ namespace ScriptEditor
             WorkerArgs args = e.Error == null && !e.Cancelled ? e.Result as WorkerArgs : activeParserArgs;
             activeParserArgs = null;
 
-            if (e.Cancelled) return;
+            if (isClosing || IsDisposed || Disposing || e.Cancelled) return;
             if (e.Error != null) {
                 if (args != null && args.tab != null) args.tab.needsParse = true;
                 if (args == null || currentTab == args.tab) {
@@ -257,6 +265,13 @@ namespace ScriptEditor
 
             if (args == null || args.tab == null) {
                 DEBUGINFO("Parser error: Background parser returned no result.");
+                return;
+            }
+            if (!args.IsCurrent) {
+                args.tab.needsParse = true;
+                DEBUGINFO("Discarded stale parser result for document revision " + args.textRevision + ".");
+                if (currentTab == args.tab)
+                    ParseScript(0);
                 return;
             }
             if (args.parseInfo != null)

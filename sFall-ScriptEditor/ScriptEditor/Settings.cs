@@ -315,31 +315,35 @@ namespace ScriptEditor
                 }
                 br.Close();
             }
-            // Recent files
+            // Recent files are optional state. A truncated file must not prevent startup.
             if (brRecent == null) return;
-            int recentItems = brRecent.ReadByte();
-            int recentMsgItems = brRecent.ReadByte();
-            for (int i = 0; i < recentItems; i++)
-                recent.Add(brRecent.ReadString());
-            for (int i = 0; i < recentMsgItems; i++)
-                recentMsg.Add(brRecent.ReadString());
-            //
-            int positionItems = brRecent.ReadByte();
-            for (int i = 0; i < positionItems; i++)
-                scriptPosition.Add(brRecent.ReadString(), brRecent.ReadUInt16());
-            brRecent.Close();
+            try {
+                int recentItems = brRecent.ReadByte();
+                int recentMsgItems = brRecent.ReadByte();
+                for (int i = 0; i < recentItems; i++)
+                    recent.Add(brRecent.ReadString());
+                for (int i = 0; i < recentMsgItems; i++)
+                    recentMsg.Add(brRecent.ReadString());
+
+                int positionItems = brRecent.ReadByte();
+                for (int i = 0; i < positionItems; i++)
+                    scriptPosition[brRecent.ReadString()] = brRecent.ReadUInt16();
+            } catch (Exception ex) {
+                recent.Clear();
+                recentMsg.Clear();
+                scriptPosition.Clear();
+                Program.printLog("   Ignored invalid recent-file data: " + ex.Message);
+            } finally {
+                brRecent.Close();
+            }
         }
 
         public static void Load()
         {
             Program.printLog("   Load configuration setting.");
 
-            if (!Directory.Exists(scriptTempPath)) {
-                Directory.CreateDirectory(scriptTempPath);
-            } else
-                foreach (string file in Directory.GetFiles(scriptTempPath))
-                    File.Delete(file);
-            File.Delete("errors.txt");
+            CleanupScriptTempDirectory(false);
+            TryDeleteFile(Path.Combine(ProgramFolder, "errors.txt"));
 
             if (!Directory.Exists(SettingsFolder)) {
                 Directory.CreateDirectory(SettingsFolder);
@@ -505,6 +509,38 @@ namespace ScriptEditor
             SaveScriptsProceduresFolding();
         }
 
+        internal static void CleanupScriptTempDirectory(bool removeDirectory)
+        {
+            try {
+                if (!Directory.Exists(scriptTempPath)) {
+                    if (!removeDirectory)
+                        Directory.CreateDirectory(scriptTempPath);
+                    return;
+                }
+
+                foreach (string file in Directory.GetFiles(scriptTempPath))
+                    TryDeleteFile(file);
+                foreach (string directory in Directory.GetDirectories(scriptTempPath)) {
+                    try { Directory.Delete(directory, true); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
+                if (removeDirectory) {
+                    try { Directory.Delete(scriptTempPath, false); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
+            } catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+
+        private static void TryDeleteFile(string path)
+        {
+            try { if (File.Exists(path)) File.Delete(path); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+
         public static void SaveSettingData(Form mainfrm)
         {
             TextEditor frm = mainfrm as TextEditor;
@@ -520,7 +556,7 @@ namespace ScriptEditor
             openMsgEditor = frm.msgAutoOpenEditorStripMenuItem.Checked;
             if (frm.WindowState != FormWindowState.Minimized) SaveWindowPosition(SavedWindows.Main, mainfrm);
             Save();
-            Directory.Delete(scriptTempPath, true);
+            CleanupScriptTempDirectory(true);
         }
 
         public static void OpenInExternalEditor(string file)

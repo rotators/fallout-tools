@@ -94,6 +94,7 @@
     <Compile Include="AboutBox.Designer.cs">
       <DependentUpon>AboutBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="CommandLineQueue.cs" />
     <Compile Include="CodeTranslation\DialogueParser.cs" />
     <Compile Include="CodeTranslation\Macros.cs" />
     <Compile Include="TextEditor.ManageParse.cs">
@@ -128,6 +129,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="TextEditorUI\ColorTheme.cs" />
+    <Compile Include="TextEditorUI\CompilerDiagnosticLineResolver.cs" />
     <Compile Include="InterfaceTheme.cs" />
     <Compile Include="TextEditorUI\CompiledStatus.cs">
       <SubType>Form</SubType>
@@ -232,6 +234,7 @@
       <DependentUpon>UserFunction.cs</DependentUpon>
     </Compile>
     <Compile Include="TextEditorUtilities\MessageFile.cs" />
+    <Compile Include="TextEditorUtilities\TextFileEncoding.cs" />
     <Compile Include="TextEditorUI\ProgressBar.cs" />
     <Compile Include="TextEditorUI\TabInfo.cs" />
     <Compile Include="MessageEditor.cs">

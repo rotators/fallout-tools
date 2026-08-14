@@ -55,6 +55,7 @@ namespace ScriptEditor
         private int showTipsColumn;
         private bool roundTrip = false;
         private bool savingRunning = false;
+        private bool isClosing = false;
 
         internal TreeView VarTree = new TreeView();
         private TabPage VarTab = new TabPage("Variables");
@@ -315,9 +316,9 @@ namespace ScriptEditor
                 KeepScriptSetting(tabs[i], skip);
             }
 
+            isClosing = true;
             if (bwSyntaxParser.IsBusy)
                 bwSyntaxParser.CancelAsync();
-
             splitContainer3.Panel1Collapsed = true;
             int dist = this.Height - (this.Height / 4) + 100;
             Settings.editorSplitterPosition = (splitContainer1.SplitterDistance < dist) ? splitContainer1.SplitterDistance : -1;
@@ -611,14 +612,14 @@ namespace ScriptEditor
             if (currentTab != null) {
                 dgvErrors.Rows.Clear();
 
-                extParserTimer.Stop(); // предотвратить запуск парсера после компиляции
-                currentTab.needsParse = false;
+                extParserTimer.Stop(); // prevent parsing while compiler processes its temporary input
 
                 string msg;
                 if (Compile(currentTab, out msg)) {
                     Error.ClearParserErrors(currentTab);
                 }
                 tbOutput.Text = currentTab.buildLog = msg;
+                QueueCurrentDocumentParse();
             }
         }
 
@@ -726,7 +727,7 @@ namespace ScriptEditor
 
             if (sfdTemplate.ShowDialog() == DialogResult.OK) {
                 string fname = Path.GetFileName(sfdTemplate.FileName);
-                File.WriteAllText(path + "\\" + fname, currentTab.textEditor.Text, System.Text.Encoding.ASCII);
+                TabInfo.WriteAllTextAtomic(Path.Combine(path, fname), currentTab.textEditor.Text, currentTab.textEditor.Encoding);
             }
             sfdTemplate.Dispose();
         }
@@ -934,8 +935,7 @@ namespace ScriptEditor
             }
             dgvErrors.Rows.Clear();
 
-            extParserTimer.Stop(); // предотвратить запуск парсера после компиляции
-            currentTab.needsParse = false;
+            extParserTimer.Stop(); // prevent parsing while compiler processes its temporary input
 
             string msg;
             roundTrip = true;
@@ -945,6 +945,16 @@ namespace ScriptEditor
                 Open(new Compiler(true).GetOutputPath(currentTab.filepath), OpenType.File, false, clearBuildLog: false);
             }
             roundTrip = false;
+            QueueCurrentDocumentParse();
+        }
+
+        private void QueueCurrentDocumentParse()
+        {
+            if (currentTab == null || !currentTab.shouldParse || isClosing)
+                return;
+
+            currentTab.needsParse = true;
+            ParseScript(0);
         }
 
         private void editRegisteredScriptsToolStripMenuItem_Click(object sender, EventArgs e)

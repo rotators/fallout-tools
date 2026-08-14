@@ -207,13 +207,9 @@ namespace ScriptEditor.TextEditorUI
             int reportedLine = Math.Max(0, Math.Min(error.line - 1, lastLine));
             if (reportedLine == 0 || String.IsNullOrEmpty(error.message)) return reportedLine;
 
-            bool lookaheadError = error.message.StartsWith("Assignment operator expected", StringComparison.OrdinalIgnoreCase)
-                || error.message.StartsWith("Unknown name identifier", StringComparison.OrdinalIgnoreCase);
-            if (!lookaheadError) return reportedLine;
-
             LineSegment previous = tab.textEditor.Document.GetLineSegment(reportedLine - 1);
-            string previousText = tab.textEditor.Document.GetText(previous).Trim();
-            return Regex.IsMatch(previousText, @"(?:^|[;{}])\s*[A-Za-z_][A-Za-z0-9_]*\s*;?\s*$") ? reportedLine - 1 : reportedLine;
+            string previousText = tab.textEditor.Document.GetText(previous);
+            return CompilerDiagnosticLineResolver.Resolve(reportedLine, error.message, previousText);
         }
 
         private static void HighlightError(string error, TabInfo tab)

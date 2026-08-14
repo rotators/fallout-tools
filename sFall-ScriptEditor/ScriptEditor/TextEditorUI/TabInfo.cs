@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Threading;
 
 using ICSharpCode.TextEditor;
 
@@ -37,6 +38,19 @@ namespace ScriptEditor.TextEditorUI
         public string filename;
 
         public bool changed;
+
+        private int textRevision;
+
+        /// <summary>
+        /// Monotonically increasing revision used to reject parser results produced
+        /// for an older version of the document.
+        /// </summary>
+        public int TextRevision { get { return textRevision; } }
+
+        internal void MarkTextChanged()
+        {
+            Interlocked.Increment(ref textRevision);
+        }
 
         public bool DisableParseAndStatusChange { get; set; }
 

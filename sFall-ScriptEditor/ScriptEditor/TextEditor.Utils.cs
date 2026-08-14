@@ -400,6 +400,7 @@ namespace ScriptEditor
         private void renameToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Refactor.Rename((IParserInfo)renameToolStripMenuItem.Tag, currentDocument, currentTab, tabs);
+            QueueCurrentDocumentParse();
         }
         #endregion
 

@@ -464,6 +464,10 @@ namespace ScriptEditor.TextEditorUtilities
 
         internal static void DeleteProcedure(IDocument document, ProcedureBlock block, out string def_poc)
         {
+            def_poc = null;
+            if (!IsValidLine(document, block.begin) || !IsValidLine(document, block.end) || block.end < block.begin)
+                return;
+
             ISegment segmentS = document.GetLineSegment(block.begin);
             ISegment segmentE = document.GetLineSegment(block.end);
             int len = (segmentE.Offset + segmentE.Length) - segmentS.Offset;
@@ -487,7 +491,7 @@ namespace ScriptEditor.TextEditorUtilities
 
             // declare
             int declarLine = block.declar - 1;
-            if (declarLine > -1 & declarLine != block.begin) {
+            if (IsValidLine(document, declarLine) && declarLine != block.begin) {
                 def_poc = TextUtilities.GetLineAsString(document, declarLine);
                 int offset = document.PositionToOffset(new TextLocation(0, declarLine));
                 document.Remove(offset, def_poc.Length + 2);
@@ -854,14 +858,20 @@ namespace ScriptEditor.TextEditorUtilities
             document.Replace(offset, (m.Length - shiftOffset), newText);
         }
 
+        internal static bool IsValidLine(IDocument document, int line)
+        {
+            return document != null && line >= 0 && line < document.TotalNumberOfLines;
+        }
+
         internal static string GetProcedureCode(IDocument document, Procedure curProc)
         {
-            if (curProc.d.start == -1 || curProc.d.end == -1) // for imported or w/o body procedure
+            if (document == null || curProc == null || !IsValidLine(document, curProc.d.start)
+                || !IsValidLine(document, curProc.d.end - 1) || curProc.d.end <= curProc.d.start)
                 return null;
 
             LineSegment start = document.GetLineSegment(curProc.d.start);
             LineSegment end = document.GetLineSegment(curProc.d.end - 1);
-            int length = end.Offset - start.Offset - 2; // -2 не захватываем символы CRLF
+            int length = end.Offset - start.Offset - 2; // -2 excludes CRLF before the procedure end
 
             return (length < 0) ? String.Empty : document.GetText(start.Offset, length);
         }
@@ -872,8 +882,13 @@ namespace ScriptEditor.TextEditorUtilities
             if (index == -1)
                 return true; // procedure not found
 
-            LineSegment start = document.GetLineSegment(pi.procs[index].d.start);
-            LineSegment end = document.GetLineSegment(pi.procs[index].d.end - 1);
+            Procedure procedure = pi.procs[index];
+            if (procedure == null || !IsValidLine(document, procedure.d.start)
+                || !IsValidLine(document, procedure.d.end - 1) || procedure.d.end <= procedure.d.start)
+                return true;
+
+            LineSegment start = document.GetLineSegment(procedure.d.start);
+            LineSegment end = document.GetLineSegment(procedure.d.end - 1);
             int length = end.Offset - start.Offset - 2; // -2 не заменяем символы CRLF
 
             if (length < 0 && code.Length > 0 && !code[code.Length - 1].Equals('\n'))
@@ -902,18 +917,20 @@ namespace ScriptEditor.TextEditorUtilities
         //Get block text
         internal static string GetRegionText(IDocument document, int _begin, int _end, int _ecol = 0, int _bcol = 0)
         {
+            if (!IsValidLine(document, _begin) || !IsValidLine(document, _end) || _end < _begin)
+                return String.Empty;
+
             ISegment segmentB = document.GetLineSegment(_begin);
             ISegment segmentE = document.GetLineSegment(_end);
+            int beginColumn = Math.Max(0, Math.Min(_bcol, segmentB.Length));
+            int endColumn = (_ecol > 0) ? Math.Min(_ecol, segmentE.Length) : segmentE.Length;
 
-            int Offset = segmentB.Offset + _bcol;
-            int Length;
-            if (_ecol > 0)
-                Length = segmentE.Offset + _ecol;
-            else
-                Length = segmentE.Offset + segmentE.Length;
-            Length -= Offset;
+            int offset = segmentB.Offset + beginColumn;
+            int length = (segmentE.Offset + endColumn) - offset;
+            if (length <= 0 || offset < 0 || offset + length > document.TextLength)
+                return String.Empty;
 
-            return document.GetText(Offset, Length);
+            return document.GetText(offset, length);
         }
 
         //Selected and return block text [NOT USED]
