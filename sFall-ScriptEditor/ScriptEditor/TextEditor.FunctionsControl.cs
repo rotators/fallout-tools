@@ -511,7 +511,7 @@ namespace ScriptEditor
         {
             if (tab == null)
                 return String.Empty;
-            return tab.filename + (tab.changed ? " *" : String.Empty);
+            return tab.filename;
         }
 
         private static string GetDocumentTabToolTip(TabInfo tab)
@@ -528,8 +528,10 @@ namespace ScriptEditor
                 return;
             TabPage page = tabControl1.TabPages[index];
             page.Text = GetDocumentTabText(tabs[index]);
-            page.ToolTipText = GetDocumentTabToolTip(tabs[index]);
+            page.ToolTipText = GetDocumentTabToolTip(tabs[index])
+                + (tabs[index].changed ? Environment.NewLine + "Modified" : String.Empty);
             page.ImageIndex = -1;
+            tabControl1.SetDocumentModified(page, tabs[index].changed);
             tabControl1.Invalidate();
         }
 

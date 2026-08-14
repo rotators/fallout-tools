@@ -406,6 +406,11 @@ namespace ScriptEditor
             ToolStripMain.ImageScalingSize = DpiHelper.Scale(this, new Size(18, 18));
             ToolStripMain.Height = DpiHelper.Scale(this, 32);
             ToolStripMain.Padding = DpiHelper.Scale(this, new Padding(5, 3, 5, 3));
+            tabControl1.ItemSize = new Size(0, DpiHelper.Scale(this, 26));
+            // Native tab sizing accounts for the label but not our custom status and close glyphs.
+            tabControl1.Padding = new Point(DpiHelper.Scale(this, 19), DpiHelper.Scale(this, 4));
+            tabControl1.SizeMode = TabSizeMode.Normal;
+            tabControl1.ShowDocumentStatusIcons = true;
 
             foreach (ToolStripItem item in ToolStripMain.Items) {
                 if (item is ToolStripSeparator)

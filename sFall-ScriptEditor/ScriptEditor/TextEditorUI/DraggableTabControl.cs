@@ -2,7 +2,9 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Drawing.Drawing2D;
 
 // Declare a delegate
 public delegate void SwapEventHandler(object sender, TabsSwappedEventArgs e);
@@ -16,11 +18,17 @@ public class DraggableTabControl : TabControl
     private bool m_OverflowHot;
     private int m_ClosePressedIndex = -1;
     private ContextMenuStrip m_OverflowMenu;
+    private readonly HashSet<TabPage> m_ModifiedTabs = new HashSet<TabPage>();
 
     [Category("Appearance")]
     [DefaultValue(false)]
     [Description("Shows a close button on each tab.")]
     public bool ShowCloseButtons { get; set; }
+
+    [Category("Appearance")]
+    [DefaultValue(false)]
+    [Description("Shows a saved or modified document icon before each tab label.")]
+    public bool ShowDocumentStatusIcons { get; set; }
 
     [Category("Action")]
     [Description("Fires when the close button on a tab is clicked.")]
@@ -37,7 +45,29 @@ public class DraggableTabControl : TabControl
         MouseMove += OnMouseMove;
         MouseUp += OnMouseUp;
         MouseLeave += OnMouseLeave;
-        DrawItem += DrawLightTab;
+    }
+
+    public void SetDocumentModified(TabPage page, bool modified)
+    {
+        if (page == null)
+            return;
+
+        if (modified)
+            m_ModifiedTabs.Add(page);
+        else
+            m_ModifiedTabs.Remove(page);
+
+        int index = TabPages.IndexOf(page);
+        if (index >= 0)
+            Invalidate(GetTabRect(index));
+    }
+
+    protected override void OnControlRemoved(ControlEventArgs e)
+    {
+        TabPage page = e.Control as TabPage;
+        if (page != null)
+            m_ModifiedTabs.Remove(page);
+        base.OnControlRemoved(e);
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -73,7 +103,8 @@ public class DraggableTabControl : TabControl
         const int WM_PAINT = 0x000F;
         const int TCM_ADJUSTRECT = 0x1328;
 
-        if (m.Msg == TCM_ADJUSTRECT && m.WParam == IntPtr.Zero && ScriptEditor.InterfaceTheme.IsDark)
+        if (m.Msg == TCM_ADJUSTRECT && m.WParam == IntPtr.Zero
+            && ScriptEditor.InterfaceTheme.IsDark)
         {
             base.WndProc(ref m);
             NativeRect rect = (NativeRect)Marshal.PtrToStructure(m.LParam, typeof(NativeRect));
@@ -85,7 +116,7 @@ public class DraggableTabControl : TabControl
             return;
         }
 
-        if (ScriptEditor.InterfaceTheme.IsDark && IsHandleCreated)
+        if (IsHandleCreated)
         {
             if (m.Msg == WM_ERASEBKGND)
             {
@@ -112,7 +143,7 @@ public class DraggableTabControl : TabControl
                         using (Bitmap buffer = new Bitmap(
                             Math.Max(1, updateBounds.Right), Math.Max(1, updateBounds.Bottom)))
                         using (Graphics graphics = Graphics.FromImage(buffer)) {
-                            DrawDarkTabControl(graphics);
+                            DrawTabControl(graphics, ScriptEditor.InterfaceTheme.IsDark);
                             target.DrawImage(buffer, updateBounds, updateBounds, GraphicsUnit.Pixel);
                         }
                     }
@@ -127,29 +158,26 @@ public class DraggableTabControl : TabControl
         }
 
         base.WndProc(ref m);
-        if (m.Msg == WM_PAINT && IsHandleCreated)
-        {
-            using (Graphics graphics = Graphics.FromHwnd(Handle))
-                DrawOverflowButton(graphics, false);
-        }
     }
 
-    private void DrawDarkTabControl(Graphics graphics)
+    private void DrawTabControl(Graphics graphics, bool dark)
     {
         Rectangle page = DisplayRectangle;
         int headerBottom = page.Top;
         for (int i = 0; i < TabCount; i++)
             headerBottom = Math.Max(headerBottom, GetTabRect(i).Bottom);
 
-        Color headerColor = Color.FromArgb(53, 53, 56);
-        Color selectedColor = Color.FromArgb(40, 40, 42);
-        Color hoverColor = Color.FromArgb(60, 60, 64);
-        Color borderColor = Color.FromArgb(68, 68, 72);
+        Color headerColor = dark ? Color.FromArgb(53, 53, 56) : Color.FromArgb(243, 243, 245);
+        Color selectedColor = dark ? Color.FromArgb(40, 40, 42) : Color.White;
+        Color hoverColor = dark ? Color.FromArgb(60, 60, 64) : Color.FromArgb(231, 234, 238);
+        Color borderColor = dark ? Color.FromArgb(68, 68, 72) : Color.FromArgb(207, 210, 214);
         Color accentColor = Color.FromArgb(0, 120, 212);
         using (Brush headerBrush = new SolidBrush(headerColor))
         using (Pen pen = new Pen(borderColor))
         {
             graphics.FillRectangle(headerBrush, ClientRectangle);
+            graphics.DrawLine(pen, 0, Math.Max(0, headerBottom - 1),
+                Math.Max(0, Width - 1), Math.Max(0, headerBottom - 1));
 
             for (int i = 0; i < TabCount; i++)
             {
@@ -169,6 +197,13 @@ public class DraggableTabControl : TabControl
 
                 Rectangle textRect = tab;
                 TabPage pageTab = TabPages[i];
+                if (ShowDocumentStatusIcons)
+                {
+                    Rectangle statusBounds = GetDocumentStatusRectangle(tab);
+                    DrawDocumentStatusIcon(graphics, statusBounds, m_ModifiedTabs.Contains(pageTab), dark);
+                    textRect.X = statusBounds.Right + ScriptEditor.DpiHelper.Scale(this, 4);
+                    textRect.Width = Math.Max(0, tab.Right - textRect.X);
+                }
                 if (ImageList != null && pageTab.ImageIndex >= 0 && pageTab.ImageIndex < ImageList.Images.Count)
                 {
                     Image image = ImageList.Images[pageTab.ImageIndex];
@@ -179,59 +214,97 @@ public class DraggableTabControl : TabControl
                 }
 
                 if (ShowCloseButtons)
-                    textRect.Width = Math.Max(0, GetCloseButtonRectangle(i).Left - textRect.Left - 3);
+                    textRect.Width = Math.Max(0, GetCloseButtonRectangle(i).Left - textRect.Left - 2);
 
-                TextRenderer.DrawText(graphics, pageTab.Text, Font, textRect,
-                    i == SelectedIndex ? Color.White : Color.Gainsboro,
-                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                int textPadding = ScriptEditor.DpiHelper.Scale(this, ShowDocumentStatusIcons ? 1 : 5);
+                textRect.X += textPadding;
+                textRect.Width = Math.Max(0, textRect.Width - textPadding);
+                Color textColor = dark
+                    ? (i == SelectedIndex ? Color.White : Color.Gainsboro)
+                    : (i == SelectedIndex ? Color.FromArgb(28, 28, 30) : Color.FromArgb(68, 68, 72));
+                using (Brush textBrush = new SolidBrush(textColor))
+                using (StringFormat textFormat = new StringFormat(StringFormat.GenericTypographic))
+                {
+                    textFormat.Alignment = StringAlignment.Near;
+                    textFormat.FormatFlags |= StringFormatFlags.NoWrap;
+                    SizeF textSize = graphics.MeasureString(pageTab.Text, Font, Int32.MaxValue, textFormat);
+                    float textY = textRect.Top + Math.Max(0f, (textRect.Height - textSize.Height) / 2f);
+
+                    if (textSize.Width <= textRect.Width)
+                    {
+                        graphics.DrawString(pageTab.Text, Font, textBrush,
+                            new PointF(textRect.Left, textY), textFormat);
+                    }
+                    else
+                    {
+                        float fitScale = textSize.Width <= 0f ? 1f : textRect.Width / textSize.Width;
+                        if (fitScale >= 0.9f)
+                        {
+                            GraphicsState state = graphics.Save();
+                            graphics.TranslateTransform(textRect.Left, textY);
+                            graphics.ScaleTransform(fitScale, 1f);
+                            graphics.DrawString(pageTab.Text, Font, textBrush, PointF.Empty, textFormat);
+                            graphics.Restore(state);
+                        }
+                        else
+                        {
+                            textFormat.LineAlignment = StringAlignment.Center;
+                            textFormat.Trimming = StringTrimming.EllipsisCharacter;
+                            graphics.DrawString(pageTab.Text, Font, textBrush, textRect, textFormat);
+                        }
+                    }
+                }
 
                 if (ShowCloseButtons)
-                    DrawCloseButton(graphics, i, true);
+                    DrawCloseButton(graphics, i, dark);
             }
 
-            graphics.FillRectangle(headerBrush, 0, Math.Max(0, page.Top - 2), Width, 3);
-            graphics.DrawRectangle(pen, 0, 0, Math.Max(0, Width - 1), Math.Max(0, Height - 1));
-            DrawOverflowButton(graphics, true);
+            DrawOverflowButton(graphics, dark);
         }
     }
 
-    private void DrawLightTab(object sender, DrawItemEventArgs e)
+    private Rectangle GetDocumentStatusRectangle(Rectangle tab)
     {
-        if (ScriptEditor.InterfaceTheme.IsDark || e.Index < 0 || e.Index >= TabCount)
-            return;
+        int width = ScriptEditor.DpiHelper.Scale(this, 10);
+        int height = ScriptEditor.DpiHelper.Scale(this, 12);
+        return new Rectangle(
+            tab.Left + ScriptEditor.DpiHelper.Scale(this, 5),
+            tab.Top + Math.Max(0, (tab.Height - height) / 2),
+            width,
+            height);
+    }
 
-        bool selected = e.Index == SelectedIndex;
-        bool hovered = e.Index == m_HotTabIndex;
-        Color background = selected ? SystemColors.Window : (hovered ? SystemColors.ControlLight : SystemColors.Control);
-        using (Brush brush = new SolidBrush(background))
-            e.Graphics.FillRectangle(brush, e.Bounds);
-        using (Pen separator = new Pen(SystemColors.ControlDark))
-            e.Graphics.DrawLine(separator, e.Bounds.Right - 1, e.Bounds.Top + 3,
-                e.Bounds.Right - 1, e.Bounds.Bottom - 3);
-        if (selected)
-        {
-            int accentHeight = ScriptEditor.DpiHelper.Scale(this, 2);
-            using (Brush accent = new SolidBrush(SystemColors.Highlight))
-                e.Graphics.FillRectangle(accent, e.Bounds.Left + 2, e.Bounds.Bottom - accentHeight,
-                    Math.Max(0, e.Bounds.Width - 4), accentHeight);
-        }
+    private static void DrawDocumentStatusIcon(Graphics graphics, Rectangle bounds, bool modified, bool dark)
+    {
+        Color outline = modified
+            ? Color.FromArgb(230, 159, 50)
+            : (dark ? Color.FromArgb(158, 162, 168) : Color.FromArgb(105, 110, 116));
+        Color fill = modified
+            ? (dark ? Color.FromArgb(88, 67, 35) : Color.FromArgb(255, 241, 211))
+            : (dark ? Color.FromArgb(64, 65, 69) : Color.FromArgb(250, 250, 250));
+        int fold = Math.Max(2, bounds.Width / 3);
 
-        Rectangle textRect = e.Bounds;
-        TabPage page = TabPages[e.Index];
-        if (ImageList != null && page.ImageIndex >= 0 && page.ImageIndex < ImageList.Images.Count)
+        Point[] document = {
+            new Point(bounds.Left, bounds.Top),
+            new Point(bounds.Right - fold - 1, bounds.Top),
+            new Point(bounds.Right - 1, bounds.Top + fold),
+            new Point(bounds.Right - 1, bounds.Bottom - 1),
+            new Point(bounds.Left, bounds.Bottom - 1)
+        };
+
+        SmoothingMode previous = graphics.SmoothingMode;
+        graphics.SmoothingMode = SmoothingMode.AntiAlias;
+        using (Brush brush = new SolidBrush(fill))
+        using (Pen pen = new Pen(outline, Math.Max(1f, bounds.Width / 10f)))
         {
-            Image image = ImageList.Images[page.ImageIndex];
-            int imageY = e.Bounds.Y + Math.Max(0, (e.Bounds.Height - image.Height) / 2);
-            e.Graphics.DrawImage(image, e.Bounds.X + 5, imageY, image.Width, image.Height);
-            textRect.X += image.Width + 7;
-            textRect.Width = Math.Max(0, textRect.Width - image.Width - 7);
+            graphics.FillPolygon(brush, document);
+            graphics.DrawPolygon(pen, document);
+            graphics.DrawLine(pen, bounds.Right - fold - 1, bounds.Top,
+                bounds.Right - fold - 1, bounds.Top + fold);
+            graphics.DrawLine(pen, bounds.Right - fold - 1, bounds.Top + fold,
+                bounds.Right - 1, bounds.Top + fold);
         }
-        if (ShowCloseButtons)
-            textRect.Width = Math.Max(0, GetCloseButtonRectangle(e.Index).Left - textRect.Left - 3);
-        TextRenderer.DrawText(e.Graphics, page.Text, Font, textRect, SystemColors.ControlText,
-            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-        if (ShowCloseButtons)
-            DrawCloseButton(e.Graphics, e.Index, false);
+        graphics.SmoothingMode = previous;
     }
 
     private Rectangle GetCloseButtonRectangle(int index)
@@ -239,8 +312,8 @@ public class DraggableTabControl : TabControl
         if (!ShowCloseButtons || index < 0 || index >= TabCount)
             return Rectangle.Empty;
         Rectangle tab = GetTabRect(index);
-        int size = Math.Min(ScriptEditor.DpiHelper.Scale(this, 16), Math.Max(0, tab.Height - 4));
-        return new Rectangle(tab.Right - size - ScriptEditor.DpiHelper.Scale(this, 4),
+        int size = Math.Min(ScriptEditor.DpiHelper.Scale(this, 14), Math.Max(0, tab.Height - 5));
+        return new Rectangle(tab.Right - size - ScriptEditor.DpiHelper.Scale(this, 3),
             tab.Top + Math.Max(0, (tab.Height - size) / 2), size, size);
     }
 
@@ -260,7 +333,8 @@ public class DraggableTabControl : TabControl
                 graphics.FillRectangle(hoverBrush, bounds);
         }
         int inset = Math.Max(3, ScriptEditor.DpiHelper.Scale(this, 4));
-        using (Pen pen = new Pen(dark ? Color.Gainsboro : SystemColors.ControlText,
+        Color closeColor = dark ? Color.Gainsboro : Color.FromArgb(92, 92, 96);
+        using (Pen pen = new Pen(closeColor,
             Math.Max(1F, ScriptEditor.DpiHelper.Scale(1.25F, DeviceDpi))))
         {
             graphics.DrawLine(pen, bounds.Left + inset, bounds.Top + inset,
