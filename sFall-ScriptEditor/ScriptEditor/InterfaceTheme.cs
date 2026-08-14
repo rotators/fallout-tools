@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -595,7 +596,7 @@ namespace ScriptEditor
         {
             TextBoxBase textBox = control as TextBoxBase;
             if (textBox != null) return textBox.BorderStyle != BorderStyle.None;
-            if (control is ComboBox || control is ListView || control is TreeView ||
+            if (control is ComboBox || control is ListView ||
                 control is DataGridView || control is NumericUpDown) return true;
             Panel panel = control as Panel;
             if (panel != null && panel.BorderStyle != BorderStyle.None) return true;
@@ -624,7 +625,8 @@ namespace ScriptEditor
             protected override void WndProc(ref Message m)
             {
                 base.WndProc(ref m);
-                if ((m.Msg != 0x000F && m.Msg != 0x0085) || !IsDark || !control.IsHandleCreated) return;
+                if ((m.Msg != 0x000F && m.Msg != 0x0085) || !IsDark ||
+                    !control.IsHandleCreated || !ShouldDrawDarkBorder(control)) return;
                 using (Graphics graphics = Graphics.FromHwnd(control.Handle))
                 using (Pen pen = new Pen(DarkBorder))
                 {
@@ -830,6 +832,14 @@ namespace ScriptEditor
                     SetWindowTheme(hwnd, theme, themeParts);
                     return true;
                 }, System.IntPtr.Zero);
+
+                // Native TreeView scrolling can leave stale one-pixel row fragments,
+                // especially with a custom background colour. Its extended double-
+                // buffer style must be applied after the handle exists and reapplied
+                // whenever Windows recreates that handle.
+                if (control is TreeView)
+                    SendMessage(control.Handle, TvmSetExtendedStyle,
+                        new System.IntPtr(TvsExDoubleBuffer), new System.IntPtr(TvsExDoubleBuffer));
             } catch { }
         }
 
@@ -879,6 +889,8 @@ namespace ScriptEditor
         [DllImport("user32.dll")]
         private static extern bool PostMessage(System.IntPtr hwnd, int message, System.IntPtr wParam, System.IntPtr lParam);
         [DllImport("user32.dll")]
+        private static extern System.IntPtr SendMessage(System.IntPtr hwnd, int message, System.IntPtr wParam, System.IntPtr lParam);
+        [DllImport("user32.dll")]
         private static extern bool EnumChildWindows(System.IntPtr parent, EnumChildProc callback, System.IntPtr lParam);
         [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
         private static extern int SetWindowTheme(System.IntPtr hwnd, string subAppName, string subIdList);
@@ -891,6 +903,9 @@ namespace ScriptEditor
 
         [DllImport("uxtheme.dll", EntryPoint = "#136")]
         private static extern void FlushMenuThemes();
+
+        private const int TvmSetExtendedStyle = 0x112C;
+        private const int TvsExDoubleBuffer = 0x0004;
 
         private enum PreferredAppMode
         {
