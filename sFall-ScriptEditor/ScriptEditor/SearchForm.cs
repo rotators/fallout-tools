@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +10,7 @@ namespace ScriptEditor
     public partial class SearchForm : Form
     {
         private bool isHide = false;
+        private readonly ToolTip searchToolTip = new ToolTip();
 
         public SearchForm()
         {
@@ -17,37 +19,54 @@ namespace ScriptEditor
             cbSearchPath.Items.AddRange((Settings.searchListPath.Count > 0)
                                         ? Settings.searchListPath.Cast<String>().ToArray()
                                         : File.ReadAllLines(Settings.SearchFoldersPath));
-
-            if (Settings.lastSearchPath == null) {
-                cbSearchPath.Text = "<unset>";
-            } else {
-                cbSearchPath.Text = Settings.lastSearchPath;
-            }
+            SelectSearchPath(Settings.lastSearchPath);
             cbFileMask.SelectedIndex = 0;
 
             cbCase.Checked = !Settings.searchIgnoreCase;
             cbWord.Checked = Settings.searchWholeWord;
+            cbRegular.Checked = Settings.searchRegularExpression;
+            cbFindAll.Checked = Settings.searchFindAllMatches;
+            cbFindAll.CheckedChanged += cbFindAll_CheckedChanged;
+            lbFindFiles.Visible = false;
+
+            searchToolTip.SetToolTip(cbSearch, "Previously used search terms.");
+            searchToolTip.SetToolTip(cbSearchPath,
+                "Folders previously selected with Browse. Available for folder searches only.");
+            searchToolTip.SetToolTip(bChange, "Browse for the folder to search.");
+            searchToolTip.SetToolTip(cbFileMask,
+                "File type filter. Available for folder searches only.");
 
             this.KeyUp += delegate(object a1, KeyEventArgs a2)
             {
                 if (a2.KeyCode == Keys.Escape) this.bHide.PerformClick();
             };
 
-            this.rbFolder.CheckedChanged += delegate(object a1, EventArgs a2)
-            {
-                this.bChange.Enabled = this.cbSearchSubfolders.Enabled = this.rbFolder.Checked;
-                this.bReplace.Enabled = !this.rbFolder.Checked;
-            };
+            rbCurrent.CheckedChanged += SearchScope_CheckedChanged;
+            rbAll.CheckedChanged += SearchScope_CheckedChanged;
+            rbFolder.CheckedChanged += SearchScope_CheckedChanged;
+
+            switch (Settings.searchScope) {
+                case SearchScope.CurrentScript:
+                    rbCurrent.Checked = true;
+                    break;
+                case SearchScope.FilesFolder:
+                    rbFolder.Checked = true;
+                    break;
+                default:
+                    rbAll.Checked = true;
+                    break;
+            }
+            UpdateFolderSearchControls();
 
             this.bChange.Click += delegate(object a1, EventArgs a2)
             {
-                this.fbdSearchFolder.SelectedPath = Settings.lastSearchPath;
+                if (Directory.Exists(Settings.lastSearchPath))
+                    this.fbdSearchFolder.SelectedPath = Settings.lastSearchPath;
                 if (this.fbdSearchFolder.ShowDialog() != DialogResult.OK) return;
 
                 Settings.lastSearchPath = this.fbdSearchFolder.SelectedPath;
 
-                if (CheckSearchPath()) this.cbSearchPath.Items.Add(Settings.lastSearchPath);
-                this.cbSearchPath.Text = Settings.lastSearchPath;
+                SelectSearchPath(Settings.lastSearchPath);
             };
 
             this.cbSearch.KeyPress += delegate(object a1, KeyPressEventArgs a2)
@@ -72,13 +91,30 @@ namespace ScriptEditor
             return files;
         }
 
-        private bool CheckSearchPath()
+        private void SelectSearchPath(string path)
         {
-            foreach (string item in this.cbSearchPath.Items)
-            {
-                if (String.Equals(item, Settings.lastSearchPath, StringComparison.OrdinalIgnoreCase)) return false;
+            const string unsetPath = "<unset>";
+            while (cbSearchPath.Items.Contains(unsetPath))
+                cbSearchPath.Items.Remove(unsetPath);
+
+            if (String.IsNullOrWhiteSpace(path)) {
+                cbSearchPath.Items.Insert(0, unsetPath);
+                cbSearchPath.SelectedIndex = 0;
+                return;
             }
-            return true;
+
+            int selectedIndex = -1;
+            for (int i = 0; i < cbSearchPath.Items.Count; i++) {
+                if (String.Equals(cbSearchPath.Items[i].ToString(), path, StringComparison.OrdinalIgnoreCase)) {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+            if (selectedIndex < 0) {
+                cbSearchPath.Items.Add(path);
+                selectedIndex = cbSearchPath.Items.Count - 1;
+            }
+            cbSearchPath.SelectedIndex = selectedIndex;
         }
 
         private void SearchForm_Deactivate(object sender, EventArgs e)
@@ -100,19 +136,47 @@ namespace ScriptEditor
 
         private void rbFolder_CheckedChanged(object sender, EventArgs e)
         {
-            cbFileMask.Enabled = rbFolder.Checked;
-            cbSearchPath.Enabled = rbFolder.Checked;
+            UpdateFolderSearchControls();
         }
 
+
+        private void UpdateFolderSearchControls()
+        {
+            bool folderSearch = rbFolder.Checked;
+            bChange.Enabled = folderSearch;
+            cbSearchSubfolders.Enabled = folderSearch;
+            cbFileMask.Enabled = folderSearch;
+            cbSearchPath.Enabled = folderSearch;
+            bReplace.Enabled = !folderSearch;
+        }
         private void cbRegular_CheckedChanged(object sender, EventArgs e)
         {
             cbWord.Enabled = !cbRegular.Checked;
+            Settings.searchRegularExpression = cbRegular.Checked;
         }
 
         private void SearchForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             Settings.searchListPath.Clear();
-            Settings.searchListPath.AddRange(cbSearchPath.Items.Cast<String>().ToList());
+            Settings.searchListPath.AddRange(cbSearchPath.Items.Cast<String>()
+                .Where(path => !String.Equals(path, "<unset>", StringComparison.OrdinalIgnoreCase)).ToList());
+        }
+
+        private void cbFindAll_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.searchFindAllMatches = cbFindAll.Checked;
+        }
+
+        private void SearchScope_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rbCurrent.Checked)
+                Settings.searchScope = SearchScope.CurrentScript;
+            else if (rbFolder.Checked)
+                Settings.searchScope = SearchScope.FilesFolder;
+            else if (rbAll.Checked)
+                Settings.searchScope = SearchScope.AllOpenScripts;
+
+            lbFindFiles.Visible = rbFolder.Checked && lbFindFiles.Items.Count > 0;
         }
 
         private void cbCase_Click(object sender, EventArgs e)
@@ -127,7 +191,92 @@ namespace ScriptEditor
 
         private void cbSearchPath_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Settings.lastSearchPath = cbSearchPath.Text;
+            Settings.lastSearchPath = String.Equals(cbSearchPath.Text, "<unset>", StringComparison.OrdinalIgnoreCase)
+                ? null : cbSearchPath.Text;
         }
     }
+    internal sealed class DarkDisabledCheckBox : CheckBox
+    {
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            if (!InterfaceTheme.IsDark) {
+                base.OnPaint(e);
+                return;
+            }
+
+            Color backColor = Color.FromArgb(53, 53, 56);
+            Color textColor = Enabled ? Color.Gainsboro : Color.FromArgb(170, 170, 175);
+            Color borderColor = Enabled ? Color.FromArgb(110, 110, 115) : Color.FromArgb(92, 92, 96);
+            e.Graphics.Clear(backColor);
+
+            int boxSize = 13;
+            int boxY = (ClientSize.Height - boxSize) / 2;
+            Rectangle box = new Rectangle(0, boxY, boxSize, boxSize);
+            using (Brush boxBrush = new SolidBrush(Color.FromArgb(40, 40, 42)))
+            using (Pen borderPen = new Pen(borderColor)) {
+                e.Graphics.FillRectangle(boxBrush, box);
+                e.Graphics.DrawRectangle(borderPen, box);
+            }
+            if (Checked || CheckState == CheckState.Indeterminate) {
+                using (Pen checkPen = new Pen(textColor, 2.0f)) {
+                    e.Graphics.DrawLines(checkPen, new Point[] {
+                        new Point(3, boxY + 7),
+                        new Point(6, boxY + 10),
+                        new Point(11, boxY + 3)
+                    });
+                }
+            }
+
+            Rectangle textBounds = new Rectangle(box.Right + 4, 0,
+                System.Math.Max(0, ClientSize.Width - box.Right - 4), ClientSize.Height);
+            TextRenderer.DrawText(e.Graphics, Text, Font, textBounds, textColor,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+        }
+    }
+
+    internal sealed class DarkDisabledButton : Button
+    {
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            if (!InterfaceTheme.IsDark) {
+                base.OnPaint(e);
+                return;
+            }
+
+            bool mouseOver = Enabled && ClientRectangle.Contains(PointToClient(Cursor.Position));
+            bool pressed = mouseOver && Capture && MouseButtons == MouseButtons.Left;
+            Color backColor = pressed ? Color.FromArgb(40, 40, 42)
+                : mouseOver ? Color.FromArgb(85, 85, 90)
+                : Color.FromArgb(53, 53, 56);
+            Color textColor = Enabled ? Color.Gainsboro : Color.FromArgb(170, 170, 175);
+            Color borderColor = Color.FromArgb(68, 68, 72);
+            e.Graphics.Clear(backColor);
+            ControlPaint.DrawBorder(e.Graphics, ClientRectangle, borderColor, ButtonBorderStyle.Solid);
+
+            Size textSize = TextRenderer.MeasureText(Text, Font, Size.Empty, TextFormatFlags.NoPadding);
+            int imageWidth = Image == null ? 0 : Image.Width;
+            int spacing = Image == null || Text.Length == 0 ? 0 : 4;
+            int contentWidth = imageWidth + spacing + textSize.Width;
+            int x = System.Math.Max(2, (ClientSize.Width - contentWidth) / 2);
+            if (Image != null) {
+                int imageY = (ClientSize.Height - Image.Height) / 2;
+                if (Enabled)
+                    e.Graphics.DrawImage(Image, x, imageY, Image.Width, Image.Height);
+                else
+                    ControlPaint.DrawImageDisabled(e.Graphics, Image, x, imageY, backColor);
+                x += imageWidth + spacing;
+            }
+            Rectangle textBounds = new Rectangle(x, 0,
+                System.Math.Max(0, ClientSize.Width - x - 2), ClientSize.Height);
+            TextRenderer.DrawText(e.Graphics, Text, Font, textBounds, textColor,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
+
+            if (Enabled && Focused && ShowFocusCues) {
+                Rectangle focusBounds = ClientRectangle;
+                focusBounds.Inflate(-3, -3);
+                ControlPaint.DrawFocusRectangle(e.Graphics, focusBounds, textColor, backColor);
+            }
+        }
+    }
+
 }

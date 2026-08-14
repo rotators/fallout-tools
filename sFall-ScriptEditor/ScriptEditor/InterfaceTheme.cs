@@ -409,6 +409,7 @@ ApplyControl(form, dark);
                 AssignHandle(comboBox.Handle);
                 comboBox.HandleCreated += delegate { AssignHandle(comboBox.Handle); RequestPaint(); };
                 comboBox.HandleDestroyed += delegate { paintPending = false; ReleaseHandle(); };
+                comboBox.EnabledChanged += delegate { comboBox.Invalidate(); RequestPaint(); };
             }
 
             internal void RequestPaint()
@@ -422,7 +423,12 @@ ApplyControl(form, dark);
             {
                 if (m.Msg == PaintComboMessage) {
                     paintPending = false;
-                    if (IsDark && comboBox.IsHandleCreated) DrawArrowButton();
+                    if (IsDark && comboBox.IsHandleCreated) {
+                        if (comboBox.Enabled)
+                            DrawArrowButton();
+                        else
+                            DrawDisabledComboBox();
+                    }
                     return;
                 }
 
@@ -462,6 +468,51 @@ ApplyControl(form, dark);
                         new Point(centerX, centerY + 2)
                     };
                     graphics.FillPolygon(arrowBrush, arrow);
+                }
+            }
+
+            private void DrawDisabledComboBox()
+            {
+                Rectangle bounds = new Rectangle(0, 0, comboBox.Width, comboBox.Height);
+                if (bounds.Width < 1 || bounds.Height < 1) return;
+
+                ComboBoxInfo info = new ComboBoxInfo();
+                info.cbSize = Marshal.SizeOf(typeof(ComboBoxInfo));
+                Rectangle buttonBounds;
+                if (GetComboBoxInfo(comboBox.Handle, ref info)) {
+                    buttonBounds = Rectangle.FromLTRB(System.Math.Max(0, info.rcButton.Left - 2), info.rcButton.Top,
+                        info.rcButton.Right, info.rcButton.Bottom);
+                } else {
+                    int buttonWidth = SystemInformation.VerticalScrollBarWidth;
+                    buttonBounds = new Rectangle(System.Math.Max(0, bounds.Right - buttonWidth),
+                        bounds.Top, System.Math.Min(buttonWidth, bounds.Width), bounds.Height);
+                }
+                Rectangle textBounds = new Rectangle(bounds.Left + 3, bounds.Top,
+                    System.Math.Max(0, bounds.Width - buttonBounds.Width - 6), bounds.Height);
+                Color disabledText = Color.FromArgb(170, 170, 175);
+
+                using (Graphics graphics = Graphics.FromHwnd(comboBox.Handle))
+                using (Brush backgroundBrush = new SolidBrush(DarkBack))
+                using (Brush buttonBrush = new SolidBrush(DarkControl))
+                using (Brush arrowBrush = new SolidBrush(disabledText))
+                using (Pen borderPen = new Pen(DarkBorder)) {
+                    graphics.FillRectangle(backgroundBrush, bounds);
+                    graphics.FillRectangle(buttonBrush, buttonBounds);
+                    graphics.DrawRectangle(borderPen, bounds.Left, bounds.Top,
+                        bounds.Width - 1, bounds.Height - 1);
+                    graphics.DrawLine(borderPen, buttonBounds.Left, buttonBounds.Top,
+                        buttonBounds.Left, buttonBounds.Bottom - 1);
+                    TextRenderer.DrawText(graphics, comboBox.Text, comboBox.Font, textBounds,
+                        disabledText, TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
+                        TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+
+                    int centerX = buttonBounds.Left + buttonBounds.Width / 2;
+                    int centerY = buttonBounds.Top + buttonBounds.Height / 2;
+                    graphics.FillPolygon(arrowBrush, new Point[] {
+                        new Point(centerX - 4, centerY - 2),
+                        new Point(centerX + 4, centerY - 2),
+                        new Point(centerX, centerY + 2)
+                    });
                 }
             }
         }

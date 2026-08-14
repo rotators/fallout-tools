@@ -11,6 +11,7 @@ namespace ScriptEditor
     public enum SavedWindows { Main, Count }
     public enum  EncodingType : byte { Default, OEM866 }
     public enum InterfaceThemeMode : byte { System, Light, Dark }
+    public enum SearchScope : byte { CurrentScript, AllOpenScripts, FilesFolder }
 
     public static class Settings
     {
@@ -104,6 +105,13 @@ namespace ScriptEditor
         public static bool searchIgnoreCase = false;
         public static bool searchWholeWord = false;
         public static string solutionProjectFolder;
+        public static bool globalProceduresCollapsed;
+        public static bool localProceduresCollapsed;
+        public static bool globalVariablesCollapsed;
+        public static bool localVariablesCollapsed;
+        public static SearchScope searchScope = SearchScope.AllOpenScripts;
+        public static bool searchRegularExpression;
+        public static bool searchFindAllMatches;
 
         // for Flowchart
         public static bool autoUpdate = false;
@@ -309,6 +317,24 @@ namespace ScriptEditor
                         temp = br.ReadString();
                         if (temp.Length > 0) lastOpenScriptsFolder = temp;
                     }
+
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        globalProceduresCollapsed = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        localProceduresCollapsed = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        globalVariablesCollapsed = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        localVariablesCollapsed = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length) {
+                        byte savedSearchScope = br.ReadByte();
+                        if (savedSearchScope <= (byte)SearchScope.FilesFolder)
+                            searchScope = (SearchScope)savedSearchScope;
+                    }
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        searchRegularExpression = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        searchFindAllMatches = br.ReadBoolean();
                 } catch {
                     MessageBox.Show("An error occurred while reading configuration file.\n"
                                     + "File setting.dat may be in wrong format.", "Setting read error");
@@ -484,6 +510,13 @@ namespace ScriptEditor
             bw.Write(solutionProjectFolder ?? "");
             bw.Write((byte)interfaceTheme);
             bw.Write(lastOpenScriptsFolder ?? "");
+            bw.Write(globalProceduresCollapsed);
+            bw.Write(localProceduresCollapsed);
+            bw.Write(globalVariablesCollapsed);
+            bw.Write(localVariablesCollapsed);
+            bw.Write((byte)searchScope);
+            bw.Write(searchRegularExpression);
+            bw.Write(searchFindAllMatches);
             bw.Close();
 
             // Recent files

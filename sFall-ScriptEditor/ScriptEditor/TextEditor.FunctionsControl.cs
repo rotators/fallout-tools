@@ -752,7 +752,9 @@ namespace ScriptEditor
                     rootNode.ForeColor = Color.DodgerBlue;
                     }
                 VarTree.Nodes[0].ToolTipText = "Variables declared and located in headers files." + treeTipVariable;
+                VarTree.Nodes[0].Tag = 0;
                 VarTree.Nodes[1].ToolTipText = "Variables declared and located in this script." + treeTipVariable;
+                VarTree.Nodes[1].Tag = 1;
 
                 foreach (Variable var in currentTab.parseInfo.vars) {
                     TreeNode tn = new TreeNode(var.name);
@@ -852,12 +854,25 @@ namespace ScriptEditor
 
         private void SetNodeCollapseStatus(TreeNode node)
         {
-            string nodeKey = GetCorrectNodeKeyName(node);
-            if (currentTab.treeExpand.ContainsKey(nodeKey)) {
+            if ((node.TreeView == ProcTree || node.TreeView == VarTree)
+                && node.Parent == null && node.Tag is int) {
+                bool globalGroup = (int)node.Tag == 0;
+                bool collapsed = node.TreeView == ProcTree
+                    ? (globalGroup ? Settings.globalProceduresCollapsed : Settings.localProceduresCollapsed)
+                    : (globalGroup ? Settings.globalVariablesCollapsed : Settings.localVariablesCollapsed);
+                if (collapsed)
+                    node.Collapse();
+                else
+                    node.Expand();
+            }
+            else {
+                string nodeKey = GetCorrectNodeKeyName(node);
+                if (currentTab.treeExpand.ContainsKey(nodeKey)) {
                     if (currentTab.treeExpand[nodeKey])
                         node.Collapse();
                     else
                         node.Expand();
+                }
             }
             foreach (TreeNode nd in node.Nodes) SetNodeCollapseStatus(nd);
         }
@@ -870,6 +885,25 @@ namespace ScriptEditor
             if (tn == null) return;
 
             bool collapsed = (e.Action == TreeViewAction.Collapse);
+            if ((tn.TreeView == ProcTree || tn.TreeView == VarTree)
+                && tn.Parent == null && tn.Tag is int) {
+                bool globalGroup = (int)tn.Tag == 0;
+                if (tn.TreeView == ProcTree) {
+                    if (globalGroup)
+                        Settings.globalProceduresCollapsed = collapsed;
+                    else
+                        Settings.localProceduresCollapsed = collapsed;
+                }
+                else {
+                    if (globalGroup)
+                        Settings.globalVariablesCollapsed = collapsed;
+                    else
+                        Settings.localVariablesCollapsed = collapsed;
+                }
+                treeExpandCollapse = true;
+                return;
+            }
+
             string nodeKey = GetCorrectNodeKeyName(tn);
             if (!currentTab.treeExpand.ContainsKey(nodeKey))
                 currentTab.treeExpand.Add(nodeKey, collapsed);

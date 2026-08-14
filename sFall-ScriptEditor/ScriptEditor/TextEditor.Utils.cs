@@ -63,6 +63,7 @@ namespace ScriptEditor
                     } while (tab != endtab);
                 } else {
                     sf.lbFindFiles.Items.Clear();
+                    sf.lbFindFiles.Visible = false;
                     sf.lbFindFiles.Tag = regex;
                     List<string> files = sf.GetFolderFiles();
                     ProgressBarForm progress = new ProgressBarForm(this, files.Count, "Search matches...");
@@ -76,6 +77,7 @@ namespace ScriptEditor
                     sf.labelCount.Text = sf.lbFindFiles.Items.Count.ToString();
                     if (sf.lbFindFiles.Items.Count > 0) {
                         if (sf.Height < 500) sf.Height = 500;
+                        sf.lbFindFiles.Visible = true;
                         return true;
                     }
                 }
@@ -158,9 +160,6 @@ namespace ScriptEditor
 
             if (currentTab != null && currentActiveTextAreaCtrl.SelectionManager.HasSomethingSelected) {
                 searchText = currentActiveTextAreaCtrl.SelectionManager.SelectedText;
-            }
-            if (searchText.Length == 0) {
-                searchText = Clipboard.GetText();
             }
             if (searchText.Length > 0 && searchText.Length < 255) {
                 sf.cbSearch.Text = searchText;

@@ -31,13 +31,13 @@
             this.rbAll = new System.Windows.Forms.RadioButton();
             this.rbFolder = new System.Windows.Forms.RadioButton();
             this.label2 = new System.Windows.Forms.Label();
-            this.bChange = new System.Windows.Forms.Button();
-            this.cbSearchSubfolders = new System.Windows.Forms.CheckBox();
+            this.bChange = new ScriptEditor.DarkDisabledButton();
+            this.cbSearchSubfolders = new ScriptEditor.DarkDisabledCheckBox();
             this.bSearch = new System.Windows.Forms.Button();
             this.fbdSearchFolder = new System.Windows.Forms.FolderBrowserDialog();
             this.cbFindAll = new System.Windows.Forms.CheckBox();
             this.tbReplace = new System.Windows.Forms.TextBox();
-            this.bReplace = new System.Windows.Forms.Button();
+            this.bReplace = new ScriptEditor.DarkDisabledButton();
             this.cbSearchPath = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
             this.lbFindFiles = new System.Windows.Forms.ListBox();
@@ -128,11 +128,11 @@
             this.bChange.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.bChange.Enabled = false;
             this.bChange.Image = ((System.Drawing.Image)(resources.GetObject("bChange.Image")));
-            this.bChange.Location = new System.Drawing.Point(326, 209);
+            this.bChange.Location = new System.Drawing.Point(326, 182);
             this.bChange.Name = "bChange";
             this.bChange.Size = new System.Drawing.Size(104, 23);
             this.bChange.TabIndex = 7;
-            this.bChange.Text = "Change";
+            this.bChange.Text = "Browse...";
             this.bChange.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.bChange.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.bChange.UseVisualStyleBackColor = true;
@@ -165,7 +165,7 @@
             // 
             // fbdSearchFolder
             // 
-            this.fbdSearchFolder.Description = "Pick folder to search";
+            this.fbdSearchFolder.Description = "Select the folder to search.";
             this.fbdSearchFolder.RootFolder = System.Environment.SpecialFolder.MyComputer;
             // 
             // cbFindAll
@@ -201,11 +201,12 @@
             // 
             this.cbSearchPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbSearchPath.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cbSearchPath.Enabled = false;
             this.cbSearchPath.FormattingEnabled = true;
             this.cbSearchPath.Location = new System.Drawing.Point(12, 184);
             this.cbSearchPath.Name = "cbSearchPath";
-            this.cbSearchPath.Size = new System.Drawing.Size(418, 21);
+            this.cbSearchPath.Size = new System.Drawing.Size(306, 21);
             this.cbSearchPath.Sorted = true;
             this.cbSearchPath.TabIndex = 29;
             this.cbSearchPath.SelectedIndexChanged += new System.EventHandler(this.cbSearchPath_SelectedIndexChanged);
@@ -243,7 +244,7 @@
             this.cbCase.TabIndex = 22;
             this.cbCase.Text = "Match case";
             this.cbCase.UseVisualStyleBackColor = true;
-            this.cbCase.Click += new System.EventHandler(this.cbCase_Click);
+            this.cbCase.CheckedChanged += new System.EventHandler(this.cbCase_Click);
             // 
             // label4
             // 
@@ -264,7 +265,7 @@
             this.cbWord.TabIndex = 24;
             this.cbWord.Text = "Whole word only";
             this.cbWord.UseVisualStyleBackColor = true;
-            this.cbWord.Click += new System.EventHandler(this.cbWord_Click);
+            this.cbWord.CheckedChanged += new System.EventHandler(this.cbWord_Click);
             // 
             // cbFileMask
             // 
@@ -368,15 +369,15 @@
         internal System.Windows.Forms.Label labelCount;
         private System.Windows.Forms.ComboBox cbFileMask;
         internal System.Windows.Forms.Button bSearch;
-        internal System.Windows.Forms.Button bReplace;
+        internal ScriptEditor.DarkDisabledButton bReplace;
         internal System.Windows.Forms.RadioButton rbFolder;
         internal System.Windows.Forms.CheckBox cbCase;
         internal System.Windows.Forms.RadioButton rbCurrent;
         internal System.Windows.Forms.RadioButton rbAll;
-        private System.Windows.Forms.CheckBox cbSearchSubfolders;
+        private ScriptEditor.DarkDisabledCheckBox cbSearchSubfolders;
         internal System.Windows.Forms.CheckBox cbRegular;
         internal System.Windows.Forms.CheckBox cbFindAll;
-        private System.Windows.Forms.Button bChange;
+        private ScriptEditor.DarkDisabledButton bChange;
         private System.Windows.Forms.ComboBox cbSearchPath;
         private System.Windows.Forms.FolderBrowserDialog fbdSearchFolder;
         private System.Windows.Forms.CheckBox cbWord;
