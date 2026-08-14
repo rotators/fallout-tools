@@ -8,6 +8,7 @@ using ICSharpCode.TextEditor.Document;
 using ScriptEditor;
 using ScriptEditor.CodeTranslation;
 using ScriptEditor.TextEditorUI;
+using ScriptEditor.TextEditorUI.ToolTips;
 using ScriptEditor.TextEditorUtilities;
 
 namespace SfallScriptEditor.Tests
@@ -17,6 +18,7 @@ namespace SfallScriptEditor.Tests
         private static int passed;
         private static int failed;
 
+        [STAThread]
         private static int Main()
         {
             Run("compiler diagnostic lookahead", CompilerDiagnosticLookahead);
@@ -33,6 +35,11 @@ namespace SfallScriptEditor.Tests
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
             Run("notification severity is conveyed in text", NotificationSeverityIsConveyedInText);
+            Run("LF message files populate hover text", LfMessageFilesPopulateHoverText);
+            Run("script NAME resolves shared message file", ScriptNameResolvesSharedMessageFile);
+            Run("message_str resolves explicit message file", MessageStrResolvesExplicitMessageFile);
+            Run("message wrapper macro resolves explicit message file", MessageWrapperMacroResolvesExplicitMessageFile);
+            Run("random message range populates tooltip text", RandomMessageRangePopulatesTooltipText);
 
             Console.WriteLine();
             Console.WriteLine("Tests: {0} passed, {1} failed", passed, failed);
@@ -141,6 +148,204 @@ namespace SfallScriptEditor.Tests
             True(args.IsCurrent, "A new parser request should match its document revision.");
             tab.MarkTextChanged();
             True(!args.IsCurrent, "An edit must invalidate an in-flight parser request.");
+        }
+
+        private static void LfMessageFilesPopulateHoverText()
+        {
+            var scriptTab = new TabInfo();
+            var messageTab = new TabInfo { textEditor = new ICSharpCode.TextEditor.TextEditorControl() };
+            messageTab.textEditor.Document.TextContent =
+                "{100}{}{First line.}\n{117}{}{I wouldn't work for you if you offered me all the money in this crummy place.}\n";
+            scriptTab.msgFileTab = messageTab;
+
+            MessageFile.ParseMessages(scriptTab);
+
+            Equal(2, scriptTab.messages.Count);
+            Equal("I wouldn't work for you if you offered me all the money in this crummy place.", scriptTab.messages[117]);
+        }
+
+        private static void ScriptNameResolvesSharedMessageFile()
+        {
+            WithTempDirectory(directory => {
+                string scriptsDirectory = Path.Combine(directory, "scripts");
+                string dialogDirectory = Path.Combine(directory, "text", Settings.language, "dialog");
+                Directory.CreateDirectory(scriptsDirectory);
+                Directory.CreateDirectory(dialogDirectory);
+
+                var scripts = Enumerable.Repeat("unused.int", 62).Concat(new[] { "Door.int" });
+                File.WriteAllLines(Path.Combine(scriptsDirectory, "scripts.lst"), scripts);
+                File.WriteAllText(Path.Combine(dialogDirectory, "door.msg"),
+                    "{193}{}{That doesn't even put a scratch on the door.}\n");
+
+                string oldOutputDir = Settings.outputDir;
+                Encoding oldEncoding = Settings.EncCodePage;
+                try {
+                    Settings.outputDir = scriptsDirectory;
+                    Settings.EncCodePage = Encoding.UTF8;
+                    var info = new ProgramInfo(0, 0);
+                    info.macros.Add("NAME", new Macro("NAME", "NAME", "SCRIPT_DOOR", "jakedoor.ssl", 1, null));
+                    info.macros.Add("SCRIPT_DOOR", new Macro("SCRIPT_DOOR", "SCRIPT_DOOR", "(63)", "scripts.h", 1, null));
+                    var tab = new TabInfo {
+                        filepath = Path.Combine(directory, "jakedoor.ssl"),
+                        filename = "jakedoor.ssl",
+                        parseInfo = info
+                    };
+
+                    True(MessageFile.TryLoadMessagesForScriptIdentity(tab),
+                        "NAME should resolve through scripts.lst to the shared message file.");
+                    Equal("That doesn't even put a scratch on the door.", tab.messages[193]);
+                    Equal("door.msg", Path.GetFileName(tab.msgFilePath).ToLowerInvariant());
+                } finally {
+                    Settings.outputDir = oldOutputDir;
+                    Settings.EncCodePage = oldEncoding;
+                }
+            });
+        }
+
+        private static void MessageStrResolvesExplicitMessageFile()
+        {
+            const string code = "display_msg(obj_name(source_obj) + message_str(SCRIPT_JUNKJAIL, 202));";
+            string scriptToken;
+            True(ToolTipRequest.TryGetMessageStrScriptToken(code, code.IndexOf("202", StringComparison.Ordinal) + 1, 202, out scriptToken),
+                "Hovering the second message_str argument should identify its script token.");
+            Equal("SCRIPT_JUNKJAIL", scriptToken);
+
+            WithTempDirectory(directory => {
+                string scriptsDirectory = Path.Combine(directory, "scripts");
+                string dialogDirectory = Path.Combine(directory, "text", Settings.language, "dialog");
+                Directory.CreateDirectory(scriptsDirectory);
+                Directory.CreateDirectory(dialogDirectory);
+                File.WriteAllLines(Path.Combine(scriptsDirectory, "scripts.lst"),
+                    Enumerable.Repeat("unused.int", 788).Concat(new[] { "JunkJail.int" }));
+                File.WriteAllText(Path.Combine(dialogDirectory, "junkjail.msg"),
+                    "{202}{}{ fails to unlock the door.}\n");
+
+                string oldOutputDir = Settings.outputDir;
+                Encoding oldEncoding = Settings.EncCodePage;
+                try {
+                    Settings.outputDir = scriptsDirectory;
+                    Settings.EncCodePage = Encoding.UTF8;
+                    var info = new ProgramInfo(0, 0);
+                    info.macros.Add("SCRIPT_JUNKJAIL", new Macro("SCRIPT_JUNKJAIL", "SCRIPT_JUNKJAIL", "(789)", "scripts.h", 1, null));
+                    var tab = new TabInfo {
+                        filepath = Path.Combine(directory, "jakedoor.ssl"),
+                        filename = "jakedoor.ssl",
+                        parseInfo = info
+                    };
+
+                    string message;
+                    True(MessageFile.TryGetMessageText(tab, scriptToken, 202, out message),
+                        "message_str should resolve its explicit script's message file.");
+                    Equal("fails to unlock the door.", message);
+                } finally {
+                    Settings.outputDir = oldOutputDir;
+                    Settings.EncCodePage = oldEncoding;
+                }
+            });
+        }
+
+        private static void MessageWrapperMacroResolvesExplicitMessageFile()
+        {
+            const string code = "display_msg(dog_mstr(115));";
+            var info = new ProgramInfo(0, 0);
+            info.macros.Add("dog_mstr", new Macro("dog_mstr", "dog_mstr(x)",
+                "message_str(SCRIPT_ALLDOGS, x)", "dogmeat.ssl", 48, null));
+            info.macros.Add("SCRIPT_ALLDOGS", new Macro("SCRIPT_ALLDOGS", "SCRIPT_ALLDOGS",
+                "(968)", "scripts.h", 982, null));
+            var tab = new TabInfo {
+                filepath = "dogmeat.ssl",
+                filename = "dogmeat.ssl",
+                parseInfo = info
+            };
+
+            string scriptToken;
+            True(ToolTipRequest.TryGetMessageScriptToken(tab, code,
+                    code.IndexOf("115", StringComparison.Ordinal) + 1, 115, out scriptToken),
+                "Hovering a wrapper macro's message number should identify message_str's script token.");
+            Equal("SCRIPT_ALLDOGS", scriptToken);
+
+            WithTempDirectory(directory => {
+                string scriptsDirectory = Path.Combine(directory, "scripts");
+                string dialogDirectory = Path.Combine(directory, "text", Settings.language, "dialog");
+                Directory.CreateDirectory(scriptsDirectory);
+                Directory.CreateDirectory(dialogDirectory);
+                File.WriteAllLines(Path.Combine(scriptsDirectory, "scripts.lst"),
+                    Enumerable.Repeat("unused.int", 967).Concat(new[] { "AllDogs.int" }));
+                File.WriteAllText(Path.Combine(dialogDirectory, "alldogs.msg"),
+                    "{115}{}{The dog seems to think you are his owner.}\n");
+
+                string oldOutputDir = Settings.outputDir;
+                Encoding oldEncoding = Settings.EncCodePage;
+                try {
+                    Settings.outputDir = scriptsDirectory;
+                    Settings.EncCodePage = Encoding.UTF8;
+                    tab.filepath = Path.Combine(directory, "dogmeat.ssl");
+
+                    string message;
+                    True(MessageFile.TryGetMessageText(tab, scriptToken, 115, out message),
+                        "The wrapper macro should resolve its explicit message file.");
+                    Equal("The dog seems to think you are his owner.", message);
+                } finally {
+                    Settings.outputDir = oldOutputDir;
+                    Settings.EncCodePage = oldEncoding;
+                }
+            });
+        }
+
+        private static void RandomMessageRangePopulatesTooltipText()
+        {
+            const string code = "float_katja(random(310, 313));";
+            int firstMessage;
+            int lastMessage;
+            True(ToolTipRequest.TryGetRandomMessageRange(code,
+                    code.IndexOf("310", StringComparison.Ordinal) + 1, out firstMessage, out lastMessage),
+                "Hovering the first random endpoint should identify the message range.");
+            Equal(310, firstMessage);
+            Equal(313, lastMessage);
+            True(ToolTipRequest.TryGetRandomMessageRange(code,
+                    code.IndexOf("313", StringComparison.Ordinal) + 1, out firstMessage, out lastMessage),
+                "Hovering the last random endpoint should identify the message range.");
+
+            WithTempDirectory(directory => {
+                string scriptsDirectory = Path.Combine(directory, "scripts");
+                string dialogDirectory = Path.Combine(directory, "text", Settings.language, "dialog");
+                Directory.CreateDirectory(scriptsDirectory);
+                Directory.CreateDirectory(dialogDirectory);
+                File.WriteAllLines(Path.Combine(scriptsDirectory, "scripts.lst"),
+                    Enumerable.Repeat("unused.int", 622).Concat(new[] { "Katja.int" }));
+                File.WriteAllText(Path.Combine(dialogDirectory, "katja.msg"),
+                    "{310}{}{I'm here.}\n"
+                    + "{311}{}{Sorry about that.}\n"
+                    + "{312}{}{Whatever.}\n"
+                    + "{313}{}{Oh, excuse me.}\n");
+
+                string oldOutputDir = Settings.outputDir;
+                Encoding oldEncoding = Settings.EncCodePage;
+                try {
+                    Settings.outputDir = scriptsDirectory;
+                    Settings.EncCodePage = Encoding.UTF8;
+                    var info = new ProgramInfo(0, 0);
+                    info.macros.Add("NAME", new Macro("NAME", "NAME", "SCRIPT_KATJA", "katja.ssl", 1, null));
+                    info.macros.Add("SCRIPT_KATJA", new Macro("SCRIPT_KATJA", "SCRIPT_KATJA", "(623)", "scripts.h", 635, null));
+                    var tab = new TabInfo {
+                        filepath = Path.Combine(directory, "katja.ssl"),
+                        filename = "katja.ssl",
+                        parseInfo = info
+                    };
+
+                    string tooltip;
+                    True(ToolTipRequest.TryGetMessageRangeText(tab, firstMessage, lastMessage, out tooltip),
+                        "The random range should load Katja's message file without opening it.");
+                    True(tooltip.Contains("Messages 310-313"), "The tooltip should identify the full range.");
+                    True(tooltip.Contains("310:") && tooltip.Contains("I'm here."),
+                        "The tooltip should include message 310.");
+                    True(tooltip.Contains("313:") && tooltip.Contains("Oh, excuse me."),
+                        "The tooltip should include message 313.");
+                } finally {
+                    Settings.outputDir = oldOutputDir;
+                    Settings.EncCodePage = oldEncoding;
+                }
+            });
         }
 
         private static void Utf8BomEncodingIsPreserved()

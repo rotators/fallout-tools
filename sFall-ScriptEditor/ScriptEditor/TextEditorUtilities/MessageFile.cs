@@ -78,6 +78,84 @@ namespace ScriptEditor.TextEditorUtilities
             return found;
         }
 
+        public static bool TryLoadMessagesForScriptIdentity(TabInfo tab)
+        {
+            if (tab == null || tab.parseInfo == null || Settings.outputDir == null || String.IsNullOrEmpty(tab.filepath))
+                return false;
+
+            int nameID = tab.parseInfo.ScriptNameID;
+            if (nameID <= 0)
+                return false;
+
+            int error;
+            string fileName = GetMessageFileNameID(Settings.outputDir, nameID, out error);
+            if (error != 0 || String.IsNullOrEmpty(fileName))
+                return false;
+
+            string path;
+            string defaultDir;
+            if (!CheckPath(tab.filepath, fileName, out path, out defaultDir))
+                return false;
+
+            try {
+                ParseMessages(tab, File.ReadAllLines(path, Settings.EncCodePage));
+                tab.msgFilePath = path;
+                return tab.messages.Count > 0;
+            } catch (IOException) {
+                return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
+            }
+        }
+
+        public static bool TryGetMessageText(TabInfo tab, string scriptToken, int messageNumber, out string text)
+        {
+            text = null;
+            int scriptID;
+            if (!TryResolveScriptID(tab, scriptToken, out scriptID))
+                return false;
+
+            string outputDir = Settings.outputDir ?? Path.GetDirectoryName(tab.filepath);
+            int error;
+            string fileName = GetMessageFileNameID(outputDir, scriptID, out error);
+            if (error != 0 || String.IsNullOrEmpty(fileName))
+                return false;
+
+            string path;
+            string defaultDir;
+            if (!CheckPath(tab.filepath, fileName, out path, out defaultDir))
+                return false;
+
+            try {
+                var messageTab = new TabInfo();
+                ParseMessages(messageTab, File.ReadAllLines(path, Settings.EncCodePage));
+                return messageTab.messages.TryGetValue(messageNumber, out text);
+            } catch (IOException) {
+                return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
+            }
+        }
+
+        private static bool TryResolveScriptID(TabInfo tab, string token, out int scriptID)
+        {
+            scriptID = -1;
+            if (tab == null || tab.parseInfo == null || String.IsNullOrWhiteSpace(token))
+                return false;
+
+            string current = token.Trim();
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (int depth = 0; depth < 32; depth++) {
+                string numeric = current.Trim().Trim('(', ')').Trim();
+                if (int.TryParse(numeric, out scriptID))
+                    return scriptID > 0;
+                if (!visited.Add(current) || !tab.parseInfo.macros.ContainsKey(current))
+                    return false;
+                tab.parseInfo.MacrosGetValue(ref current);
+            }
+            return false;
+        }
+
         public static bool GetPath(TabInfo tab, int msgNumber, out string path, bool report = false)
         {
             string defaultDir;
@@ -180,7 +258,7 @@ namespace ScriptEditor.TextEditorUtilities
         public static void ParseMessages(TabInfo ti)
         {
             ParseMessages(ti, ti.msgFileTab.textEditor.Document.TextContent.Split(
-                          new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
+                          new string[] { "\r\n", "\n", "\r" }, StringSplitOptions.RemoveEmptyEntries));
         }
 
         public static void ParseMessages(TabInfo ti, string[] linesMsg)

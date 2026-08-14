@@ -240,7 +240,40 @@ namespace ScriptEditor
                 }
                 sfDecomp.Dispose();
             }
+            AssociateMatchingOpenMessageTab(ti);
             return ti;
+        }
+
+        private void AssociateMatchingOpenMessageTab(TabInfo openedTab)
+        {
+            if (openedTab == null || String.IsNullOrEmpty(openedTab.filepath))
+                return;
+
+            string extension = Path.GetExtension(openedTab.filepath);
+            bool openedScript = extension.Equals(".ssl", StringComparison.OrdinalIgnoreCase);
+            bool openedMessage = extension.Equals(".msg", StringComparison.OrdinalIgnoreCase);
+            if (!openedScript && !openedMessage)
+                return;
+
+            string baseName = Path.GetFileNameWithoutExtension(openedTab.filepath);
+            foreach (TabInfo candidate in tabs) {
+                if (candidate == openedTab || String.IsNullOrEmpty(candidate.filepath))
+                    continue;
+
+                string candidateExtension = Path.GetExtension(candidate.filepath);
+                bool matchingType = openedScript
+                    ? candidateExtension.Equals(".msg", StringComparison.OrdinalIgnoreCase)
+                    : candidateExtension.Equals(".ssl", StringComparison.OrdinalIgnoreCase);
+                if (!matchingType || !Path.GetFileNameWithoutExtension(candidate.filepath).Equals(baseName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                TabInfo scriptTab = openedScript ? openedTab : candidate;
+                TabInfo messageTab = openedMessage ? openedTab : candidate;
+                scriptTab.msgFilePath = messageTab.filepath;
+                scriptTab.msgFileTab = messageTab;
+                MessageFile.ParseMessages(scriptTab);
+                return;
+            }
         }
 
         private void CheckChandedFile()
