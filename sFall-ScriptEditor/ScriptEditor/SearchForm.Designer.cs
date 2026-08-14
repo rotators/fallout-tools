@@ -238,7 +238,7 @@
             this.cbCase.AutoSize = false;
             this.cbCase.Checked = true;
             this.cbCase.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbCase.Location = new System.Drawing.Point(238, 3);
+            this.cbCase.Location = new System.Drawing.Point(225, 3);
             this.cbCase.Name = "cbCase";
             this.cbCase.Size = new System.Drawing.Size(95, 17);
             this.cbCase.TabIndex = 22;

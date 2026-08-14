@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -25,7 +25,7 @@ namespace ScriptEditor
             InitializeComponent();
             ConfigureSettingsLayout();
             ConfigureFileAssociationSection();
-            InterfaceTheme.Apply((Control)this);
+
             PerformLayout();
 
             if (Settings.useMcpp) 
@@ -77,8 +77,11 @@ namespace ScriptEditor
             if (cbFonts.Items.Count > 1) {
                 cbFonts.DropDownWidth = dsize;
                 cbFonts.SelectedIndex = Settings.selectFont;
+
             } else
                 cbFonts.SelectedIndex = 0;
+            InterfaceTheme.Apply((Control)this);
+            PerformLayout();
         }
 
         protected override void OnLoad(EventArgs e)
@@ -123,16 +126,22 @@ namespace ScriptEditor
 
             ClientSize = DpiHelper.Scale(this, new Size(640, 656));
             FormBorderStyle = FormBorderStyle.FixedDialog;
+            ConfigureSettingsComboBox(Highlight_comboBox);
+            ConfigureSettingsComboBox(InterfaceTheme_comboBox);
+            ConfigureSettingsComboBox(cbFonts);
+            ConfigureSettingsComboBox(cmbPreprocessor);
+            ConfigureSettingsComboBox(cbOptimize);
+            ConfigureSettingsComboBox(HintLang_comboBox);
 
             SetLogicalBounds(groupBox6, 8, 6, 624, 56);
             groupBox6.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             groupBox6.Text = "Appearance";
             SetLogicalBounds(labelScriptStyle, 8, 23, 68, 17);
-            SetLogicalBounds(Highlight_comboBox, 78, 19, 108, 23);
+            SetLogicalBounds(Highlight_comboBox, 78, 18, 108, 24);
             SetLogicalBounds(labelInterfaceStyle, 202, 23, 86, 17);
-            SetLogicalBounds(InterfaceTheme_comboBox, 290, 19, 108, 23);
+            SetLogicalBounds(InterfaceTheme_comboBox, 290, 18, 108, 24);
             SetLogicalBounds(labelCodeFont, 414, 23, 62, 17);
-            SetLogicalBounds(cbFonts, 478, 19, 136, 23);
+            SetLogicalBounds(cbFonts, 478, 18, 136, 24);
 
             SetLogicalBounds(groupBox1, 8, 68, 400, 125);
             groupBox1.Text = "Compilation";
@@ -193,15 +202,17 @@ namespace ScriptEditor
             SetLogicalBounds(groupBox2, 8, 288, 624, 146);
             groupBox2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             groupBox2.Text = "Paths";
-            SetLogicalBounds(cbCompilePath, 418, 16, 194, 20);
-            SetLogicalBounds(textBox2, 8, 34, 568, 23);
-            SetLogicalBounds(bChange, 580, 32, 34, 27);
-            SetLogicalBounds(cbIncludePath, 402, 58, 210, 20);
-            SetLogicalBounds(textBox1, 8, 75, 568, 23);
-            SetLogicalBounds(bHeaders, 580, 73, 34, 27);
-            SetLogicalBounds(label8, 8, 101, 190, 17);
-            SetLogicalBounds(tbScriptsHPath, 8, 117, 568, 23);
-            SetLogicalBounds(bScriptsH, 580, 115, 34, 27);
+            SetLogicalBounds(groupBox2.Controls["label1"], 8, 15, 190, 17);
+            SetLogicalBounds(groupBox2.Controls["label4"], 8, 56, 190, 17);
+            SetLogicalBounds(cbCompilePath, 418, 14, 155, 20);
+            SetLogicalBounds(textBox2, 8, 34, 568, 21);
+            SetLogicalBounds(bChange, 580, 33, 34, 23);
+            SetLogicalBounds(cbIncludePath, 387, 55, 190, 20);
+            SetLogicalBounds(textBox1, 8, 75, 568, 21);
+            SetLogicalBounds(bHeaders, 580, 74, 34, 23);
+            SetLogicalBounds(label8, 8, 97, 190, 17);
+            SetLogicalBounds(tbScriptsHPath, 8, 117, 568, 21);
+            SetLogicalBounds(bScriptsH, 580, 116, 34, 23);
 
             groupMessageOptions = new GroupBox();
             groupMessageOptions.Name = "groupMessageOptions";
@@ -225,6 +236,11 @@ namespace ScriptEditor
             PerformLayout();
         }
 
+        private static void ConfigureSettingsComboBox(ComboBox comboBox)
+        {
+            comboBox.AutoSize = false;
+            comboBox.IntegralHeight = false;
+        }
         private void SetLogicalBounds(Control control, int x, int y, int width, int height)
         {
             control.SetBounds(DpiHelper.Scale(this, x), DpiHelper.Scale(this, y),
