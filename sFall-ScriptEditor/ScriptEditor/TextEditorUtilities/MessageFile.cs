@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
@@ -51,7 +51,7 @@ namespace ScriptEditor.TextEditorUtilities
                             MessageBox.Show("Scripts.lst does not exist in scripts output directory.", "Error");
                             break;
                         case 1:
-                            MessageBox.Show("Failed get associated name from the Scripts.lst file.", "Scripts.lst error");
+                            MessageBox.Show("Failed to get the associated name from Scripts.lst.", "Scripts.lst error");
                             return false;
                     }
                 } else

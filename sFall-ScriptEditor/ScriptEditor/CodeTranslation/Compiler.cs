@@ -149,6 +149,7 @@ namespace ScriptEditor.CodeTranslation
             }
             bool success = false;
             string batPath = null;
+            string batchTempDir = null;
             infile = Path.GetFullPath(infile);
             string srcfile = infile;
             string sourceDir = Path.GetDirectoryName(infile);
@@ -191,10 +192,17 @@ namespace ScriptEditor.CodeTranslation
 
                 if (batPath != null) {
                     if (!success || preprocessOnly) return success;
-                    // переименовать файл preprocess.ssl в <scriptname>_[pre].ssl
-                    infile = Path.Combine(Settings.scriptTempPath, Path.GetFileNameWithoutExtension(infile) + "_[pre].ssl");
-                    File.Delete(infile);
-                    File.Move(Path.Combine(Settings.scriptTempPath, outfile), infile);
+                    string generatedFile = Path.Combine(Settings.scriptTempPath, outfile);
+                    if (batch) {
+                        batchTempDir = Path.Combine(Settings.scriptTempPath, Path.GetRandomFileName());
+                        Directory.CreateDirectory(batchTempDir);
+                        infile = Path.Combine(batchTempDir, Path.GetFileNameWithoutExtension(srcfile) + "_[pre].ssl");
+                        File.Move(generatedFile, infile);
+                    } else {
+                        infile = Path.Combine(Settings.scriptTempPath, Path.GetFileNameWithoutExtension(infile) + "_[pre].ssl");
+                        File.Delete(infile);
+                        File.Move(generatedFile, infile);
+                    }
                 }
 
 #if DLL_COMPILER
@@ -228,6 +236,11 @@ namespace ScriptEditor.CodeTranslation
             }
             if (errors != null && !Settings.userCmdCompile) Error.BuildLog(errors, output, srcfile); //(Settings.useWatcom) ? infile :
 
+            if (batchTempDir != null && Directory.Exists(batchTempDir)) {
+                try { Directory.Delete(batchTempDir, true); }
+                catch { }
+            }
+
 #if DLL_COMPILER
             output=output.Replace("\n", "\r\n");
 #endif
@@ -244,19 +257,17 @@ namespace ScriptEditor.CodeTranslation
             psi.CreateNoWindow = true;
             psi.WorkingDirectory = wDir;
 
-            Process wp = Process.Start(psi);
-
-            if (!batch) {
-                output += /*wp.StandardError.ReadToEnd() +*/ Environment.NewLine;
-                output += wp.StandardOutput.ReadToEnd();
-                if (Settings.useMcpp || Settings.useWatcom) output += GetErrorLog();
+            using (Process wp = Process.Start(psi)) {
+                if (wp == null)
+                    throw new InvalidOperationException("The compiler process could not be started.");
+                if (!batch) {
+                    output += /*wp.StandardError.ReadToEnd() +*/ Environment.NewLine;
+                    output += wp.StandardOutput.ReadToEnd();
+                    if (Settings.useMcpp || Settings.useWatcom) output += GetErrorLog();
+                }
+                wp.WaitForExit();
+                return wp.ExitCode == 0;
             }
-            wp.WaitForExit(1000);
-
-            bool success = (wp.ExitCode == 0);
-
-            wp.Dispose();
-            return success;
         }
 
         private string GetErrorLog()
@@ -285,19 +296,15 @@ namespace ScriptEditor.CodeTranslation
                 psi.CreateNoWindow = true;
                 psi.RedirectStandardOutput = true;
 
-                Process p = Process.Start(psi);
-                p.OutputDataReceived += ((TextEditor)scrForm).PrintBuildLog;
-                p.BeginOutputReadLine();
-
-                while (true) {
-                    Application.DoEvents();
-                    if (p.HasExited) break;
+                using (Process p = Process.Start(psi)) {
+                    if (p == null)
+                        continue;
+                    p.OutputDataReceived += ((TextEditor)scrForm).PrintBuildLog;
+                    p.BeginOutputReadLine();
+                    p.WaitForExit();
+                    if (p.ExitCode == 0)
+                        break;
                 }
-                if (p.ExitCode == 0) {
-                    p.Close();
-                    break;
-                }
-                p.Close();
             }
             if (!File.Exists(decompilationPath)) return null;
 

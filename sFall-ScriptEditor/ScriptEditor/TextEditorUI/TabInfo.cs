@@ -54,10 +54,42 @@ namespace ScriptEditor.TextEditorUI
 
         internal void SaveInternal(string saveText, System.Text.Encoding encFile, bool isMsg = false, bool isClose = false, bool isScript = true)
         {
-            File.WriteAllText(filepath, saveText, (isMsg) ? Settings.EncCodePage
-                                                          : (isScript && Settings.saveScriptUTF8) ? new UTF8Encoding(false)
-                                                                                                  : encFile);
+            WriteAllTextAtomic(filepath, saveText, (isMsg) ? Settings.EncCodePage
+                                                            : (isScript && Settings.saveScriptUTF8) ? new UTF8Encoding(false)
+                                                                                                    : encFile);
             if (!isClose) fileTime = File.GetLastWriteTime(filepath);
+        }
+
+        internal static void WriteAllTextAtomic(string path, string contents, Encoding encoding)
+        {
+            string directory = Path.GetDirectoryName(path);
+            string tempPath = Path.Combine(directory, "." + Path.GetFileName(path) + "." + Guid.NewGuid().ToString("N") + ".tmp");
+            try {
+                File.WriteAllText(tempPath, contents, encoding);
+                if (File.Exists(path))
+                    File.Replace(tempPath, path, null);
+                else
+                    File.Move(tempPath, path);
+            } finally {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
+        }
+
+        internal static void WriteAllBytesAtomic(string path, byte[] contents)
+        {
+            string directory = Path.GetDirectoryName(path);
+            string tempPath = Path.Combine(directory, "." + Path.GetFileName(path) + "." + Guid.NewGuid().ToString("N") + ".tmp");
+            try {
+                File.WriteAllBytes(tempPath, contents);
+                if (File.Exists(path))
+                    File.Replace(tempPath, path, null);
+                else
+                    File.Move(tempPath, path);
+            } finally {
+                if (File.Exists(tempPath))
+                    File.Delete(tempPath);
+            }
         }
 
         /// <summary>

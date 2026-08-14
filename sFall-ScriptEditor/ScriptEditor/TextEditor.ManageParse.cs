@@ -19,6 +19,7 @@ namespace ScriptEditor
         private const string parseoff = "Parser: Disabled";
 
         public event EventHandler ParserUpdatedInfo; // Event for update nodes diagram
+        internal TabInfo LastParserUpdatedTab { get; private set; }
 
         private bool firstParse;
 
@@ -27,22 +28,33 @@ namespace ScriptEditor
 
         private DateTime extParser_TimeNext, intParser_TimeNext;
         private Timer extParserTimer, intParserTimer;
+        private WorkerArgs activeParserArgs;
 
         #region Parser Control
         private void textChanged(object sender, EventArgs e)
         {
-            if (savingRunning || currentTab.DisableParseAndStatusChange) return;
-            if (!currentTab.changed) {
-                currentTab.changed = true;
-                SetTabTextChange(currentTab.index);
+            TabInfo changedTab = currentTab;
+            ICSharpCode.TextEditor.TextEditorControl editor = sender as ICSharpCode.TextEditor.TextEditorControl;
+            if (editor != null)
+                changedTab = tabs.FirstOrDefault(t => t.textEditor == editor);
+            if (changedTab == null || savingRunning || changedTab.DisableParseAndStatusChange)
+                return;
+
+            Error.ClearBuildErrorMarkers(changedTab);
+
+            if (!changedTab.changed) {
+                changedTab.changed = true;
+                if (changedTab.index >= 0)
+                    SetTabTextChange(changedTab.index);
             }
-            if (sender != null && currentTab.shouldParse) {
-                if (currentTab.shouldParse && !currentTab.needsParse) {
-                    currentTab.needsParse = true;
-                    parserLabel.Text = "Parser: Update changes";
+            if (sender != null && changedTab.shouldParse) {
+                if (!changedTab.needsParse) {
+                    changedTab.needsParse = true;
+                    if (currentTab == changedTab)
+                        parserLabel.Text = "Parser: Update changes";
                 }
-                // Update parse info
-                ParseScript(3);
+                if (currentTab == changedTab)
+                    ParseScript(3);
             }
         }
 
@@ -54,29 +66,35 @@ namespace ScriptEditor
             tbOutputParse.Text = string.Empty;
 
             firstParse = true;
+            try {
+                GetMacros.GetGlobalMacros(Settings.pathHeadersFiles);
 
-            GetMacros.GetGlobalMacros(Settings.pathHeadersFiles);
+                DEBUGINFO("First Parse...");
+                new ParserInternal(cTab, this);
 
-            DEBUGINFO("First Parse...");
-            new ParserInternal(cTab, this);
+                var ExtParser = new ParserExternal(firstParse);
+                cTab.parseInfo = ExtParser.Parse(cTab.textEditor.Text, cTab.filepath, cTab.parseInfo);
+                DEBUGINFO("External first parse status: " + ExtParser.LastStatus);
 
-            //while (parserIsRunning) System.Threading.Thread.Sleep(10); // Avoid stomping on files while the parser is running
+                HighlightProcedures.AddAllToList(cTab.textEditor.Document, cTab.parseInfo.procs);
+                CodeFolder.UpdateFolding(cTab.textEditor.Document, cTab.filename, cTab.parseInfo.procs);
+                CodeFolder.GetProceduresCollapse(cTab.textEditor.Document, cTab.filename);
 
-            var ExtParser = new ParserExternal(firstParse);
-            cTab.parseInfo = ExtParser.Parse(cTab.textEditor.Text, cTab.filepath, cTab.parseInfo);
-            DEBUGINFO("External first parse status: " + ExtParser.LastStatus);
+                GetParserErrorLog(cTab);
 
-            HighlightProcedures.AddAllToList(cTab.textEditor.Document, cTab.parseInfo.procs);
-            CodeFolder.UpdateFolding(cTab.textEditor.Document, cTab.filename, cTab.parseInfo.procs);
-            CodeFolder.GetProceduresCollapse(cTab.textEditor.Document, cTab.filename);
-
-            GetParserErrorLog(cTab);
-
-            if (cTab.parseInfo.parseError) {
-                tabControl2.SelectedIndex = 2;
-                if (WindowState != FormWindowState.Minimized) MaximizeLog();
+                if (cTab.parseInfo.parseError) {
+                    tabControl2.SelectedIndex = 2;
+                    if (WindowState != FormWindowState.Minimized) MaximizeLog();
+                }
+            } catch (Exception ex) {
+                cTab.needsParse = true;
+                parserLabel.Text = "Parser: Error while processing incomplete code";
+                parserLabel.ForeColor = Color.Crimson;
+                DEBUGINFO("Initial parser error: " + ex);
+            } finally {
+                parserIsRunning = false;
+                firstParse = false;
             }
-            firstParse = false;
         }
 
         // Parse script
@@ -99,18 +117,44 @@ namespace ScriptEditor
         //Force update parser data
         private void ForceParseScript()
         {
+            ForceParseScript(currentTab);
+        }
+
+        private void ForceParseScript(TabInfo tab)
+        {
+            if (tab == null || tab.index < 0 || tab.parseInfo == null)
+                return;
+
             // останавливаем ранее сработавшие таймеры
             intParserTimer.Stop();
             extParserTimer.Stop();
 
-            if (Settings.enableParser && currentTab.parseInfo.parseData) {
+            if (bwSyntaxParser.IsBusy || parserIsRunning) {
+                tab.needsParse = true;
+                if (currentTab == tab)
+                    ParseScript(0);
+                return;
+            }
+
+            if (Settings.enableParser && tab.parseInfo.parseData) {
                 parserIsRunning = true; // parse work
-                CodeFolder.UpdateFolding(currentDocument, currentTab.filepath);
-                bwSyntaxParser.RunWorkerAsync(new WorkerArgs(currentDocument.TextContent, currentTab));
+                CodeFolder.UpdateFolding(tab.textEditor.Document, tab.filepath);
+                bwSyntaxParser.RunWorkerAsync(new WorkerArgs(tab.textEditor.Document.TextContent, tab));
             } else {
-                new ParserInternal(currentTab, this);
-                CodeFolder.UpdateFolding(currentDocument, currentTab.filename, currentTab.parseInfo.procs);
-                ParserCompleted(currentTab, false);
+                try {
+                    new ParserInternal(tab, this);
+                    CodeFolder.UpdateFolding(tab.textEditor.Document, tab.filename, tab.parseInfo.procs);
+                    ParserCompleted(tab, false);
+                } catch (Exception ex) {
+                    tab.needsParse = true;
+                    if (currentTab == tab) {
+                        parserLabel.Text = "Parser: Error while processing incomplete code";
+                        parserLabel.ForeColor = Color.Crimson;
+                    }
+                    DEBUGINFO("Forced parser error: " + ex);
+                } finally {
+                    parserIsRunning = false;
+                }
             }
         }
 
@@ -128,18 +172,26 @@ namespace ScriptEditor
 
                 DEBUGINFO("Run: Internal Parser");
 
-                if (!Settings.enableParser) { // Parser off
-                    tbOutputParse.Text = string.Empty;
-                    parserLabel.Text = "Parser: Get only macros";
-                    parserLabel.ForeColor = Color.Crimson;
+                try {
+                    if (!Settings.enableParser) { // Parser off
+                        tbOutputParse.Text = string.Empty;
+                        parserLabel.Text = "Parser: Get only macros";
+                        parserLabel.ForeColor = Color.Crimson;
 
-                    new ParserInternal(currentTab, this);
-                    CodeFolder.UpdateFolding(currentDocument, currentTab.filename, currentTab.parseInfo.procs);
-                    ParserCompleted(currentTab, false);
-                } else {
-                    CodeFolder.UpdateFolding(currentDocument, currentTab.filepath);
-                    //Quick update procedure data
-                    ParserInternal.UpdateProcInfo(ref currentTab.parseInfo, currentDocument.TextContent, currentTab.filepath);
+                        new ParserInternal(currentTab, this);
+                        CodeFolder.UpdateFolding(currentDocument, currentTab.filename, currentTab.parseInfo.procs);
+                        ParserCompleted(currentTab, false);
+                    } else {
+                        CodeFolder.UpdateFolding(currentDocument, currentTab.filepath);
+                        //Quick update procedure data
+                        ParserInternal.UpdateProcInfo(ref currentTab.parseInfo, currentDocument.TextContent, currentTab.filepath);
+                    }
+                } catch (Exception ex) {
+                    parserIsRunning = false;
+                    currentTab.needsParse = true;
+                    parserLabel.Text = "Parser: Error while processing incomplete code";
+                    parserLabel.ForeColor = Color.Crimson;
+                    DEBUGINFO("Internal parser error: " + ex);
                 }
             }
         }
@@ -172,25 +224,45 @@ namespace ScriptEditor
         private void bwSyntaxParser_DoWork(object sender, DoWorkEventArgs eventArgs)
         {
             WorkerArgs args = (WorkerArgs)eventArgs.Argument;
-            var ExtParser = new ParserExternal(false);
-            bool prevStatus = args.tab.parseInfo.parseError;
-            args.tab.parseInfo = ExtParser.Parse(args.text, args.tab.filepath, args.tab.parseInfo);
-            args.status = ExtParser.LastStatus;
-            //args.parseIsFail = prevStatus & (args.status > 0);
-            eventArgs.Result = args;
-            parserIsRunning = false;
+            activeParserArgs = args;
+            try {
+                var ExtParser = new ParserExternal(false);
+                args.parseInfo = ExtParser.Parse(args.text, args.tab.filepath, args.previousParseInfo);
+                args.status = ExtParser.LastStatus;
+                //args.parseIsFail = prevStatus & (args.status > 0);
+                eventArgs.Result = args;
+            } finally {
+                parserIsRunning = false;
+            }
         }
 
         // External parse finish
         private void bwSyntaxParser_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            parserIsRunning = false;
+            WorkerArgs args = e.Error == null && !e.Cancelled ? e.Result as WorkerArgs : activeParserArgs;
+            activeParserArgs = null;
+
+            if (e.Cancelled) return;
+            if (e.Error != null) {
+                if (args != null && args.tab != null) args.tab.needsParse = true;
+                if (args == null || currentTab == args.tab) {
+                    parserLabel.Text = "Parser: Error while processing incomplete code";
+                    parserLabel.ForeColor = Color.Crimson;
+                }
+                DEBUGINFO("Parser error: " + e.Error);
+                return;
+            }
             if (!Settings.enableParser) return; // выход для предотвращения второго прохода когда внешний парсер выключен
 
-            DEBUGINFO(">>> Ext parse status: " + e.Result.ToString());
-
-            if (!(((WorkerArgs)e.Result).tab is TabInfo)) throw new Exception("TabInfo is expected!");
-
-            ParserCompleted(((WorkerArgs)e.Result).tab as TabInfo, ((WorkerArgs)e.Result).parseIsFail);
+            if (args == null || args.tab == null) {
+                DEBUGINFO("Parser error: Background parser returned no result.");
+                return;
+            }
+            if (args.parseInfo != null)
+                args.tab.parseInfo = args.parseInfo;
+            DEBUGINFO(">>> Ext parse status: " + args);
+            ParserCompleted(args.tab, args.parseIsFail);
         }
 
         private void ParserCompleted(TabInfo tab, bool parseIsFail)
@@ -223,7 +295,12 @@ namespace ScriptEditor
             }
             GetParserErrorLog(tab);
             // Event for update
-            if (ParserUpdatedInfo != null) ParserUpdatedInfo(this, EventArgs.Empty);
+            LastParserUpdatedTab = tab;
+            try {
+                if (ParserUpdatedInfo != null) ParserUpdatedInfo(this, EventArgs.Empty);
+            } finally {
+                LastParserUpdatedTab = null;
+            }
         }
         #endregion
 

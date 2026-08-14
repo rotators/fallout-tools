@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Win32;
@@ -29,7 +29,7 @@ namespace ScriptEditor
             ext = Path.GetExtension(ext).ToLowerInvariant();
             bool result = (Array.IndexOf(extAllowed, ext) > -1);
             if (!result)
-                MessageBox.Show("You can not open this file type in the editor.", "Error - file is not allowed");
+                MessageBox.Show("You cannot open this file type in the editor.", "Error - File type not allowed");
             return result;
         }
 

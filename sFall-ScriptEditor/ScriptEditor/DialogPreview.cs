@@ -38,6 +38,8 @@ namespace ScriptEditor
         private bool allow;
         private bool user;
         private bool needUpdate;
+        private TextEditor ownerEditor;
+        private EventHandler parserUpdatedHandler;
 
         public bool InitReady 
         {
@@ -47,6 +49,7 @@ namespace ScriptEditor
         public DialogPreview(TabInfo sourceTab)
         {
             InitializeComponent();
+            FormClosed += DialogPreview_FormClosed;
 
             this.Text += sourceTab.filename;
             this.sourceTab = sourceTab;
@@ -80,6 +83,17 @@ namespace ScriptEditor
             DialogueParser.ParseNodeCode(body, Arguments, sourceTab.parseInfo);
 
             BuildMessageDialog();
+        }
+
+        private bool GotoNode(string name)
+        {
+            if (sourceTab.parseInfo == null || sourceTab.parseInfo.procs == null)
+                return false;
+            int index = sourceTab.parseInfo.GetProcedureIndex(name);
+            if (index < 0 || index >= scrProc.Length)
+                return false;
+            GotoNode(scrProc[index]);
+            return true;
         }
       
         private void BuildMessageDialog()
@@ -198,7 +212,7 @@ skip:
             string name = nodesNavigation[--currentNavigation];
             allow = false;
             NodesComboBox.Text = name;
-            GotoNode(scrProc[sourceTab.parseInfo.GetProcedureIndex(name)]);
+            GotoNode(name);
         }
 
         private void toolStripButton2_Click(object sender, EventArgs e)
@@ -207,7 +221,7 @@ skip:
             string name = nodesNavigation[++currentNavigation];
             allow = false;
             NodesComboBox.Text = name;
-            GotoNode(scrProc[sourceTab.parseInfo.GetProcedureIndex(name)]);
+            GotoNode(name);
         }
 
         private void NodesComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -219,7 +233,7 @@ skip:
                     currentNavigation = 0;
                     nodesNavigation.Add(name);
                 }
-                GotoNode(scrProc[sourceTab.parseInfo.GetProcedureIndex(name)]);
+                GotoNode(name);
             } else 
                 allow = true;
             user = false;
@@ -234,7 +248,7 @@ skip:
         {
             toolStripTextBox.Enabled = femaleToolStripMenuItem.Checked;
             //update messages
-            GotoNode(scrProc[sourceTab.parseInfo.GetProcedureIndex(NodesComboBox.Text)]);
+            GotoNode(NodesComboBox.Text);
         }
 
         private void DialogPreview_Activated(object sender, EventArgs e)
@@ -266,8 +280,20 @@ skip:
 
         private void DialogPreview_Shown(object sender, EventArgs e)
         {
-            TextEditor te = this.Owner as TextEditor;
-            te.ParserUpdatedInfo += delegate { needUpdate = true; };
+            ownerEditor = Owner as TextEditor;
+            if (ownerEditor == null)
+                return;
+            parserUpdatedHandler = delegate {
+                if (ownerEditor.LastParserUpdatedTab == sourceTab)
+                    needUpdate = true;
+            };
+            ownerEditor.ParserUpdatedInfo += parserUpdatedHandler;
+        }
+
+        private void DialogPreview_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (ownerEditor != null && parserUpdatedHandler != null)
+                ownerEditor.ParserUpdatedInfo -= parserUpdatedHandler;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 
 namespace ScriptEditor
@@ -15,6 +15,7 @@ namespace ScriptEditor
             scriptsHPath = Settings.pathScriptsHFile;
             headersFilesPath = Settings.pathHeadersFiles;
             InitializeComponent();
+            InterfaceTheme.Apply((Control)this);
 
             if (Settings.useMcpp) 
                 cmbPreprocessor.SelectedIndex = 1;
@@ -40,6 +41,7 @@ namespace ScriptEditor
             cbNonColor.Checked = Settings.autocompleteColor;
             cbAutoPaired.Checked = Settings.autoInputPaired;
             Highlight_comboBox.SelectedIndex = Settings.highlight;
+            InterfaceTheme_comboBox.SelectedIndex = (int)Settings.interfaceTheme;
             HintLang_comboBox.SelectedIndex = Settings.hintsLang;
             if (!Settings.enableParser) cbParserWarn.Enabled = false;
             cbParserWarn.Checked = Settings.parserWarn;
@@ -107,6 +109,7 @@ namespace ScriptEditor
             Settings.autocompleteColor = cbNonColor.Checked;
             Settings.autoInputPaired = cbAutoPaired.Checked;
             Settings.highlight = (byte)Highlight_comboBox.SelectedIndex;
+            Settings.interfaceTheme = (InterfaceThemeMode)InterfaceTheme_comboBox.SelectedIndex;
             Settings.hintsLang = (byte)HintLang_comboBox.SelectedIndex;
             Settings.parserWarn = cbParserWarn.Checked;
             Settings.ignoreCompPath = cbCompilePath.Checked;

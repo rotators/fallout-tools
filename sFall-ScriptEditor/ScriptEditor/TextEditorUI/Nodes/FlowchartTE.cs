@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -62,7 +62,7 @@ namespace ScriptEditor.TextEditorUI.Nodes
             get { return nodeName; }
             private set {
                 nodeName = value;
-                cForm.Text = "Сode: " + value;
+                cForm.Text = "Code: " + value;
             }
         }
 
@@ -388,13 +388,19 @@ namespace ScriptEditor.TextEditorUI.Nodes
             if (marker.Count > 0)
                 textEditor.Document.MarkerStrategy.RemoveMarker(marker[0]);
 
+            if (data == null || String.IsNullOrEmpty(data.shortcode) || data.codeNumLine < 0 ||
+                data.codeNumLine >= textEditor.Document.TotalNumberOfLines)
+                return;
+
             LineSegment ls = textEditor.Document.GetLineSegment(data.codeNumLine);
             string codeline = TextUtilities.GetLineAsString(textEditor.Document, data.codeNumLine);
-            int offset = codeline.IndexOf(data.shortcode);
+            int offset = codeline.IndexOf(data.shortcode, StringComparison.Ordinal);
+            if (offset < 0)
+                return;
             int len = data.shortcode.Length;
 
             if (offset > 0) {
-                while (Char.IsLetter(textEditor.Document.GetCharAt(ls.Offset + (offset - 1))))
+                while (offset > 0 && Char.IsLetter(textEditor.Document.GetCharAt(ls.Offset + offset - 1)))
                 {
                     offset--;
                     len++;

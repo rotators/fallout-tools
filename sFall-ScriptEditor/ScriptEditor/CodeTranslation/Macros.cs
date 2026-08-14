@@ -122,13 +122,13 @@ namespace ScriptEditor.CodeTranslation
                         var sb = new StringBuilder();
                         int lineno = i;
                         lines[i] = lines[i].Substring(8);
-                        do {
-                            sb.Append(lines[i].Remove(lines[i].Length - 1).TrimEnd()); // удаляем пробелы и символ '\' в конце макроса
+                        while (true) {
+                            bool continued = lines[i].EndsWith(@"\");
+                            sb.Append(continued ? lines[i].Remove(lines[i].Length - 1).TrimEnd() : lines[i]);
+                            if (!continued || i + 1 >= lines.Length) break;
                             sb.Append(Environment.NewLine);
-                            i++;
-                            lines[i] = lines[i].TrimEnd();
-                        } while (lines[i].EndsWith(@"\"));
-                        sb.Append(lines[i]);
+                            lines[++i] = lines[i].TrimEnd();
+                        }
                         AddMacro(sb.ToString(), macros, file, lineno, description);
                     } else
                         AddMacro(lines[i].Substring(8), macros, file, i, description);
@@ -148,6 +148,7 @@ namespace ScriptEditor.CodeTranslation
 
             if (firstbracket != -1 && firstbracket < firstspace) {
                 int closebracket = line.IndexOf(')');
+                if (closebracket == -1) return;
                 if (line.Length == closebracket + 1) return; //second check, because spaces are allowed between macro arguments
 
                 macro = line.Remove(closebracket + 1);

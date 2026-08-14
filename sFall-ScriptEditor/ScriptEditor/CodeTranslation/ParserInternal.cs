@@ -83,13 +83,14 @@ namespace ScriptEditor.CodeTranslation
         {
             scrptEditor = frm as TextEditor;
             TextEditor.parserIsRunning = true; // internal parse work
+            try {
+                UpdateParseBuffer(_ti.textEditor.Text, false);
 
-            UpdateParseBuffer(_ti.textEditor.Text, false);
-
-            ProgramInfo _pi = new ProgramInfo(CountProcedures, 0);
-            _ti.parseInfo = InternalProcParse(_pi, _ti.textEditor.Text, _ti.filepath);
-
-            TextEditor.parserIsRunning = false;
+                ProgramInfo _pi = new ProgramInfo(CountProcedures, 0);
+                _ti.parseInfo = InternalProcParse(_pi, _ti.textEditor.Text, _ti.filepath);
+            } finally {
+                TextEditor.parserIsRunning = false;
+            }
         }
 
         public static ProgramInfo UpdatePI(ProgramInfo pi, string filepath)
@@ -518,7 +519,8 @@ namespace ScriptEditor.CodeTranslation
                 if (bufferSSLCode[i].EndsWith(BEGIN)) {
                     ProcedureRemoveSpec(ref bufferSSLCode[i]);
 
-                    if (!bufferSSLCode[i].StartsWith(PROCEDURE) && !bufferSSLCode[i - 1].StartsWith(PROCEDURE)) continue;
+                    if (!bufferSSLCode[i].StartsWith(PROCEDURE) &&
+                        (i == 0 || !bufferSSLCode[i - 1].StartsWith(PROCEDURE))) continue;
                     for (int j = i - 1; j >= 0; j--) {
                         if (bufferSSLCode[j].StartsWith(PROCEDURE)) {
                             return (bufferSSLCode[j].IndexOf(';') > 0) ? j + 1 : j - 1;  // имеется ли в строке знак ';'
@@ -743,7 +745,7 @@ namespace ScriptEditor.CodeTranslation
                 if (script[i].StartsWith(ParserInternal.PROCEDURE, StringComparison.OrdinalIgnoreCase)
                     || script[i].StartsWith("critical ", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (script[i + 1].StartsWith(ParserInternal.BEGIN, StringComparison.OrdinalIgnoreCase)) {
+                    if (i + 1 < script.Count && script[i + 1].StartsWith(ParserInternal.BEGIN, StringComparison.OrdinalIgnoreCase)) {
                         script[i] += '\u0020' + script[i + 1];
                         script.RemoveAt(i + 1);
                     }

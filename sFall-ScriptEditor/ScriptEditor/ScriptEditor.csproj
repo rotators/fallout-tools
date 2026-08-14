@@ -128,6 +128,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="TextEditorUI\ColorTheme.cs" />
+    <Compile Include="InterfaceTheme.cs" />
     <Compile Include="TextEditorUI\CompiledStatus.cs">
       <SubType>Form</SubType>
     </Compile>

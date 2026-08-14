@@ -44,7 +44,7 @@ namespace ScriptEditor
                     return null;
                 //Add this file to the recent files list
                 if (addToMRU) {
-                    if (!Exists && recent && MessageBox.Show("This recent file not found. Delete recent link to file?", "Open file error", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    if (!Exists && recent && MessageBox.Show("This recent file was not found. Remove it from the recent files list?", "Open file error", MessageBoxButtons.YesNo) == DialogResult.Yes)
                         recent = true;
                     else
                         recent = false; // don't delete file link from recent list
@@ -80,7 +80,7 @@ namespace ScriptEditor
                         if (seltab)
                             tabControl1.SelectTab(tab.index);
                         ShowMe();
-                        if (!alreadyOpen || MessageBox.Show("This file is already open!\nDo you want to open another one same file?", "Question",
+                        if (!alreadyOpen || MessageBox.Show("This file is already open!\nDo you want to open another copy?", "Question",
                             MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                             return tab;
                     }
@@ -164,9 +164,19 @@ namespace ScriptEditor
             tabs.Add(ti);
             TabPage tp = new TabPage(ti.filename);
             tp.ImageIndex = (ti.changed) ? 1 : 0;
-            tp.Controls.Add(te);
+            tabControl1.SuspendLayout();
+            tp.SuspendLayout();
             te.Dock = DockStyle.Fill;
+            tp.Controls.Add(te);
+
+            // Apply dark colours before the page can become visible, then apply native
+            // window theming once its handles have been created by the tab control.
+            InterfaceTheme.Apply(tp);
             tabControl1.TabPages.Add(tp);
+            InterfaceTheme.Apply(tp);
+            tp.ResumeLayout(false);
+            tabControl1.Visible = true;
+            tabControl1.ResumeLayout(true);
             if (tabControl1.TabPages.Count == 1)
                 EnableFormControls();
             if (type == OpenType.File) {
@@ -267,35 +277,30 @@ namespace ScriptEditor
                     SaveAs(tab, close);
                     return;
                 }
-                while (bwSyntaxParser.IsBusy) {
-                    System.Threading.Thread.Sleep(50); // Avoid stomping on files while the parser is running
-                    Application.DoEvents();
-                }
                 savingRunning = true;
-                bool msg = (Path.GetExtension(tab.filename) == ".msg");
+                try {
+                    bool msg = (Path.GetExtension(tab.filename) == ".msg");
 
-                if (Settings.autoTrailingSpaces && !msg) {
-                    new ICSharpCode.TextEditor.Actions.RemoveTrailingWS().Execute(currentActiveTextAreaCtrl.TextArea);
-                }
-                if (close && tab.textEditor.Document.FoldingManager.FoldMarker.Count > 0) {
-                    CodeFolder.SetProceduresCollapsed(tab.textEditor.Document, tab.filename);
-                }
-                string saveText = tab.textEditor.Text;
-                if (msg && Settings.EncCodePage.CodePage == 866) {
-                    saveText = saveText.Replace('\u0425', '\u0058'); // Replacement russian letter "X", to english letter
-                }
-                Utilities.ConvertToUnixPlatform(ref saveText);
+                    if (Settings.autoTrailingSpaces && !msg && currentTab == tab)
+                        new ICSharpCode.TextEditor.Actions.RemoveTrailingWS().Execute(tab.textEditor.ActiveTextAreaControl.TextArea);
+                    if (close && tab.textEditor.Document.FoldingManager.FoldMarker.Count > 0)
+                        CodeFolder.SetProceduresCollapsed(tab.textEditor.Document, tab.filename);
+                    string saveText = tab.textEditor.Text;
+                    if (msg && Settings.EncCodePage.CodePage == 866)
+                        saveText = saveText.Replace('\u0425', '\u0058');
+                    Utilities.ConvertToUnixPlatform(ref saveText);
 
-                tab.SaveInternal(saveText, tab.textEditor.Encoding, msg, close, tab.shouldParse);
+                    tab.SaveInternal(saveText, tab.textEditor.Encoding, msg, close, tab.shouldParse);
 
-                if (tab.changed && Settings.pathHeadersFiles != null && Path.GetExtension(tab.filename).ToLowerInvariant() == ".h" &&
-                    String.Equals(Settings.pathHeadersFiles, Path.GetDirectoryName(tab.filepath), StringComparison.OrdinalIgnoreCase)) {
-                    GetMacros.GetGlobalMacros(Settings.pathHeadersFiles);
+                    if (tab.changed && Settings.pathHeadersFiles != null && Path.GetExtension(tab.filename).ToLowerInvariant() == ".h" &&
+                        String.Equals(Settings.pathHeadersFiles, Path.GetDirectoryName(tab.filepath), StringComparison.OrdinalIgnoreCase))
+                        GetMacros.GetGlobalMacros(Settings.pathHeadersFiles);
+
+                    tab.changed = false;
+                    SetTabTextChange(tab.index);
+                } finally {
+                    savingRunning = false;
                 }
-
-                tab.changed = false;
-                SetTabTextChange(tab.index);
-                savingRunning = false;
             }
         }
 
@@ -380,6 +385,7 @@ namespace ScriptEditor
             }
             tabControl1.TabPages.RemoveAt(i);
             tabs.RemoveAt(i);
+            if (tabControl1.TabPages.Count == 0) tabControl1.Visible = false;
 
             for (int j = i; j < tabs.Count; j++) tabs[j].index--;
 
@@ -397,6 +403,7 @@ namespace ScriptEditor
         private bool Compile(TabInfo tab, out string msg, bool showMessages = true, bool preprocess = false, bool showIcon = true)
         {
             msg = String.Empty;
+            Error.ClearBuildErrorMarkers(tab);
             if (string.Compare(Path.GetExtension(tab.filename), ".ssl", true) != 0) {
                 if (showMessages) MessageBox.Show("You cannot compile this file.", "Compile Error");
                 return false;
@@ -409,6 +416,7 @@ namespace ScriptEditor
             if (tab.changed || tab.filepath == null) return false;
 
             bool success = new Compiler(roundTrip).Compile(tab.filepath, out msg, tab.buildErrors, preprocess, tab.parseInfo.ShortCircuitEvaluation);
+            Error.HighlightBuildErrors(tab);
 
             foreach (ErrorType et in new ErrorType[] { ErrorType.Error, ErrorType.Warning, ErrorType.Message })
             {
@@ -426,7 +434,7 @@ namespace ScriptEditor
             if (preprocess) return success;
 
             if (!success) {
-                parserLabel.Text = "Failed to compiled: " + tab.filename;
+                parserLabel.Text = "Failed to compile: " + tab.filename;
                 parserLabel.ForeColor = Color.Firebrick;
                 msg += "\r\n Compilation Failed! (See the output build and errors window log for details).";
                 CompileFail.Play();
@@ -442,7 +450,7 @@ namespace ScriptEditor
                 if (showMessages && showIcon)
                     new CompiledStatus(true, this).ShowCompileStatus();
                 parserLabel.Text = "Compiled: " + tab.filename + " at " + DateTime.Now.ToString("HH:mm:ss");
-                parserLabel.ForeColor = Color.DarkGreen;
+                parserLabel.ForeColor = InterfaceTheme.IsDark ? Color.FromArgb(137, 209, 133) : Color.DarkGreen;
                 msg += "\r\n Compilation Successfully!\r\n";
             }
             return success;
@@ -700,7 +708,6 @@ namespace ScriptEditor
             foreach (var s in TREEPROCEDURES) {
                 rootNode = ProcTree.Nodes.Add(s, s);
                 rootNode.ForeColor = Color.DodgerBlue;
-                rootNode.NodeFont = new Font("Arial", 9F, FontStyle.Bold, GraphicsUnit.Point);
             }
             ProcTree.Nodes[0].ToolTipText = "Procedures declared and located in headers files." + treeTipProcedure;
             ProcTree.Nodes[0].Tag = 0; // global tag
@@ -743,8 +750,7 @@ namespace ScriptEditor
                 foreach (var s in TREEVARIABLES) {
                     rootNode = VarTree.Nodes.Add(s);
                     rootNode.ForeColor = Color.DodgerBlue;
-                    rootNode.NodeFont = new Font("Arial", 9F, FontStyle.Bold, GraphicsUnit.Point);
-                }
+                    }
                 VarTree.Nodes[0].ToolTipText = "Variables declared and located in headers files." + treeTipVariable;
                 VarTree.Nodes[1].ToolTipText = "Variables declared and located in this script." + treeTipVariable;
 
@@ -811,8 +817,8 @@ namespace ScriptEditor
         // обновляет процедуры в nodes.Tag
         private void UpdateNodesTags()
         {
-            // Avoid stomping on files while the parser is running
-            while (parserIsRunning) System.Threading.Thread.Sleep(10);
+            if (parserIsRunning || currentTab == null || currentTab.parseInfo == null || ProcTree.Nodes.Count == 0)
+                return;
 
             TreeNodeCollection nodes;
             if (ProcTree.Nodes.Count > 1)
@@ -1167,18 +1173,24 @@ namespace ScriptEditor
 
             currentTab.msgFilePath = msgPath;
 
-            NodeDiagram NodesView = new NodeDiagram(currentTab);
-            NodesView.FormClosed += delegate { tabControl1.TabPages[currentTab.index].Tag = null; };
-            NodesView.ChangeNodes += delegate { ForceParseScript(); }; //Force Parse Script;
-            NodesView.Show();
-
-            tabControl1.TabPages[currentTab.index].Tag = NodesView;
-
-            this.ParserUpdatedInfo += delegate
-            {
-                if (NodesView != null)
+            TabInfo ownerTab = currentTab;
+            TabPage ownerPage = tabControl1.TabPages[ownerTab.index];
+            NodeDiagram NodesView = new NodeDiagram(ownerTab);
+            EventHandler parserUpdated = null;
+            parserUpdated = delegate {
+                if (!NodesView.IsDisposed && LastParserUpdatedTab == ownerTab)
                     NodesView.NeedUpdate = true;
             };
+            NodesView.FormClosed += delegate {
+                if (ownerPage.Tag == NodesView)
+                    ownerPage.Tag = null;
+                ParserUpdatedInfo -= parserUpdated;
+            };
+            NodesView.ChangeNodes += delegate { ForceParseScript(ownerTab); };
+            NodesView.Show();
+
+            ownerPage.Tag = NodesView;
+            ParserUpdatedInfo += parserUpdated;
         }
 
         private void previewDialogToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1237,23 +1249,25 @@ namespace ScriptEditor
 
             ScriptEditor.TextEditorUI.Function.DialogFunctionsRules.BuildOpcodesDictionary();
 
-            FlowchartTE nodeEditor = new FlowchartTE(proc, currentTab);
-            nodeEditor.Disposed += delegate(object s, EventArgs e1) { currentTab.nodeFlowchartTE.Remove((FlowchartTE)s); };
-            nodeEditor.ApplyCode += new EventHandler<FlowchartTE.CodeArgs>(nodeEditor_ApplyCode);
+            TabInfo ownerTab = currentTab;
+            FlowchartTE nodeEditor = new FlowchartTE(proc, ownerTab);
+            nodeEditor.Disposed += delegate(object s, EventArgs e1) { ownerTab.nodeFlowchartTE.Remove((FlowchartTE)s); };
+            nodeEditor.ApplyCode += delegate(object s, FlowchartTE.CodeArgs args) { nodeEditor_ApplyCode(ownerTab, s, args); };
             nodeEditor.ShowEditor(this);
 
-            currentTab.nodeFlowchartTE.Add(nodeEditor);
+            ownerTab.nodeFlowchartTE.Add(nodeEditor);
         }
 
-        private void nodeEditor_ApplyCode(object sender, FlowchartTE.CodeArgs e)
+        private void nodeEditor_ApplyCode(TabInfo ownerTab, object sender, FlowchartTE.CodeArgs e)
         {
             if (e.Change) {
-                if (Utilities.ReplaceProcedureCode(currentDocument, currentTab.parseInfo, e.Name, e.Code)) {
+                if (ownerTab.index < 0 || ownerTab.parseInfo == null ||
+                    Utilities.ReplaceProcedureCode(ownerTab.textEditor.Document, ownerTab.parseInfo, e.Name, e.Code)) {
                     MessageBox.Show("In the source script, there is no dialog node with this name.", "Apply code error");
                     return;
                 }
                 e.Change = false;
-                ForceParseScript();
+                ForceParseScript(ownerTab);
             }
         }
         #endregion
@@ -1312,8 +1326,13 @@ namespace ScriptEditor
 
         private void SetProjectFolderText()
         {
-            tslProject.Text = "Project: " + Settings.solutionProjectFolder;
+            bool isSet = !String.IsNullOrWhiteSpace(Settings.solutionProjectFolder);
+            tslProject.Text = isSet ? "Project: " + Settings.solutionProjectFolder : "Project: Not set";
             tslProject.Enabled = true;
+            tsmUnsetProjectFolder.Enabled = isSet;
+            tslProject.ToolTipText = isSet
+                ? "Click to open the project folder in File Explorer."
+                : "No project folder is configured. Click to choose one.";
         }
         #endregion
 

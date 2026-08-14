@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace ScriptEditor.TextEditorUtilities
                     if (!ProcForm.CreateRenameForm(ref newName, "Local Variable") || newName == lvar.name)
                         return;
                     if (cTab.parseInfo.CheckExistsName(newName, NameType.LVar, lvar.fdeclared, lvar.d.declared)) {
-                        MessageBox.Show("The local variable this name already exists.", "Unable to rename");
+                        MessageBox.Show("A local variable with this name already exists.", "Unable to rename");
                         return;
                     }
                     RenameVariable(lvar, newName, RegexOptions.IgnoreCase, document); // rename only via references
@@ -39,7 +39,7 @@ namespace ScriptEditor.TextEditorUtilities
                     if (!ProcForm.CreateRenameForm(ref newName, "Script Variable") || newName == gvar.name)
                         return;
                     if (cTab.parseInfo.CheckExistsName(newName, NameType.GVar)) {
-                        MessageBox.Show("The variable/procedure or declared macro this name already exists.", "Unable to rename");
+                        MessageBox.Show("A variable, procedure, or declared macro with this name already exists.", "Unable to rename");
                         return;
                     }
                     RenameVariable(gvar, newName, RegexOptions.IgnoreCase, document); // rename only via references
@@ -59,7 +59,7 @@ namespace ScriptEditor.TextEditorUtilities
                         return;
 
                     if (cTab.parseInfo.CheckExistsName(newName, NameType.Macro)) {
-                        MessageBox.Show("The variable/procedure or declared macro this name already exists.", "Unable to rename");
+                        MessageBox.Show("A variable, procedure, or declared macro with this name already exists.", "Unable to rename");
                         return;
                     }
                     int diff = newName.Length - macros.token.Length;
@@ -170,6 +170,11 @@ namespace ScriptEditor.TextEditorUtilities
 
         private static void RenameGlobalMacros(Macro macros, string newName, TabInfo cTab, List<TabInfo> tabs, int diff)
         {
+            if (String.IsNullOrEmpty(Settings.solutionProjectFolder) || !Directory.Exists(Settings.solutionProjectFolder)) {
+                MessageBox.Show("Select a valid project folder before renaming a global macro.", "Rename global macro");
+                return;
+            }
+
             Regex s_regex = new Regex(@"\b" + macros.token + @"\b", RegexOptions.None);
 
             // preview renamed macros open scripts
@@ -196,7 +201,13 @@ namespace ScriptEditor.TextEditorUtilities
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             int isAdjustSpaces = diff;
-            cTab.DisableParseAndStatusChange = true;
+            List<TabInfo> affectedTabs = matchTabs.Values.SelectMany(v => v).Select(m => m.tab).Distinct().ToList();
+            Dictionary<TabInfo, string> originalDocuments = affectedTabs.ToDictionary(t => t, t => t.textEditor.Document.TextContent);
+            Dictionary<string, byte[]> originalFiles = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+            foreach (TabInfo tab in affectedTabs)
+                tab.DisableParseAndStatusChange = true;
+            ProgressBarForm pf = null;
+            try {
 
             int replaceLen = macros.token.Length;
 
@@ -214,25 +225,27 @@ namespace ScriptEditor.TextEditorUtilities
                 }
                 if (tab != null) {
                     var document = tab.textEditor.Document;
+                    if (File.Exists(tab.filepath) && !originalFiles.ContainsKey(tab.filepath))
+                        originalFiles.Add(tab.filepath, File.ReadAllBytes(tab.filepath));
                     if (isAdjustSpaces != 0 && string.Equals(tab.filepath, macros.fdeclared, StringComparison.OrdinalIgnoreCase)) {
                         DefineMacroAdjustSpaces(macros, document, diff);
                         isAdjustSpaces = 0;
                     }
-                    document.UndoStack.ClearAll();
                     tab.SaveInternal(document.TextContent, tab.textEditor.Encoding); // сохранить изменения в файл
                 }
             }
 
             if (matchFiles.Count == 0) {
-                cTab.DisableParseAndStatusChange = false;
                 return;
             }
             // замена в файлах проекта
-            ProgressBarForm pf = (matchFiles.Count > 100) ? new ProgressBarForm(Form.ActiveForm, matchFiles.Count, "Идет замена в файлах проекта...") : null;
+            pf = (matchFiles.Count > 100) ? new ProgressBarForm(Form.ActiveForm, matchFiles.Count, "Идет замена в файлах проекта...") : null;
 
             int total = 0;
             foreach (var fileMatches in matchFiles)
             {
+                if (File.Exists(fileMatches.Key) && !originalFiles.ContainsKey(fileMatches.Key))
+                    originalFiles.Add(fileMatches.Key, File.ReadAllBytes(fileMatches.Key));
                 string textContent = System.IO.File.ReadAllText(fileMatches.Key);
                 total += fileMatches.Value.Count;
 
@@ -249,14 +262,28 @@ namespace ScriptEditor.TextEditorUtilities
                     isAdjustSpaces = 0;
                 }
                 if (replace_count > 0) {
-                    File.WriteAllText(fileMatches.Key, textContent, (Settings.saveScriptUTF8) ? new UTF8Encoding(false) : Encoding.Default);
+                    TabInfo.WriteAllTextAtomic(fileMatches.Key, textContent, (Settings.saveScriptUTF8) ? new UTF8Encoding(false) : Encoding.Default);
                 }
                 if (pf != null) pf.IncProgress();
             }
-            if (pf != null) pf.Dispose();
-
             //MessageBox.Show(String.Format("Произведено переименование {0} макросов, в {1} файлах.", total, previewFiles.Count));
-             cTab.DisableParseAndStatusChange = false;
+            } catch (Exception ex) {
+                foreach (var original in originalFiles) {
+                    try { TabInfo.WriteAllBytesAtomic(original.Key, original.Value); }
+                    catch { }
+                }
+                foreach (var original in originalDocuments) {
+                    IDocument document = original.Key.textEditor.Document;
+                    if (document.TextContent != original.Value)
+                        document.Replace(0, document.TextLength, original.Value);
+                }
+                MessageBox.Show("The rename could not be completed. All modified files were restored.\n\n" + ex.Message,
+                                "Rename global macro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            } finally {
+                if (pf != null) pf.Dispose();
+                foreach (TabInfo tab in affectedTabs)
+                    tab.DisableParseAndStatusChange = false;
+            }
         }
 
         // insert/delete spaces in define macro
@@ -268,7 +295,10 @@ namespace ScriptEditor.TextEditorUtilities
                 offset = textContent.IndexOf(" " + newName, offset); // ищем первое определение
                 if (offset == -1 || offset >= textContent.Length) return;
 
-                char c = textContent[offset + newName.Length + 1];
+                int nameEnd = offset + newName.Length + 1;
+                if (nameEnd >= textContent.Length)
+                    return;
+                char c = textContent[nameEnd];
                 if (c != '(' && !char.IsWhiteSpace(c)) continue; // перейти к следующему поиску если имя определения макроса не заканчивается символами пробела или открыващей скобкой
 
                 if (textContent.IndexOf("#define", offset - 7, 7) != -1) break; // да, это строка определения макроса
@@ -279,7 +309,8 @@ namespace ScriptEditor.TextEditorUtilities
                 int removeCount = 0;
                 for (int i = 0; i < diff; i++)
                 {
-                    if (!Char.IsWhiteSpace(textContent[offset + i + 1])) break;
+                    int checkOffset = offset + i + 1;
+                    if (checkOffset >= textContent.Length || !Char.IsWhiteSpace(textContent[checkOffset])) break;
                     removeCount++;
                 }
                 if (removeCount > 0) textContent = textContent.Remove(offset, removeCount);
@@ -297,7 +328,8 @@ namespace ScriptEditor.TextEditorUtilities
                 int removeCount = 0;
                 for (int i = 0; i < diff; i++)
                 {
-                    if (!Char.IsWhiteSpace(document.GetCharAt(offset + i + 1))) break;
+                    int checkOffset = offset + i + 1;
+                    if (checkOffset >= document.TextLength || !Char.IsWhiteSpace(document.GetCharAt(checkOffset))) break;
                     removeCount++;
                 }
                 if (removeCount > 0) document.Remove(offset, removeCount);
@@ -355,11 +387,13 @@ namespace ScriptEditor.TextEditorUtilities
 
             // rename in other file/tab
             if (extFile) {
-                string text = File.ReadAllText(proc.fstart);
-                Utilities.ReplaceSpecialText(s_regex, ref text, newName, differ);
-                File.WriteAllText(proc.fstart, text);
-
                 TabInfo tab = TextEditor.CheckTabs(tabs, proc.fstart);
+                Encoding encoding = tab != null ? tab.textEditor.Encoding
+                                                 : (Settings.saveScriptUTF8 ? new UTF8Encoding(false) : Encoding.Default);
+                string text = File.ReadAllText(proc.fstart, encoding);
+                Utilities.ReplaceSpecialText(s_regex, ref text, newName, differ);
+                TabInfo.WriteAllTextAtomic(proc.fstart, text, encoding);
+
                 if (tab != null) {
                     Utilities.ReplaceIDocumentText(s_regex, tab.textEditor.Document, newName, differ);
                     tab.FileTime = File.GetLastWriteTime(proc.fstart);

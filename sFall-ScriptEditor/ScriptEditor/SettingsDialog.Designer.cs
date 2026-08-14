@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor {
+namespace ScriptEditor {
     partial class SettingsDialog {
         /// <summary>
         /// Required designer variable.
@@ -73,6 +73,10 @@
             this.cbFonts = new System.Windows.Forms.ComboBox();
             this.cbStorePosition = new System.Windows.Forms.CheckBox();
             this.cmbPreprocessor = new System.Windows.Forms.ComboBox();
+            this.InterfaceTheme_comboBox = new System.Windows.Forms.ComboBox();
+            this.labelScriptStyle = new System.Windows.Forms.Label();
+            this.labelInterfaceStyle = new System.Windows.Forms.Label();
+            this.labelCodeFont = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label8 = new System.Windows.Forms.Label();
@@ -96,27 +100,27 @@
             this.groupBox5.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.SuspendLayout();
-            // 
+            //
             // label1
-            // 
+            //
             label1.AutoSize = true;
             label1.Location = new System.Drawing.Point(6, 16);
             label1.Name = "label1";
             label1.Size = new System.Drawing.Size(152, 13);
             label1.TabIndex = 5;
-            label1.Text = "Compiled/Output scripts folder:";
-            // 
+            label1.Text = "Compiled/output scripts folder:";
+            //
             // label4
-            // 
+            //
             label4.AutoSize = true;
             label4.Location = new System.Drawing.Point(6, 55);
             label4.Name = "label4";
             label4.Size = new System.Drawing.Size(154, 13);
             label4.TabIndex = 11;
-            label4.Text = "Location folder of headers files:";
-            // 
+            label4.Text = "Location of header files:";
+            //
             // cbWarnings
-            // 
+            //
             this.cbWarnings.AutoSize = true;
             this.cbWarnings.Location = new System.Drawing.Point(6, 67);
             this.cbWarnings.Name = "cbWarnings";
@@ -145,7 +149,7 @@
             this.cbIncludePath.Name = "cbIncludePath";
             this.cbIncludePath.Size = new System.Drawing.Size(164, 17);
             this.cbIncludePath.TabIndex = 3;
-            this.cbIncludePath.Text = "Search Include from this path";
+            this.cbIncludePath.Text = "Search includes from this path";
             this.toolTip.SetToolTip(this.cbIncludePath, "An additional search of all necessary header files will be made from this selecte" +
                     "d directory.");
             this.cbIncludePath.UseVisualStyleBackColor = true;
@@ -174,7 +178,7 @@
             this.cbWarnFailedCompile.Size = new System.Drawing.Size(140, 17);
             this.cbWarnFailedCompile.TabIndex = 7;
             this.cbWarnFailedCompile.Text = "Show error log on failure";
-            this.toolTip.SetToolTip(this.cbWarnFailedCompile, "Show the errors log if the script compilation failed.");
+            this.toolTip.SetToolTip(this.cbWarnFailedCompile, "Show the error log if script compilation fails.");
             this.cbWarnFailedCompile.UseVisualStyleBackColor = true;
             // 
             // cbMultiThread
@@ -191,7 +195,7 @@
             // 
             this.cbAutoOpenMessages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cbAutoOpenMessages.AutoSize = true;
-            this.cbAutoOpenMessages.Location = new System.Drawing.Point(12, 315);
+            this.cbAutoOpenMessages.Location = new System.Drawing.Point(12, 365);
             this.cbAutoOpenMessages.Name = "cbAutoOpenMessages";
             this.cbAutoOpenMessages.Size = new System.Drawing.Size(113, 17);
             this.cbAutoOpenMessages.TabIndex = 9;
@@ -222,7 +226,7 @@
             // tbLanguage
             // 
             this.tbLanguage.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.tbLanguage.Location = new System.Drawing.Point(327, 313);
+            this.tbLanguage.Location = new System.Drawing.Point(327, 363);
             this.tbLanguage.MaxLength = 8;
             this.tbLanguage.Name = "tbLanguage";
             this.tbLanguage.Size = new System.Drawing.Size(72, 20);
@@ -233,7 +237,7 @@
             // 
             this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(242, 316);
+            this.label5.Location = new System.Drawing.Point(242, 366);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(82, 13);
             this.label5.TabIndex = 14;
@@ -267,7 +271,7 @@
             // cbTabsToSpaces
             // 
             this.cbTabsToSpaces.AutoSize = true;
-            this.cbTabsToSpaces.Location = new System.Drawing.Point(336, 122);
+            this.cbTabsToSpaces.Location = new System.Drawing.Point(336, 172);
             this.cbTabsToSpaces.Name = "cbTabsToSpaces";
             this.cbTabsToSpaces.Size = new System.Drawing.Size(135, 17);
             this.cbTabsToSpaces.TabIndex = 18;
@@ -323,7 +327,7 @@
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button1.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.button1.Location = new System.Drawing.Point(417, 412);
+            this.button1.Location = new System.Drawing.Point(417, 462);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(79, 23);
             this.button1.TabIndex = 24;
@@ -340,7 +344,7 @@
             this.cbParserWarn.Size = new System.Drawing.Size(71, 17);
             this.cbParserWarn.TabIndex = 30;
             this.cbParserWarn.Text = "Warnings";
-            this.toolTip.SetToolTip(this.cbParserWarn, "Show parser warnings messages.");
+            this.toolTip.SetToolTip(this.cbParserWarn, "Show parser warning messages.");
             this.cbParserWarn.UseVisualStyleBackColor = false;
             // 
             // cbCompilePath
@@ -350,8 +354,8 @@
             this.cbCompilePath.Name = "cbCompilePath";
             this.cbCompilePath.Size = new System.Drawing.Size(142, 17);
             this.cbCompilePath.TabIndex = 14;
-            this.cbCompilePath.Text = "Don\'t use compiling path";
-            this.toolTip.SetToolTip(this.cbCompilePath, "Compile scripts into same folder where source ssl file.");
+            this.cbCompilePath.Text = "Don\'t use compilation path";
+            this.toolTip.SetToolTip(this.cbCompilePath, "Compile scripts into the same folder as the source SSL file.");
             this.cbCompilePath.UseVisualStyleBackColor = true;
             this.cbCompilePath.CheckedChanged += new System.EventHandler(this.cbCompilePath_CheckedChanged);
             // 
@@ -359,14 +363,14 @@
             // 
             this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox3.Controls.Add(this.msgPathlistView);
-            this.groupBox3.Location = new System.Drawing.Point(5, 335);
+            this.groupBox3.Location = new System.Drawing.Point(5, 385);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(400, 100);
             this.groupBox3.TabIndex = 27;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Paths to Messages files";
-            this.toolTip.SetToolTip(this.groupBox3, "Additional paths to folders where the editor will search for associated message f" +
-                    "iles.");
+            this.groupBox3.Text = "Paths to message files";
+            this.toolTip.SetToolTip(this.groupBox3, "Additional folders in which the editor will search for associated message files.\r\n" +
+                    "Right-click the list to add, remove, or reorder paths.");
             // 
             // msgPathlistView
             // 
@@ -383,8 +387,8 @@
             this.msgPathlistView.ShowGroups = false;
             this.msgPathlistView.Size = new System.Drawing.Size(388, 75);
             this.msgPathlistView.TabIndex = 15;
-            this.toolTip.SetToolTip(this.msgPathlistView, "The search paths for message files. \r\n(The top path have priority over the lower " +
-                    "ones)");
+            this.toolTip.SetToolTip(this.msgPathlistView, "Search paths for message files.\r\nThe top path has priority over the paths below it.\r\n" +
+                    "Right-click this list to add, remove, or reorder paths.");
             this.msgPathlistView.UseCompatibleStateImageBehavior = false;
             this.msgPathlistView.View = System.Windows.Forms.View.Details;
             // 
@@ -444,7 +448,7 @@
             // 
             this.bAssociate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.bAssociate.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.bAssociate.Location = new System.Drawing.Point(478, 388);
+            this.bAssociate.Location = new System.Drawing.Point(478, 438);
             this.bAssociate.Name = "bAssociate";
             this.bAssociate.Size = new System.Drawing.Size(16, 16);
             this.bAssociate.TabIndex = 32;
@@ -461,7 +465,7 @@
             this.cbUserCompile.Size = new System.Drawing.Size(145, 17);
             this.cbUserCompile.TabIndex = 22;
             this.cbUserCompile.Text = "Use batch file to compile ";
-            this.toolTip.SetToolTip(this.cbUserCompile, "Compiling the script through the custom UserComp.bat batch file.");
+            this.toolTip.SetToolTip(this.cbUserCompile, "Compile scripts using the custom UserComp.bat batch file.");
             this.cbUserCompile.UseVisualStyleBackColor = true;
             this.cbUserCompile.CheckedChanged += new System.EventHandler(this.cbUserCompile_CheckedChanged);
             // 
@@ -483,11 +487,11 @@
             this.HintLang_comboBox.Items.AddRange(new object[] {
             "English",
             "Russian"});
-            this.HintLang_comboBox.Location = new System.Drawing.Point(153, 122);
+            this.HintLang_comboBox.Location = new System.Drawing.Point(153, 172);
             this.HintLang_comboBox.Name = "HintLang_comboBox";
             this.HintLang_comboBox.Size = new System.Drawing.Size(95, 21);
             this.HintLang_comboBox.TabIndex = 25;
-            this.toolTip.SetToolTip(this.HintLang_comboBox, "Language for function descriptions and help tips. (required program restart)");
+            this.toolTip.SetToolTip(this.HintLang_comboBox, "Language for function descriptions and help tips. (Program restart required.)");
             // 
             // Highlight_comboBox
             // 
@@ -497,17 +501,58 @@
             "Original",
             "F-Geck",
             "Dark"});
-            this.Highlight_comboBox.Location = new System.Drawing.Point(6, 15);
+            this.Highlight_comboBox.Location = new System.Drawing.Point(72, 15);
             this.Highlight_comboBox.Name = "Highlight_comboBox";
             this.Highlight_comboBox.Size = new System.Drawing.Size(79, 21);
             this.Highlight_comboBox.TabIndex = 28;
             this.toolTip.SetToolTip(this.Highlight_comboBox, "Syntax highlighting scheme for the script code.");
-            // 
+            //
+            // InterfaceTheme_comboBox
+            //
+            this.InterfaceTheme_comboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.InterfaceTheme_comboBox.FormattingEnabled = true;
+            this.InterfaceTheme_comboBox.Items.AddRange(new object[] {
+            "System",
+            "Light",
+            "Dark"});
+            this.InterfaceTheme_comboBox.Location = new System.Drawing.Point(242, 15);
+            this.InterfaceTheme_comboBox.Name = "InterfaceTheme_comboBox";
+            this.InterfaceTheme_comboBox.Size = new System.Drawing.Size(76, 21);
+            this.InterfaceTheme_comboBox.TabIndex = 44;
+            this.toolTip.SetToolTip(this.InterfaceTheme_comboBox, "Application interface colour scheme.");
+            //
+            // labelScriptStyle
+            //
+            this.labelScriptStyle.AutoSize = true;
+            this.labelScriptStyle.Location = new System.Drawing.Point(6, 19);
+            this.labelScriptStyle.Name = "labelScriptStyle";
+            this.labelScriptStyle.Size = new System.Drawing.Size(62, 13);
+            this.labelScriptStyle.TabIndex = 45;
+            this.labelScriptStyle.Text = "Script style:";
+            //
+            // labelInterfaceStyle
+            //
+            this.labelInterfaceStyle.AutoSize = true;
+            this.labelInterfaceStyle.Location = new System.Drawing.Point(160, 19);
+            this.labelInterfaceStyle.Name = "labelInterfaceStyle";
+            this.labelInterfaceStyle.Size = new System.Drawing.Size(78, 13);
+            this.labelInterfaceStyle.TabIndex = 46;
+            this.labelInterfaceStyle.Text = "Interface style:";
+            //
+            // labelCodeFont
+            //
+            this.labelCodeFont.AutoSize = true;
+            this.labelCodeFont.Location = new System.Drawing.Point(328, 19);
+            this.labelCodeFont.Name = "labelCodeFont";
+            this.labelCodeFont.Size = new System.Drawing.Size(58, 13);
+            this.labelCodeFont.TabIndex = 47;
+            this.labelCodeFont.Text = "Code font:";
+            //
             // cbAssociateID
-            // 
+            //
             this.cbAssociateID.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.cbAssociateID.AutoSize = true;
-            this.cbAssociateID.Location = new System.Drawing.Point(130, 315);
+            this.cbAssociateID.Location = new System.Drawing.Point(130, 365);
             this.cbAssociateID.Name = "cbAssociateID";
             this.cbAssociateID.Size = new System.Drawing.Size(100, 17);
             this.cbAssociateID.TabIndex = 33;
@@ -540,12 +585,12 @@
             this.cbAutoPaired.Size = new System.Drawing.Size(143, 17);
             this.cbAutoPaired.TabIndex = 36;
             this.cbAutoPaired.Text = "Input paired parentheses";
-            this.toolTip.SetToolTip(this.cbAutoPaired, "Automatic input paired parentheses and quotes.");
+            this.toolTip.SetToolTip(this.cbAutoPaired, "Automatically insert paired parentheses and quotation marks.");
             this.cbAutoPaired.UseVisualStyleBackColor = true;
             // 
             // tbTabSize
             // 
-            this.tbTabSize.Location = new System.Drawing.Point(454, 146);
+            this.tbTabSize.Location = new System.Drawing.Point(454, 196);
             this.tbTabSize.Maximum = new decimal(new int[] {
             30,
             0,
@@ -560,7 +605,7 @@
             this.tbTabSize.Size = new System.Drawing.Size(40, 20);
             this.tbTabSize.TabIndex = 34;
             this.tbTabSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.toolTip.SetToolTip(this.tbTabSize, "default: 3");
+            this.toolTip.SetToolTip(this.tbTabSize, "Default: 3");
             this.tbTabSize.Value = new decimal(new int[] {
             3,
             0,
@@ -576,13 +621,13 @@
             this.cbDebug.Size = new System.Drawing.Size(58, 17);
             this.cbDebug.TabIndex = 23;
             this.cbDebug.Text = "Debug";
-            this.toolTip.SetToolTip(this.cbDebug, "Show additional debug information of optimization when compiling script.");
+            this.toolTip.SetToolTip(this.cbDebug, "Show additional optimization debug information when compiling a script.");
             this.cbDebug.UseVisualStyleBackColor = true;
             // 
             // cbShowTips
             // 
             this.cbShowTips.AutoSize = true;
-            this.cbShowTips.Location = new System.Drawing.Point(11, 123);
+            this.cbShowTips.Location = new System.Drawing.Point(11, 173);
             this.cbShowTips.Name = "cbShowTips";
             this.cbShowTips.Size = new System.Drawing.Size(72, 17);
             this.cbShowTips.TabIndex = 39;
@@ -594,12 +639,12 @@
             // cbShortDesc
             // 
             this.cbShortDesc.AutoSize = true;
-            this.cbShortDesc.Location = new System.Drawing.Point(11, 146);
+            this.cbShortDesc.Location = new System.Drawing.Point(11, 196);
             this.cbShortDesc.Name = "cbShortDesc";
             this.cbShortDesc.Size = new System.Drawing.Size(110, 17);
             this.cbShortDesc.TabIndex = 40;
             this.cbShortDesc.Text = "Short descriptions";
-            this.toolTip.SetToolTip(this.cbShortDesc, "Show short pop-up descriptions for opcodes.\r\n(required program restart)");
+            this.toolTip.SetToolTip(this.cbShortDesc, "Show short pop-up descriptions for opcodes.\r\n(Program restart required.)");
             this.cbShortDesc.UseVisualStyleBackColor = true;
             // 
             // cbFonts
@@ -610,7 +655,7 @@
             this.cbFonts.ItemHeight = 13;
             this.cbFonts.Items.AddRange(new object[] {
             "Courier New"});
-            this.cbFonts.Location = new System.Drawing.Point(6, 42);
+            this.cbFonts.Location = new System.Drawing.Point(390, 15);
             this.cbFonts.MaxDropDownItems = 10;
             this.cbFonts.Name = "cbFonts";
             this.cbFonts.Size = new System.Drawing.Size(79, 21);
@@ -622,7 +667,7 @@
             // cbStorePosition
             // 
             this.cbStorePosition.AutoSize = true;
-            this.cbStorePosition.Location = new System.Drawing.Point(153, 149);
+            this.cbStorePosition.Location = new System.Drawing.Point(153, 199);
             this.cbStorePosition.Name = "cbStorePosition";
             this.cbStorePosition.Size = new System.Drawing.Size(109, 17);
             this.cbStorePosition.TabIndex = 44;
@@ -659,7 +704,7 @@
             this.groupBox1.Controls.Add(this.cbWarnFailedCompile);
             this.groupBox1.Controls.Add(this.label6);
             this.groupBox1.Controls.Add(this.cbOptimize);
-            this.groupBox1.Location = new System.Drawing.Point(5, 4);
+            this.groupBox1.Location = new System.Drawing.Point(5, 54);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(319, 112);
             this.groupBox1.TabIndex = 22;
@@ -680,7 +725,7 @@
             this.groupBox2.Controls.Add(this.bChange);
             this.groupBox2.Controls.Add(this.bScriptsH);
             this.groupBox2.Controls.Add(label4);
-            this.groupBox2.Location = new System.Drawing.Point(6, 165);
+            this.groupBox2.Location = new System.Drawing.Point(6, 218);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(496, 139);
             this.groupBox2.TabIndex = 23;
@@ -726,7 +771,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(254, 127);
+            this.label2.Location = new System.Drawing.Point(254, 177);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(55, 13);
             this.label2.TabIndex = 26;
@@ -738,7 +783,7 @@
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label3.Location = new System.Drawing.Point(422, 389);
+            this.label3.Location = new System.Drawing.Point(422, 439);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(55, 12);
             this.label3.TabIndex = 29;
@@ -749,7 +794,7 @@
             // 
             this.groupBox4.Controls.Add(this.cbParserWarn);
             this.groupBox4.Controls.Add(this.cbEnableParser);
-            this.groupBox4.Location = new System.Drawing.Point(330, 4);
+            this.groupBox4.Location = new System.Drawing.Point(330, 54);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(172, 40);
             this.groupBox4.TabIndex = 31;
@@ -761,7 +806,7 @@
             this.groupBox5.Controls.Add(this.cbNonColor);
             this.groupBox5.Controls.Add(this.cbAutoPaired);
             this.groupBox5.Controls.Add(this.cbAutocomplete);
-            this.groupBox5.Location = new System.Drawing.Point(330, 48);
+            this.groupBox5.Location = new System.Drawing.Point(330, 98);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(172, 68);
             this.groupBox5.TabIndex = 38;
@@ -771,7 +816,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(315, 150);
+            this.label7.Location = new System.Drawing.Point(315, 200);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(133, 13);
             this.label7.TabIndex = 42;
@@ -781,19 +826,23 @@
             // 
             this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.groupBox6.Controls.Add(this.Highlight_comboBox);
+            this.groupBox6.Controls.Add(this.InterfaceTheme_comboBox);
             this.groupBox6.Controls.Add(this.cbFonts);
-            this.groupBox6.Location = new System.Drawing.Point(411, 310);
+            this.groupBox6.Controls.Add(this.labelScriptStyle);
+            this.groupBox6.Controls.Add(this.labelInterfaceStyle);
+            this.groupBox6.Controls.Add(this.labelCodeFont);
+            this.groupBox6.Location = new System.Drawing.Point(6, 4);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(91, 72);
+            this.groupBox6.Size = new System.Drawing.Size(496, 48);
             this.groupBox6.TabIndex = 43;
             this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "SSL Schema";
+            this.groupBox6.Text = "Editor theme";
             // 
             // SettingsDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(506, 441);
+            this.ClientSize = new System.Drawing.Size(506, 491);
             this.Controls.Add(this.cbStorePosition);
             this.Controls.Add(this.cbShowTips);
             this.Controls.Add(this.groupBox6);
@@ -901,5 +950,9 @@
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.CheckBox cbStorePosition;
         private System.Windows.Forms.ComboBox cmbPreprocessor;
+        private System.Windows.Forms.ComboBox InterfaceTheme_comboBox;
+        private System.Windows.Forms.Label labelScriptStyle;
+        private System.Windows.Forms.Label labelInterfaceStyle;
+        private System.Windows.Forms.Label labelCodeFont;
     }
 }

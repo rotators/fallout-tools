@@ -45,10 +45,12 @@ namespace ScriptEditor.TextEditorUtilities
                 psi.UseShellExecute = false;
                 psi.CreateNoWindow = true;
                 psi.WorkingDirectory = Settings.ResourcesFolder;
-                Process wp = Process.Start(psi);
-                wp.WaitForExit(1000);
-                success = (wp.ExitCode == 0);
-                wp.Dispose();
+                using (Process wp = Process.Start(psi)) {
+                    if (wp != null) {
+                        wp.WaitForExit();
+                        success = wp.ExitCode == 0;
+                    }
+                }
 
                 if (success) {
                     file = Settings.scriptTempPath + @"\" + sFile;

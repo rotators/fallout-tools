@@ -15,6 +15,7 @@ namespace ScriptEditor.TextEditorUI
     {                                //@"\[\w+\]\s*\<([^\>]+)\>\s*\:(\-?\d+):?(\-?\d+)?\:\s*(.*)"
         private const string pattern = @"(\[\w+\])?\s*\<?([^\>?]+)\>?\s*\:(\-?\d+):?(\-?\d+|\s\w+)?\:\s*(.*)";
         private const string pattern2 = @"\w+\s*([^\>?]+):\s*(\d+):";
+        private static readonly System.Drawing.Color BuildErrorColor = System.Drawing.Color.OrangeRed;
 
         public ErrorType type = ErrorType.None;
         public string message;
@@ -155,35 +156,86 @@ namespace ScriptEditor.TextEditorUI
 
             foreach (TextMarker m in marker)
             {
-                if (m.TextMarkerType == TextMarkerType.WaveLine)
+                if (m.TextMarkerType == TextMarkerType.WaveLine && m.Color.ToArgb() != BuildErrorColor.ToArgb())
                     tab.textEditor.Document.MarkerStrategy.RemoveMarker(m);
             }
 
             if (tab.parserErrors.Count > 0) tab.parserErrors.Clear();
         }
 
+        public static void ClearBuildErrorMarkers(TabInfo tab)
+        {
+            if (tab == null || tab.textEditor == null) return;
+
+            List<TextMarker> markers = tab.textEditor.Document.MarkerStrategy.TextMarker.ToList();
+            bool removed = false;
+            foreach (TextMarker marker in markers) {
+                if (marker.TextMarkerType == TextMarkerType.WaveLine && marker.Color.ToArgb() == BuildErrorColor.ToArgb()) {
+                    tab.textEditor.Document.MarkerStrategy.RemoveMarker(marker);
+                    removed = true;
+                }
+            }
+            if (removed) tab.textEditor.Refresh();
+        }
+
+        public static void HighlightBuildErrors(TabInfo tab)
+        {
+            ClearBuildErrorMarkers(tab);
+            if (tab == null || tab.filepath == null) return;
+
+            foreach (Error error in tab.buildErrors) {
+                if (error.type != ErrorType.Error || error.line < 1 || String.IsNullOrEmpty(error.fileName)) continue;
+
+                bool sameFile;
+                try {
+                    sameFile = Path.IsPathRooted(error.fileName)
+                        ? String.Equals(Path.GetFullPath(error.fileName), Path.GetFullPath(tab.filepath), StringComparison.OrdinalIgnoreCase)
+                        : String.Equals(Path.GetFileName(error.fileName), tab.filename, StringComparison.OrdinalIgnoreCase);
+                } catch {
+                    sameFile = String.Equals(Path.GetFileName(error.fileName), tab.filename, StringComparison.OrdinalIgnoreCase);
+                }
+
+                if (sameFile)
+                    AddWaveMarker(tab, GetBuildErrorMarkerLine(tab, error), error.message, BuildErrorColor);
+            }
+            tab.textEditor.Refresh();
+        }
+
+        private static int GetBuildErrorMarkerLine(TabInfo tab, Error error)
+        {
+            int lastLine = Math.Max(0, tab.textEditor.Document.TotalNumberOfLines - 1);
+            int reportedLine = Math.Max(0, Math.Min(error.line - 1, lastLine));
+            if (reportedLine == 0 || String.IsNullOrEmpty(error.message)) return reportedLine;
+
+            bool lookaheadError = error.message.StartsWith("Assignment operator expected", StringComparison.OrdinalIgnoreCase)
+                || error.message.StartsWith("Unknown name identifier", StringComparison.OrdinalIgnoreCase);
+            if (!lookaheadError) return reportedLine;
+
+            LineSegment previous = tab.textEditor.Document.GetLineSegment(reportedLine - 1);
+            string previousText = tab.textEditor.Document.GetText(previous).Trim();
+            return Regex.IsMatch(previousText, @"(?:^|[;{}])\s*[A-Za-z_][A-Za-z0-9_]*\s*;?\s*$") ? reportedLine - 1 : reportedLine;
+        }
+
         private static void HighlightError(string error, TabInfo tab)
         {
             Match m = Regex.Match(error, pattern);
-            Error ePosition = new Error(m.Groups[3].Value, m.Groups[4].Value);
+            int parserLine;
+            if (!m.Success || !Int32.TryParse(m.Groups[3].Value, out parserLine)) return;
+
+            int parserColumn;
+            if (!Int32.TryParse(m.Groups[4].Value, out parserColumn)) parserColumn = 0;
+            Error ePosition = new Error(parserLine - 1, -1) { column = parserColumn - 1 };
             string message = m.Groups[5].Value.TrimEnd();
             string fpath = m.Groups[2].Value;
 
             int total = tab.textEditor.Document.TotalNumberOfLines;
+            if (ePosition.line < 0) ePosition.line = 0;
             if (ePosition.line >= total)
                 ePosition.line = total - 1;
 
-            if (TextEditor.parsingErrors && Path.GetFileName(fpath) == tab.filename) {
-                LineSegment ls = tab.textEditor.Document.GetLineSegment(ePosition.line);
-                List<TextMarker> markers = tab.textEditor.Document.MarkerStrategy.GetMarkers(ls.Offset);
-                if (markers.Count > 0) {
-                    markers[0].ToolTip += Environment.NewLine + message;
-                } else {
-                    TextMarker tm = new TextMarker(ls.Offset, ls.Length, TextMarkerType.WaveLine, ColorTheme.HighlightError);
-                    tm.ToolTip = message;
-                    tab.textEditor.Document.MarkerStrategy.AddMarker(tm);
-                    fpath = tab.filepath;
-                }
+            if (TextEditor.parsingErrors && String.Equals(Path.GetFileName(fpath), tab.filename, StringComparison.OrdinalIgnoreCase)) {
+                AddWaveMarker(tab, ePosition.line, message, ColorTheme.HighlightError);
+                fpath = tab.filepath;
             }
             // add to error tab
             tab.parserErrors.Add(new Error(ErrorType.Error, message, fpath, ePosition.line + 1, ePosition.column));
@@ -192,21 +244,62 @@ namespace ScriptEditor.TextEditorUI
         private static void HighlightErrorFrom(string error, TabInfo tab)
         {
             Match m = Regex.Match(error, pattern2);
-            Error ePosition = new Error(m.Groups[2].Value, "");
+            int parserLine;
+            if (!m.Success || !Int32.TryParse(m.Groups[2].Value, out parserLine)) return;
+
+            Error ePosition = new Error(parserLine - 1, -1);
             string fpath = m.Groups[1].Value;
 
             int total = tab.textEditor.Document.TotalNumberOfLines;
+            if (ePosition.line < 0) ePosition.line = 0;
             if (ePosition.line >= total) ePosition.line = total - 1;
 
-            if (Path.GetFileName(fpath) == tab.filename) {
-                LineSegment ls = tab.textEditor.Document.GetLineSegment(ePosition.line);
+            if (String.Equals(Path.GetFileName(fpath), tab.filename, StringComparison.OrdinalIgnoreCase))
+                AddWaveMarker(tab, ePosition.line, "Error parsing the contents of the header file.", ColorTheme.HighlightIncludeError);
+        }
 
-                List<TextMarker> markers = tab.textEditor.Document.MarkerStrategy.GetMarkers(ls.Offset);
-                if (markers.Count > 0) return;
+        private static void AddWaveMarker(TabInfo tab, int line, string message, System.Drawing.Color color)
+        {
+            IDocument document = tab.textEditor.Document;
+            if (document.TextLength == 0 || document.TotalNumberOfLines == 0) return;
 
-                TextMarker tm = new TextMarker(ls.Offset, ls.Length, TextMarkerType.WaveLine, ColorTheme.HighlightIncludeError);
-                tm.ToolTip = "Error parsing the contents of the header file.";
-                tab.textEditor.Document.MarkerStrategy.AddMarker(tm);
+            line = Math.Max(0, Math.Min(line, document.TotalNumberOfLines - 1));
+            LineSegment segment = document.GetLineSegment(line);
+            int offset = segment.Offset;
+            int length = segment.Length;
+
+            if (length == 0) {
+                for (int i = line + 1; i < document.TotalNumberOfLines; i++) {
+                    LineSegment next = document.GetLineSegment(i);
+                    if (next.Length > 0) {
+                        offset = next.Offset;
+                        length = 1;
+                        break;
+                    }
+                }
+
+                if (length == 0) {
+                    for (int i = line - 1; i >= 0; i--) {
+                        LineSegment previous = document.GetLineSegment(i);
+                        if (previous.Length > 0) {
+                            offset = previous.Offset + previous.Length - 1;
+                            length = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (length == 0) return;
+
+            TextMarker marker = document.MarkerStrategy.GetMarkers(offset, length)
+                .FirstOrDefault(item => item.TextMarkerType == TextMarkerType.WaveLine && item.Color.ToArgb() == color.ToArgb());
+            if (marker == null) {
+                marker = new TextMarker(offset, length, TextMarkerType.WaveLine, color);
+                marker.ToolTip = message;
+                document.MarkerStrategy.AddMarker(marker);
+            } else if (!String.IsNullOrEmpty(message) && (marker.ToolTip == null || !marker.ToolTip.Contains(message))) {
+                marker.ToolTip = String.IsNullOrEmpty(marker.ToolTip) ? message : marker.ToolTip + Environment.NewLine + message;
             }
         }
     }

@@ -57,7 +57,7 @@ namespace ScriptEditor {
             this.ReplaceAllButton = new System.Windows.Forms.ToolStripButton();
             this.SearchHideStripButton = new System.Windows.Forms.ToolStripButton();
             this.minimizelog_button = new System.Windows.Forms.Button();
-            this.tabControl2 = new System.Windows.Forms.TabControl();
+            this.tabControl2 = new DraggableTabControl();
             this.tabPageParse = new System.Windows.Forms.TabPage();
             this.tbOutputParse = new System.Windows.Forms.TextBox();
             this.tabPageBuild = new System.Windows.Forms.TabPage();
@@ -78,7 +78,7 @@ namespace ScriptEditor {
             this.cFile = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cLine = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cMessage = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tabControl3 = new System.Windows.Forms.TabControl();
+            this.tabControl3 = new DraggableTabControl();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.ProcTree = new System.Windows.Forms.TreeView();
             this.ProcMnContext = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -207,6 +207,7 @@ namespace ScriptEditor {
             this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripDropDownButton2 = new System.Windows.Forms.ToolStripDropDownButton();
             this.tsmSetProjectFolder = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsmUnsetProjectFolder = new System.Windows.Forms.ToolStripMenuItem();
             this.Settings_ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.encodingMessagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.windowsDefaultMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -2155,6 +2156,7 @@ namespace ScriptEditor {
             this.toolStripDropDownButton2.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.Settings_ToolStripMenuItem,
             this.tsmSetProjectFolder,
+            this.tsmUnsetProjectFolder,
             this.encodingMessagesToolStripMenuItem,
             this.toolStripSeparator5,
             this.win32RenderTextToolStripMenuItem,
@@ -2186,11 +2188,18 @@ namespace ScriptEditor {
             this.tsmSetProjectFolder.Image = ((System.Drawing.Image)(resources.GetObject("tsmSetProjectFolder.Image")));
             this.tsmSetProjectFolder.Name = "tsmSetProjectFolder";
             this.tsmSetProjectFolder.Size = new System.Drawing.Size(192, 22);
-            this.tsmSetProjectFolder.Text = "Set Project folder";
-            this.tsmSetProjectFolder.ToolTipText = "Sets the path to your project folder with .ssl and .h files.\r\nУстанавливает путь " +
-    "к вашей папке проекта с .ssl и .h файлами.";
+            this.tsmSetProjectFolder.Text = "Set Project Folder";
+            this.tsmSetProjectFolder.ToolTipText = "Choose the project folder containing your .ssl and .h files.";
             this.tsmSetProjectFolder.Click += new System.EventHandler(this.tsmSetProjectFolder_Click);
-            // 
+            //
+            // tsmUnsetProjectFolder
+            //
+            this.tsmUnsetProjectFolder.Name = "tsmUnsetProjectFolder";
+            this.tsmUnsetProjectFolder.Size = new System.Drawing.Size(192, 22);
+            this.tsmUnsetProjectFolder.Text = "Unset Project Folder";
+            this.tsmUnsetProjectFolder.ToolTipText = "Remove the currently configured project folder.";
+            this.tsmUnsetProjectFolder.Click += new System.EventHandler(this.tsmUnsetProjectFolder_Click);
+            //
             // encodingMessagesToolStripMenuItem
             // 
             this.encodingMessagesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -2388,7 +2397,7 @@ namespace ScriptEditor {
             // tslProject
             // 
             this.tslProject.ActiveLinkColor = System.Drawing.Color.RoyalBlue;
-            this.tslProject.Enabled = false;
+            this.tslProject.Enabled = true;
             this.tslProject.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tslProject.IsLink = true;
             this.tslProject.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
@@ -2397,9 +2406,8 @@ namespace ScriptEditor {
             this.tslProject.MergeIndex = 1;
             this.tslProject.Name = "tslProject";
             this.tslProject.Size = new System.Drawing.Size(94, 22);
-            this.tslProject.Text = "Project:  <unset>";
-            this.tslProject.ToolTipText = "Click to open the project folder in the Explorer window.\r\nЩелкните, чтобы открыть" +
-    " папку проекта в окне Проводника.";
+            this.tslProject.Text = "Project: Not set";
+            this.tslProject.ToolTipText = "No project folder is configured. Click to choose one.";
             this.tslProject.Click += new System.EventHandler(this.tslProject_Click);
             // 
             // cmsTabControls
@@ -2688,7 +2696,7 @@ namespace ScriptEditor {
             this.formatingCodeToolStripMenuItem.Name = "formatingCodeToolStripMenuItem";
             this.formatingCodeToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F)));
             this.formatingCodeToolStripMenuItem.Size = new System.Drawing.Size(225, 22);
-            this.formatingCodeToolStripMenuItem.Text = "Formating code";
+            this.formatingCodeToolStripMenuItem.Text = "Formatting code";
             this.formatingCodeToolStripMenuItem.ToolTipText = "Formatting selected text code, inserting missing dividing spaces between arithmet" +
     "ic and logical operations.";
             this.formatingCodeToolStripMenuItem.Click += new System.EventHandler(this.formatingCodeToolStripMenuItem_Click);
@@ -2802,7 +2810,7 @@ namespace ScriptEditor {
         private System.Windows.Forms.SaveFileDialog sfdScripts;
         private DraggableTabControl tabControl1;
         private System.Windows.Forms.FolderBrowserDialog fbdMassCompile;
-        private System.Windows.Forms.TabControl tabControl2;
+        private DraggableTabControl tabControl2;
         private System.Windows.Forms.TabPage tabPageBuild;
         private System.Windows.Forms.TabPage tabPageError;
         private System.Windows.Forms.DataGridView dgvErrors;
@@ -2822,7 +2830,7 @@ namespace ScriptEditor {
         private System.Windows.Forms.ToolStripMenuItem UpperCaseToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem LowerCaseToolStripMenuItem;
         private System.Windows.Forms.ToolStrip ToolStripMain;
-        private System.Windows.Forms.TabControl tabControl3;
+        private DraggableTabControl tabControl3;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.Button minimizelog_button;
@@ -3029,6 +3037,7 @@ namespace ScriptEditor {
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator57;
         private System.Windows.Forms.FolderBrowserDialog fbdProjectFolder;
         private System.Windows.Forms.ToolStripMenuItem tsmSetProjectFolder;
+        private System.Windows.Forms.ToolStripMenuItem tsmUnsetProjectFolder;
         private System.Windows.Forms.ToolStripLabel tslProject;
         private System.Windows.Forms.ToolStripMenuItem createProcToolStripMenuItem;
     }

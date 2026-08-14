@@ -118,12 +118,15 @@ namespace ScriptEditor.TextEditorUtilities
 
                 //Check whitespace on punctuation
                 if (openCurve == 1 && closeCurve == 0 && Utilities.IsAnyChar(ch, chars)) {
-                    char chCheck = TAC.Document.TextContent[offset + 1];
+                    string text = TAC.Document.TextContent;
+                    if (offset + 1 >= text.Length)
+                        continue;
+                    char chCheck = text[offset + 1];
                     if (char.IsLetter(chCheck))
                         warning.Add(new Error(ErrorType.Message, "The whitespace character is missing.", null, offset));
 
-                    if (char.IsWhiteSpace(chCheck) && TAC.Document.TextContent[offset - 1] != chars[0] 
-                        && TAC.Document.TextContent[offset] != chars[1] && char.IsLower(TAC.Document.TextContent, offset + 2))
+                    if (offset > 0 && offset + 2 < text.Length && char.IsWhiteSpace(chCheck) && text[offset - 1] != chars[0]
+                        && text[offset] != chars[1] && char.IsLower(text, offset + 2))
                         warning.Add(new Error(ErrorType.Message, "The sentence begins with a small letter instead of the capital letter.", null, offset + 2));
                 }
 

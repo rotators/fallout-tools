@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor.TextEditorUI.Function {
+namespace ScriptEditor.TextEditorUI.Function {
     partial class FunctionsRules {
         /// <summary>
         /// Required designer variable.
@@ -112,7 +112,7 @@
             this.label.Size = new System.Drawing.Size(399, 15);
             this.label.TabIndex = 3;
             this.label.Tag = "Указание неверных данных для функции выведет программу из строя.";
-            this.label.Text = "Note: Specifying incorrect data for the function will crashing the program.";
+            this.label.Text = "Note: Incorrect function data may cause the program to crash.";
             // 
             // bHelp
             // 

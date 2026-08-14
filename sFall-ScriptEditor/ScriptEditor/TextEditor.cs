@@ -122,7 +122,10 @@ namespace ScriptEditor
             oldDecompileToolStripMenuItem.Checked = Settings.oldDecompile;
             SizeFontToString();
 
-            ofdScripts.InitialDirectory = Settings.solutionProjectFolder;
+            if (Directory.Exists(Settings.lastOpenScriptsFolder))
+                ofdScripts.InitialDirectory = Settings.lastOpenScriptsFolder;
+            else if (Directory.Exists(Settings.solutionProjectFolder))
+                ofdScripts.InitialDirectory = Settings.solutionProjectFolder;
 
             toolTips.Active = false;
             toolTips.Draw += delegate(object sender, DrawToolTipEventArgs e) { TipPainter.DrawInfo(e); };
@@ -213,6 +216,7 @@ namespace ScriptEditor
             splitContainer3.Panel1Collapsed = true;
             splitContainer2.Panel2Collapsed = true;
             splitContainer1.Panel2Collapsed = true;
+            tabControl1.Visible = tabControl1.TabPages.Count > 0;
             splitContainer2.Panel1MinSize = 300;
             splitContainer2.Panel2MinSize = 150;
             splitContainer1.SplitterDistance = Size.Height;
@@ -249,6 +253,7 @@ namespace ScriptEditor
             this.Activated += TextEditor_Activated;
             this.Deactivate += TextEditor_Deactivate;
             SingleInstanceManager.SendEditorOpenMessage();
+            InterfaceTheme.Apply(this);
         }
 
         private void TextEditor_Resize(object sender, EventArgs e)
@@ -310,10 +315,8 @@ namespace ScriptEditor
                 KeepScriptSetting(tabs[i], skip);
             }
 
-            while (bwSyntaxParser.IsBusy) {
-                System.Threading.Thread.Sleep(100); // Avoid stomping on files while the parser is running
-                Application.DoEvents();
-            }
+            if (bwSyntaxParser.IsBusy)
+                bwSyntaxParser.CancelAsync();
 
             splitContainer3.Panel1Collapsed = true;
             int dist = this.Height - (this.Height / 4) + 100;
@@ -327,7 +330,7 @@ namespace ScriptEditor
         #region Control set states
         private void InitControlEvent()
         {
-            if (Settings.solutionProjectFolder != null) SetProjectFolderText();
+            SetProjectFolderText();
 
             // Parser
             parserLabel = new ToolStripLabel((Settings.enableParser) ? "Parser: No file" : parseoff);
@@ -335,7 +338,9 @@ namespace ScriptEditor
             parserLabel.Overflow = ToolStripItemOverflow.Never;
             parserLabel.Click += delegate(object sender, EventArgs e) { ParseScript(0); };
             parserLabel.ToolTipText = "Click - Update parser data.";
-            parserLabel.TextChanged += delegate(object sender, EventArgs e) { parserLabel.ForeColor = Color.Black; };
+            parserLabel.TextChanged += delegate(object sender, EventArgs e) {
+                parserLabel.ForeColor = InterfaceTheme.IsDark ? Color.Gainsboro : SystemColors.ControlText;
+            };
             ToolStripMain.Items.Add(parserLabel);
 
             // Parser timer
@@ -560,7 +565,7 @@ namespace ScriptEditor
                 if (currentTab != null ) {
                     if (ProcTree.Nodes.Count > 0)
                         ProcTree.Nodes[0].Expand();
-                    if (tabControl3.TabPages.Count > 2 && !currentTab.parseInfo.parseData) {
+                    if (tabControl3.TabPages.Count > 2 && currentTab.parseInfo != null && !currentTab.parseInfo.parseData) {
                         tabControl3.TabPages.RemoveAt(1); // удалить вкладку Variables если нет данных
                     }
                 }
@@ -570,16 +575,20 @@ namespace ScriptEditor
                 foreach (TabInfo t in tabs)
                 {
                     t.treeExpand.Clear();
-                    if (t.shouldParse && t.parseInfo == null || !t.parseInfo.parseData)
+                    if (t.shouldParse && (t.parseInfo == null || !t.parseInfo.parseData))
                         t.needsParse = true; //for next parsing
                 }
                 if (currentTab != null) {
                     if (ProcTree.Nodes.Count > 0) {
                         ProcTree.Nodes[0].Expand();
+                    }
+                    if (ProcTree.Nodes.Count > 1) {
                         ProcTree.Nodes[1].Expand();
                     }
                     if (VarTree.Nodes.Count > 0) {
                         VarTree.Nodes[0].Expand();
+                    }
+                    if (VarTree.Nodes.Count > 1) {
                         VarTree.Nodes[1].Expand();
                     }
                     if (tabControl3.TabPages.Count < 3) {
@@ -678,7 +687,20 @@ namespace ScriptEditor
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (Directory.Exists(Settings.lastOpenScriptsFolder))
+                ofdScripts.InitialDirectory = Settings.lastOpenScriptsFolder;
+            else if (Directory.Exists(Settings.solutionProjectFolder))
+                ofdScripts.InitialDirectory = Settings.solutionProjectFolder;
+
+            ofdScripts.FileName = String.Empty;
             if (ofdScripts.ShowDialog() == DialogResult.OK) {
+                string selectedFolder = Path.GetDirectoryName(ofdScripts.FileNames[0]);
+                if (Directory.Exists(selectedFolder)) {
+                    Settings.lastOpenScriptsFolder = selectedFolder;
+                    ofdScripts.InitialDirectory = selectedFolder;
+                    Settings.Save();
+                }
+
                 foreach (string s in ofdScripts.FileNames)
                 {
                     Open(s, OpenType.File);
@@ -891,7 +913,7 @@ namespace ScriptEditor
             bool result = Compile(currentTab, out msg, true, true);
             tbOutput.Text = currentTab.buildLog = msg;
             if (!result) {
-                MessageBox.Show("Pre-processed failed! See build tab log.");
+                MessageBox.Show("Preprocessing failed. See the Build log.");
                 return;
             }
 
@@ -1085,6 +1107,7 @@ namespace ScriptEditor
         private void showLogWindowToolStripMenuItem_Click(object sender, EventArgs e)
         {
             splitContainer1.Panel2Collapsed = !(Settings.showLog = showLogWindowToolStripMenuItem.Checked);
+            if (!splitContainer1.Panel2Collapsed) InterfaceTheme.Apply(splitContainer1.Panel2);
         }
 
         private void Headers_toolStripSplitButton_ButtonClick(object sender, EventArgs e)
@@ -1252,13 +1275,10 @@ namespace ScriptEditor
                     code = code.Replace("<cr>", Environment.NewLine + space);
                 }
                 if (!currentActiveTextAreaCtrl.SelectionManager.HasSomethingSelected) {
-                    char c = currentDocument.GetCharAt(currentActiveTextAreaCtrl.Caret.Offset - 1);
-                    if (char.IsLetterOrDigit(c)) code = " " + code;
+                    int caretOffset = currentActiveTextAreaCtrl.Caret.Offset;
+                    if (IsIdentifierCharacterAt(currentDocument, caretOffset - 1)) code = " " + code;
 
-                    if (pos == -1) {
-                        c = currentDocument.GetCharAt(currentActiveTextAreaCtrl.Caret.Offset);
-                        if (char.IsLetterOrDigit(c)) code += " ";
-                    }
+                    if (pos == -1 && IsIdentifierCharacterAt(currentDocument, caretOffset)) code += " ";
                 }
                 var line = currentActiveTextAreaCtrl.Caret.Position;
                 currentActiveTextAreaCtrl.TextArea.InsertString(code);
@@ -1271,6 +1291,11 @@ namespace ScriptEditor
                 }
             } else if (Functions.NodeHitCheck(e.Location, e.Node.Bounds))
                         e.Node.Toggle();
+        }
+
+        private static bool IsIdentifierCharacterAt(IDocument document, int offset)
+        {
+            return offset >= 0 && offset < document.TextLength && char.IsLetterOrDigit(document.GetCharAt(offset));
         }
 
         private void FunctionTree_MouseMove(object sender, MouseEventArgs e)
@@ -1545,7 +1570,7 @@ namespace ScriptEditor
                 if (int.TryParse(text, out value)) {
                     if (value > 0) {
                         int offs = currentActiveTextAreaCtrl.SelectionManager.SelectionCollection[0].Offset;
-                        if (offs >= 0 && currentDocument.GetCharAt(offs - 1) == '-') {
+                        if (offs > 0 && currentDocument.GetCharAt(offs - 1) == '-') {
                             value = -value;
                             ISelection sp = currentActiveTextAreaCtrl.SelectionManager.SelectionCollection[0];
                             sp.StartPosition = new TextLocation(sp.StartPosition.Column - 1, sp.StartPosition.Line);
@@ -1572,12 +1597,19 @@ namespace ScriptEditor
             }
         }
 
+        private void tsmUnsetProjectFolder_Click(object sender, EventArgs e)
+        {
+            Settings.solutionProjectFolder = String.Empty;
+            SetProjectFolderText();
+            Settings.Save();
+        }
+
         private void tslProject_Click(object sender, EventArgs e)
         {
             if (Directory.Exists(Settings.solutionProjectFolder)) {
                 System.Diagnostics.Process.Start("explorer", Settings.solutionProjectFolder);
             } else {
-                MessageBox.Show("The project folder or path does not exist.", "Error",  MessageBoxButtons.OK, MessageBoxIcon.Error);
+                tsmSetProjectFolder_Click(sender, e);
             }
         }
 

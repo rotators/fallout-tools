@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -75,7 +75,6 @@ namespace ScriptEditor.TextEditorUI
                         int m = lines[i].IndexOf("<s>");
                         ND.ToolTipText = lines[i].Substring(n + 3, m - (n + 3));
                         ND.Tag = lines[i].Substring(m + 3, lines[i].Length - (m + 3));
-                        ND.NodeFont = new Font("Arial", 8, FontStyle.Bold);
                         ND.ForeColor = ColorTheme.TreeNameFunction;
                         switch (mNode) {
                             case -1:
@@ -139,7 +138,6 @@ namespace ScriptEditor.TextEditorUI
             var newNode = new TreeNode(name);
             newNode.ToolTipText = desc;
             newNode.Tag = code;
-            newNode.NodeFont = new Font("Arial", 8, FontStyle.Bold);
             newNode.ForeColor = ColorTheme.TreeNameFunction;
 
             pn.Nodes.Insert(index, newNode);

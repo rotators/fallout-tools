@@ -110,7 +110,10 @@ namespace ScriptEditor
             nodesCanvas.ZoomChanged += new EventHandler(CanvasZoomChanged);
             //nodesCanvas.ContextMenuStrip.Closed
 
-            scriptName = scriptProc[tabInfo.parseInfo.GetProcedureIndex("talk_p_proc")].filename;
+            int talkIndex = tabInfo.parseInfo.GetProcedureIndex("talk_p_proc");
+            scriptName = (talkIndex >= 0 && talkIndex < scriptProc.Length)
+                         ? scriptProc[talkIndex].filename
+                         : tabInfo.filename;
 
             InitData();
         }
@@ -159,6 +162,8 @@ namespace ScriptEditor
                     continue;
 
                 int index = sourceTab.parseInfo.GetProcedureIndex(name, scriptProc);
+                if (index < 0 || index >= scriptProc.Length)
+                    continue;
                 string nodeCode = Utilities.GetProcedureCode(scriptText, scriptProc[index]);
                 if (nodeCode == null)
                     continue;

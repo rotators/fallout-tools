@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
@@ -10,6 +10,7 @@ namespace ScriptEditor
 {
     public enum SavedWindows { Main, Count }
     public enum  EncodingType : byte { Default, OEM866 }
+    public enum InterfaceThemeMode : byte { System, Light, Dark }
 
     public static class Settings
     {
@@ -58,6 +59,7 @@ namespace ScriptEditor
         public static string pathScriptsHFile;
         public static string lastMassCompile;
         public static string lastSearchPath;
+        public static string lastOpenScriptsFolder;
         public static int editorSplitterPosition = -1;
         public static int editorSplitterPosition2 = -1;
         public static string language = "english";
@@ -69,6 +71,7 @@ namespace ScriptEditor
         public static bool showLog = true;
         public static byte hintsLang = 0;
         public static byte highlight = 2; // 0 = Original, 1 = FGeck, 2 = Dark
+        public static InterfaceThemeMode interfaceTheme = InterfaceThemeMode.Light;
         public static byte encoding = (byte)EncodingType.Default; // 0 = DEFAULT, 1 = DOS(cp866)
         public static bool allowDefine = false;
         public static bool parserWarn = true;
@@ -295,6 +298,17 @@ namespace ScriptEditor
 
                     temp = br.ReadString();
                     if (temp.Length > 0) solutionProjectFolder = temp;
+
+                    if (br.BaseStream.Position < br.BaseStream.Length) {
+                        byte theme = br.ReadByte();
+                        if (theme <= (byte)InterfaceThemeMode.Dark)
+                            interfaceTheme = (InterfaceThemeMode)theme;
+                    }
+
+                    if (br.BaseStream.Position < br.BaseStream.Length) {
+                        temp = br.ReadString();
+                        if (temp.Length > 0) lastOpenScriptsFolder = temp;
+                    }
                 } catch {
                     MessageBox.Show("An error occurred while reading configuration file.\n"
                                     + "File setting.dat may be in wrong format.", "Setting read error");
@@ -464,6 +478,8 @@ namespace ScriptEditor
             bw.Write(searchIgnoreCase);
             bw.Write(searchWholeWord);
             bw.Write(solutionProjectFolder ?? "");
+            bw.Write((byte)interfaceTheme);
+            bw.Write(lastOpenScriptsFolder ?? "");
             bw.Close();
 
             // Recent files

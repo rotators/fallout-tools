@@ -218,7 +218,11 @@ namespace ScriptEditor.CodeTranslation
 
         private string ParseName(byte[] namelist, int name)
         {
+            if (namelist == null || name < 6 || name - 5 >= namelist.Length)
+                throw new InvalidDataException("The parser returned an invalid name offset.");
             int strlen = (namelist[name - 5] << 8) + namelist[name - 6];
+            if (name - 4 < 0 || name - 4 + strlen > namelist.Length)
+                throw new InvalidDataException("The parser returned an invalid name length.");
             return Encoding.ASCII.GetString(namelist, name - 4, strlen).TrimEnd('\0');
         }
 
@@ -241,8 +245,8 @@ namespace ScriptEditor.CodeTranslation
          TryPass:
                 int x = line.IndexOf(ParserInternal.VARIABLE + vName, y);
                 if (x > -1) {
-                    char c = line[x + len];
-                    if (c == '_' || Char.IsLetterOrDigit(c)) {
+                    int tokenEnd = x + len;
+                    if (tokenEnd < line.Length && (line[tokenEnd] == '_' || Char.IsLetterOrDigit(line[tokenEnd]))) {
                         line = line.Remove(x, len);
                         goto TryPass;
                     }

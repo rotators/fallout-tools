@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -178,10 +179,12 @@ namespace ScriptEditor.CodeTranslation
         public void BuildDictionaries()
         {
             for (int i = 0; i < procs.Length; i++) {
-                procLookup[procs[i].Name] = procs[i];
+                if (procs[i] != null && !String.IsNullOrEmpty(procs[i].name))
+                    procLookup[procs[i].Name] = procs[i];
             }
             for (int i = 0; i < vars.Length; i++) {
-                varLookup[vars[i].name.ToLowerInvariant()] = vars[i];
+                if (vars[i] != null && !String.IsNullOrEmpty(vars[i].name))
+                    varLookup[vars[i].name.ToLowerInvariant()] = vars[i];
             }
         }
 
@@ -189,7 +192,8 @@ namespace ScriptEditor.CodeTranslation
         {
             procLookup.Clear();
             for (int i = 0; i < procs.Length; i++)
-                procLookup.Add(procs[i].Name, procs[i]);
+                if (procs[i] != null && !String.IsNullOrEmpty(procs[i].name))
+                    procLookup[procs[i].Name] = procs[i];
         }
 
         public ProgramInfo(int procs, int vars)
@@ -199,6 +203,61 @@ namespace ScriptEditor.CodeTranslation
             procLookup = new Dictionary<string, Procedure>(procs);
             varLookup = new Dictionary<string, Variable>(vars);
             macros = new SortedDictionary<string, Macro>();
+        }
+
+        public ProgramInfo CreateSnapshot()
+        {
+            ProgramInfo copy = new ProgramInfo(procs.Length, vars.Length);
+            copy.parsed = parsed;
+            copy.parseData = parseData;
+            copy.parseError = parseError;
+            copy.reParseData = reParseData;
+
+            for (int i = 0; i < vars.Length; i++)
+                copy.vars[i] = CloneVariable(vars[i]);
+            for (int i = 0; i < procs.Length; i++) {
+                Procedure source = procs[i];
+                if (source == null)
+                    continue;
+                Procedure target = new Procedure();
+                target.name = source.name;
+                target.fdeclared = source.fdeclared;
+                target.fstart = source.fstart;
+                target.filename = source.filename;
+                target.d = source.d;
+                target.references = CloneReferences(source.references);
+                target.variables = source.variables == null ? new Variable[0] : source.variables.Select(CloneVariable).ToArray();
+                copy.procs[i] = target;
+            }
+            foreach (KeyValuePair<string, Macro> macro in macros)
+                copy.macros.Add(macro.Key, macro.Value);
+            copy.BuildDictionaries();
+            return copy;
+        }
+
+        private static Variable CloneVariable(Variable source)
+        {
+            if (source == null)
+                return null;
+            return new Variable {
+                name = source.name,
+                fdeclared = source.fdeclared,
+                filename = source.filename,
+                d = source.d,
+                references = CloneReferences(source.references),
+                initialValue = source.initialValue,
+                adeclared = source.adeclared
+            };
+        }
+
+        private static Reference[] CloneReferences(Reference[] source)
+        {
+            if (source == null)
+                return new Reference[0];
+            Reference[] copy = new Reference[source.Length];
+            for (int i = 0; i < source.Length; i++)
+                copy[i] = source[i] == null ? null : new Reference(source[i].file, source[i].line);
+            return copy;
         }
 
         public bool ProcedureIsExist(string name)
@@ -215,7 +274,7 @@ namespace ScriptEditor.CodeTranslation
         {
             for (int i = 0; i < proc.Length;  i++)
             {
-                if (proc[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                if (proc[i] != null && proc[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                     return i;
             }
             return -1;
@@ -368,11 +427,11 @@ namespace ScriptEditor.CodeTranslation
 
         public List<string> LookupAutosuggest(string part)
         {
-            //FIXED: возникает ошибка "коллекция была изменена после создания экземпляра перечислителя"
-            while (TextEditor.parserIsRunning)
-                System.Threading.Thread.Sleep(50); //Avoid stomping on files while the parser is running
-
             List<string> matches = LookupOpcode(part);
+            // Dynamic parser dictionaries are replaced after the background parse completes.
+            // While parsing, return the stable opcode suggestions instead of blocking the UI.
+            if (TextEditor.parserIsRunning)
+                return matches;
             part = part.ToLowerInvariant();
             foreach (var entry in new Dictionary<string, Procedure>(procLookup)) {
                 if (entry.Key.IndexOf(part) == 0) {

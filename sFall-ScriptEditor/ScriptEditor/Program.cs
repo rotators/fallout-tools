@@ -30,6 +30,7 @@ namespace ScriptEditor
                 // run only Messages editor
                 printLog("Run only message editor...");
                 Settings.Load();
+                InterfaceTheme.Start();
                 MessageEditor me = new MessageEditor(args[0].ToString());
                 Application.Run(me);
             } else {
@@ -38,6 +39,7 @@ namespace ScriptEditor
                     File.Delete("sse.log");    
                     printLog("Run main editor...");                 
                     Settings.Load();
+                    InterfaceTheme.Start();
                     // pass arguments of command line to opening
                     TextEditor te = new TextEditor(args);
                     Application.Run(te);

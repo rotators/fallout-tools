@@ -14,6 +14,18 @@ namespace ScriptEditor
         private int completed;
         string[][] _lock;
 
+        private sealed class BatchResult
+        {
+            internal readonly string File;
+            internal readonly string Error;
+
+            internal BatchResult(string file, string error = null)
+            {
+                File = file;
+                Error = error;
+            }
+        }
+
         private BatchCompiler(string[] files)
         {
             InitializeComponent();
@@ -66,18 +78,23 @@ namespace ScriptEditor
                     e.Cancel = true;
                     break;
                 }
-                if (new Compiler(false).Compile(s, out unused, null, false, Settings.shortCircuit, true))
-                    failed = 0;
-                else
+                string error = null;
+                try {
+                    failed = new Compiler(false).Compile(s, out unused, null, false, Settings.shortCircuit, true) ? 0 : 1;
+                } catch (Exception ex) {
                     failed = 1;
-                worker.ReportProgress(failed, s);
+                    error = ex.Message;
+                }
+                worker.ReportProgress(failed, new BatchResult(s, error));
             }
         }
 
         void BatchCompiler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            if (e.Error != null)
+                textBox.Text += "Compiler worker error: " + e.Error.Message + "\r\n";
             if (++completed == workers.Length) {
-                int skipped = (bCancel.Enabled) ? found - (failed + compiled) : 0;
+                int skipped = Math.Max(0, found - (failed + compiled));
                 bCancel.Visible = false;
                 bClose.Visible = true;
                 textBox.Text += String.Format("--------------------\r\n{0} successfully compiled.\r\n{1} failed to compile.\r\n{2} skipped.", compiled, failed, skipped);
@@ -86,11 +103,18 @@ namespace ScriptEditor
 
         void BatchCompiler_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            BatchResult result = e.UserState as BatchResult;
+            if (result == null)
+                return;
+
             progressBar1.Value++;
             if (e.ProgressPercentage == 1) {
                 failed++;
                 label1.Text = "Failed count: " + failed;
-                textBox.Text += "Failed: " + System.IO.Path.GetFileName(e.UserState.ToString()) + "\r\n";
+                textBox.Text += "Failed: " + System.IO.Path.GetFileName(result.File);
+                if (!String.IsNullOrEmpty(result.Error))
+                    textBox.Text += " (" + result.Error + ")";
+                textBox.Text += "\r\n";
             } else
                 compiled++;
         }

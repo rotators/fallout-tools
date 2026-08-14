@@ -350,7 +350,8 @@ namespace ScriptEditor.TextEditorUI.CompleteList
                         caret--;
                     //else if (e.KeyCode == Keys.Right)
                     //    caret++;
-                    if (!TextUtilities.IsLetterDigitOrUnderscore(TAC.Document.GetCharAt(caret)))
+                    if (caret < 0 || caret >= TAC.Document.TextLength ||
+                        !TextUtilities.IsLetterDigitOrUnderscore(TAC.Document.GetCharAt(caret)))
                         Close();
             }
         }

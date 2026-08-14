@@ -110,9 +110,10 @@ namespace ScriptEditor.TextEditorUtilities
                                 linecode[i] = linecode[i].Insert(n + 2, space);
                             else {
                                 if (linecode[i].IndexOfAny(excludeR, n + 1, 1) == -1) {
-                                    if ((p == "-" && Char.IsDigit(linecode[i], n + 1)
-                                    && linecode[i].IndexOfAny(excludeD, n - 1, 1) != -1) == false               // check NegDigit
-                                    && ((p == "+" || p == "-") && linecode[i][n - 1].ToString() == p) == false) // check '++/--'
+                                    bool negativeNumber = p == "-" && Char.IsDigit(linecode[i], n + 1) &&
+                                                          (n == 0 || linecode[i].IndexOfAny(excludeD, n - 1, 1) != -1);
+                                    bool doubledOperator = n > 0 && (p == "+" || p == "-") && linecode[i][n - 1].ToString() == p;
+                                    if (!negativeNumber && !doubledOperator)
                                         linecode[i] = linecode[i].Insert(n + 1, space);
                                 }
                             }
@@ -123,9 +124,10 @@ namespace ScriptEditor.TextEditorUtilities
                                 linecode[i] = linecode[i].Insert(n, space);
                             else {
                                 if (linecode[i].IndexOfAny(excludeL, n - 1, 1) == -1) {
-                                    if ((p == "-" && Char.IsDigit(linecode[i], n + 1)
+                                    bool hasNext = n + 1 < linecode[i].Length;
+                                    if ((p == "-" && hasNext && Char.IsDigit(linecode[i], n + 1)
                                         && linecode[i][n - 1] == '(') == false                                      // check NegDigit
-                                        && ((p == "+" || p == "-") && linecode[i][n + 1].ToString() == p) == false) // check '++/--'
+                                        && ((p == "+" || p == "-") && hasNext && linecode[i][n + 1].ToString() == p) == false) // check '++/--'
                                         linecode[i] = linecode[i].Insert(n, space);
                                 }
                             }
@@ -558,6 +560,8 @@ namespace ScriptEditor.TextEditorUtilities
 
             HighlightColor hc = TAC.Document.GetLineSegment(position.Line).GetColorForPosition(position.Column);
             if (hc != null && hc.BackgroundColor == ColorTheme.CodeFunctions) {
+                if (TAC.Caret.Offset < 0 || TAC.Caret.Offset >= TAC.Document.TextLength)
+                    return;
                 int sEnd  = TextUtilities.SearchBracketForward(TAC.Document, TAC.Caret.Offset + 1, '{', '}');
                 char c = TAC.Document.GetCharAt(TAC.Caret.Offset);
                 if (sEnd == -1) {

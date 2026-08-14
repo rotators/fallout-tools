@@ -524,8 +524,8 @@ namespace ScriptEditor
                     }
                 }
                 if (!inQuotes) {
-                    char chR = currentDocument.GetCharAt(caret.Offset);
-                    char chL = currentDocument.GetCharAt(caret.Offset - 1);
+                    char chR = (caret.Offset < currentDocument.TextLength) ? currentDocument.GetCharAt(caret.Offset) : ' ';
+                    char chL = (caret.Offset > 0) ? currentDocument.GetCharAt(caret.Offset - 1) : ' ';
                     if ((chL == '(' && chR == ')') || (chL != '"' && (chR == ' ' || chR == '\r') && !Char.IsLetterOrDigit(chL)))
                         currentDocument.Insert(caret.Offset, "\"");
                     else if (chL == '"' && chR == '"')
@@ -536,7 +536,7 @@ namespace ScriptEditor
                 if (autoComplete.IsVisible) autoComplete.Close();
                 if (e.KeyChar == '{') return;
 
-                if (Settings.showTips && currentTab.parseInfo != null && e.KeyChar == '(') {
+                if (Settings.showTips && currentTab.parseInfo != null && e.KeyChar == '(' && caret.Offset > 0) {
                     string word = TextUtilities.GetWordAt(currentDocument, caret.Offset - 1);
                     if (word != String.Empty) {
                         string item = ProgramInfo.LookupOpcodesToken(word);
@@ -552,7 +552,7 @@ namespace ScriptEditor
                     }
                 }
 
-                if (Settings.autoInputPaired && Char.IsWhiteSpace(currentDocument.GetCharAt(caret.Offset))) {
+                if (Settings.autoInputPaired && (caret.Offset >= currentDocument.TextLength || Char.IsWhiteSpace(currentDocument.GetCharAt(caret.Offset)))) {
                     inputPairedBrackets = 2;
                     string bracket = (e.KeyChar == '[') ? "]" : ")";
                     currentDocument.Insert(caret.Offset, bracket);
@@ -563,7 +563,8 @@ namespace ScriptEditor
 
                 if (Settings.autoInputPaired && inputPairedBrackets > 0) {
                     char bracket = (e.KeyChar == ']') ? '[' : '(';
-                    if (currentDocument.GetCharAt(caret.Offset -1) == bracket && currentDocument.GetCharAt(caret.Offset) == e.KeyChar) {
+                    if (caret.Offset > 0 && caret.Offset < currentDocument.TextLength &&
+                        currentDocument.GetCharAt(caret.Offset - 1) == bracket && currentDocument.GetCharAt(caret.Offset) == e.KeyChar) {
                         currentDocument.Remove(caret.Offset, 1);
                         // TODO BUG: В контроле баг при использовании TextBuffer - стирается строка символов.
                         //currentDocument.TextBufferStrategy.Remove(caret.Offset, 1);
