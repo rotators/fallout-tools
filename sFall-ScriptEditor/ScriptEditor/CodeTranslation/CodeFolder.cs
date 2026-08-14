@@ -88,5 +88,63 @@ namespace ScriptEditor.CodeTranslation
                 fm.IsFolded = Settings.ScriptProcedureIsFold(nameScript, fm.FoldText.Trim());
             }
         }
+
+        internal static bool HasProcedure(IDocument document, bool? folded = null)
+        {
+            foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
+                if (marker.FoldType == FoldType.MemberBody &&
+                    (!folded.HasValue || marker.IsFolded == folded.Value))
+                    return true;
+            }
+            return false;
+        }
+
+        internal static bool HasProcedureAtLine(IDocument document, int line)
+        {
+            return FindProcedureAtLine(document, line) != null;
+        }
+
+        internal static void SetAllProceduresFolded(IDocument document, bool folded)
+        {
+            bool changed = false;
+            foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
+                if (marker.FoldType != FoldType.MemberBody || marker.IsFolded == folded)
+                    continue;
+                marker.IsFolded = folded;
+                changed = true;
+            }
+            if (changed)
+                document.FoldingManager.NotifyFoldingsChanged(null);
+        }
+
+        internal static bool CollapseAllExceptProcedure(IDocument document, int line)
+        {
+            FoldMarker activeProcedure = FindProcedureAtLine(document, line);
+            if (activeProcedure == null)
+                return false;
+
+            bool changed = false;
+            foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
+                if (marker.FoldType != FoldType.MemberBody)
+                    continue;
+                bool shouldFold = !object.ReferenceEquals(marker, activeProcedure);
+                if (marker.IsFolded == shouldFold)
+                    continue;
+                marker.IsFolded = shouldFold;
+                changed = true;
+            }
+            if (changed)
+                document.FoldingManager.NotifyFoldingsChanged(null);
+            return true;
+        }
+
+        private static FoldMarker FindProcedureAtLine(IDocument document, int line)
+        {
+            foreach (FoldMarker marker in document.FoldingManager.FoldMarker) {
+                if (marker.FoldType == FoldType.MemberBody && line >= marker.StartLine && line <= marker.EndLine)
+                    return marker;
+            }
+            return null;
+        }
     }
 }

@@ -1,8 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Windows.Forms;
 using System.IO;
 
@@ -13,12 +13,15 @@ namespace ScriptEditor
         [DllImport("shell32.dll", SetLastError = true)]
         private static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
-        private const string FILE_EXTENSION = ".ssl";
         private const int SHCNE_ASSOCCHANGED = 0x8000000;
         private const uint SHCNF_IDLIST = 0x0U;
+        private const string USER_CLASSES_PATH = @"Software\Classes";
+        private const string CAPABILITIES_PATH = @"Software\Rotators\SfallScriptEditor\Capabilities";
+        private const string REGISTERED_APPLICATIONS_PATH = @"Software\RegisteredApplications";
 
         private static readonly string appName = "SfallScriptEditor";
-        private static readonly string[] extAllowed = { FILE_EXTENSION, ".msg", ".int", ".fcd", ".h", ".ini", ".txt", ".cfg", ".xshd" };
+        private static readonly string[] extAllowed = { ".ssl", ".msg", ".int", ".fcd", ".h", ".ini", ".txt", ".cfg", ".xshd" };
+        private static readonly string[] associatedExtensions = { ".ssl", ".msg", ".int", ".fcd" };
 
         public static bool CheckFileAllow(string ext, out bool Exists)
         {
@@ -35,44 +38,83 @@ namespace ScriptEditor
 
         public static void Associate(bool force = false)
         {
-            if (!force && IsAssociated)
-                return; 
-  
-            if (MessageBox.Show("Do you want to associate the files (.ssl .int and .msg) to the script editor?",
-                "Associate files", MessageBoxButtons.YesNo) == DialogResult.No)
-                return;
+            try {
+                RegisterPerUser();
+                if (force) OpenDefaultApps();
+            } catch (UnauthorizedAccessException ex) {
+                ShowAssociationError(ex);
+            } catch (SecurityException ex) {
+                ShowAssociationError(ex);
+            } catch (Exception ex) {
+                ShowAssociationError(ex);
+            }
+        }
 
-            for (int i = 0; i < 4; i++)
-            {
-                // Удалить ранее ассоциированные с файлом разделы
-                var value = Registry.ClassesRoot.CreateSubKey(extAllowed[i]).GetValue("");
-                if (value != null)
-                    Registry.ClassesRoot.DeleteSubKeyTree(value.ToString(), false);
-                
-                // Создаем новый раздел
-                Registry.ClassesRoot.CreateSubKey(extAllowed[i]).SetValue("", appName + extAllowed[i].Remove(0,1).ToUpper());
-                using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(appName + extAllowed[i].Remove(0, 1).ToUpper()))
-                {
-                    key.SetValue("", "Sfall Script Editor v.4.0");
-                    key.SetValue("AlwaysShowExt", "");
-                    key.CreateSubKey("DefaultIcon").SetValue("", Settings.ResourcesFolder + "\\icon_" + extAllowed[i].Remove(0,1) + ".ico");
-                    key.CreateSubKey("Shell").SetValue("", "OpenSSEditor");
-                    key.CreateSubKey(@"Shell\OpenSSEditor").SetValue("", "Open in Sfall ScriptEditor");
-                    key.CreateSubKey(@"Shell\OpenSSEditor\Command").SetValue("", Application.ExecutablePath + " \"%1\"");
+        private static void RegisterPerUser()
+        {
+            using (RegistryKey classes = Registry.CurrentUser.CreateSubKey(USER_CLASSES_PATH))
+            using (RegistryKey capabilities = Registry.CurrentUser.CreateSubKey(CAPABILITIES_PATH))
+            using (RegistryKey fileAssociations = capabilities.CreateSubKey("FileAssociations")) {
+                capabilities.SetValue("ApplicationName", AboutBox.appName);
+                capabilities.SetValue("ApplicationDescription", "Edit and compile Fallout SSL scripts.");
+                capabilities.SetValue("ApplicationIcon", Application.ExecutablePath + ",0");
+
+                foreach (string extension in associatedExtensions) {
+                    string progId = appName + extension.Substring(1).ToUpperInvariant();
+                    RegisterFileType(classes, extension, progId);
+                    fileAssociations.SetValue(extension, progId);
                 }
             }
+
+            using (RegistryKey registeredApplications = Registry.CurrentUser.CreateSubKey(REGISTERED_APPLICATIONS_PATH))
+                registeredApplications.SetValue(AboutBox.appName, CAPABILITIES_PATH);
+
             SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, IntPtr.Zero, IntPtr.Zero);
         }
 
-        private static bool IsAssociated
+        private static void RegisterFileType(RegistryKey classes, string extension, string progId)
         {
-            get {
-                string value = "";
-                var reg = Registry.ClassesRoot.OpenSubKey(FILE_EXTENSION, false);
-                if (reg != null)
-                     value = reg.GetValue("", string.Empty).ToString();  
-                return (value == (appName + "SSL"));
+            using (RegistryKey extensionKey = classes.CreateSubKey(extension))
+            using (RegistryKey openWith = extensionKey.CreateSubKey("OpenWithProgids"))
+                openWith.SetValue(progId, string.Empty, RegistryValueKind.String);
+
+            using (RegistryKey key = classes.CreateSubKey(progId)) {
+                string extensionName = extension.Substring(1).ToUpperInvariant();
+                key.SetValue("", AboutBox.appName + " " + extensionName + " file");
+                key.SetValue("FriendlyTypeName", AboutBox.appName + " " + extensionName + " file");
+                key.SetValue("AlwaysShowExt", string.Empty);
+
+                using (RegistryKey icon = key.CreateSubKey("DefaultIcon"))
+                    icon.SetValue("", Path.Combine(Settings.ResourcesFolder,
+                        "icon_" + extension.Substring(1).ToLowerInvariant() + ".ico"));
+                using (RegistryKey shell = key.CreateSubKey("Shell"))
+                    shell.SetValue("", "OpenSSEditor");
+                using (RegistryKey open = key.CreateSubKey(@"Shell\OpenSSEditor"))
+                    open.SetValue("", "Open in Sfall Script Editor");
+                using (RegistryKey command = key.CreateSubKey(@"Shell\OpenSSEditor\Command"))
+                    command.SetValue("", "\"" + Application.ExecutablePath + "\" \"%1\"");
             }
+        }
+
+        private static void OpenDefaultApps()
+        {
+            MessageBox.Show("Sfall Script Editor has been added to Windows' available applications.\n\n" +
+                "On the Default apps page, select the editor and choose the file types you want it to open.",
+                "Choose default apps", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            string appSettingsUri = "ms-settings:defaultapps?registeredAppUser=" +
+                Uri.EscapeDataString(AboutBox.appName);
+            try {
+                Process.Start(new ProcessStartInfo(appSettingsUri) { UseShellExecute = true });
+            } catch {
+                Process.Start(new ProcessStartInfo("ms-settings:defaultapps") { UseShellExecute = true });
+            }
+        }
+
+        private static void ShowAssociationError(Exception ex)
+        {
+            MessageBox.Show("Windows could not register the editor for file associations.\n\n" +
+                ex.Message, "File association error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         public static bool CheckFCDFile(ref string file)

@@ -2120,16 +2120,17 @@ namespace ScriptEditor {
             // 
             this.Help_toolStripButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.Help_toolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.Help_toolStripButton.DropDownButtonWidth = 15;
             this.Help_toolStripButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.About_toolStripButton});
             this.Help_toolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("Help_toolStripButton.Image")));
             this.Help_toolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.Help_toolStripButton.MergeIndex = 1;
             this.Help_toolStripButton.Name = "Help_toolStripButton";
-            this.Help_toolStripButton.Size = new System.Drawing.Size(32, 22);
+            this.Help_toolStripButton.Size = new System.Drawing.Size(36, 22);
             this.Help_toolStripButton.Text = "Help";
-            this.Help_toolStripButton.ToolTipText = "Open the scripting document folder.";
-            this.Help_toolStripButton.ButtonClick += new System.EventHandler(this.helpToolStripMenuItem_Click);
+            this.Help_toolStripButton.ToolTipText = "Open Help and About.";
+            this.Help_toolStripButton.ButtonClick += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // About_toolStripButton
             // 
@@ -2137,8 +2138,8 @@ namespace ScriptEditor {
             this.About_toolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.About_toolStripButton.Name = "About_toolStripButton";
             this.About_toolStripButton.Size = new System.Drawing.Size(152, 22);
-            this.About_toolStripButton.Text = "About Editor";
-            this.About_toolStripButton.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
+            this.About_toolStripButton.Text = "Open local documentation folder";
+            this.About_toolStripButton.Click += new System.EventHandler(this.helpToolStripMenuItem_Click);
             // 
             // toolStripSeparator4
             // 

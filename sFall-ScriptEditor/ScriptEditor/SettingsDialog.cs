@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace ScriptEditor
@@ -15,6 +16,7 @@ namespace ScriptEditor
             scriptsHPath = Settings.pathScriptsHFile;
             headersFilesPath = Settings.pathHeadersFiles;
             InitializeComponent();
+            ConfigureFileAssociationSection();
             InterfaceTheme.Apply((Control)this);
 
             if (Settings.useMcpp) 
@@ -67,6 +69,44 @@ namespace ScriptEditor
                 cbFonts.SelectedIndex = Settings.selectFont;
             } else
                 cbFonts.SelectedIndex = 0;
+        }
+
+        private void ConfigureFileAssociationSection()
+        {
+            groupBox3.Size = new Size(330, 100);
+            msgPathlistView.Size = new Size(318, 75);
+            columnHeader1.Width = 310;
+
+            GroupBox groupFileAssociation = new GroupBox();
+            groupFileAssociation.Location = new Point(341, 385);
+            groupFileAssociation.Name = "groupFileAssociation";
+            groupFileAssociation.Size = new Size(161, 68);
+            groupFileAssociation.TabIndex = 44;
+            groupFileAssociation.TabStop = false;
+            groupFileAssociation.Text = "File association";
+
+            label3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            label3.AutoSize = false;
+            label3.Font = Font;
+            label3.Location = new Point(8, 16);
+            label3.Size = new Size(145, 26);
+            label3.Text = "Choose which supported files Windows opens with this editor.";
+            label3.TextAlign = ContentAlignment.TopLeft;
+
+            bAssociate.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            bAssociate.Font = Font;
+            bAssociate.Location = new Point(8, 42);
+            bAssociate.Size = new Size(145, 23);
+            bAssociate.Text = "Choose default apps...";
+
+            groupFileAssociation.Controls.Add(label3);
+            groupFileAssociation.Controls.Add(bAssociate);
+            Controls.Add(groupFileAssociation);
+
+            toolTip.SetToolTip(groupFileAssociation,
+                "Configure Windows to open supported script files with Sfall Script Editor.");
+            toolTip.SetToolTip(bAssociate,
+                "Choose the file types that Windows opens with Sfall Script Editor.");
         }
 
         private void SetLabelText()

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -13,8 +14,10 @@ namespace ScriptEditor
         private static readonly Color DarkText = Color.Gainsboro;
         private static readonly Color DarkSelection = Color.FromArgb(85, 85, 90);
         private static readonly Color DarkBorder = Color.FromArgb(68, 68, 72);
+        private static readonly Color DarkAccent = Color.FromArgb(0, 120, 212);
         private static readonly object GridSectionRowTag = new object();
         private static readonly Dictionary<Form, bool> AppliedForms = new Dictionary<Form, bool>();
+        private static readonly HashSet<Form> TitleBarHookedForms = new HashSet<Form>();
         private static readonly HashSet<TabControl> ThemedTabs = new HashSet<TabControl>();
         private static readonly Dictionary<TabControl, TabAppearance> TabAppearances = new Dictionary<TabControl, TabAppearance>();
         private static readonly Dictionary<TabControl, bool> TabMultiline = new Dictionary<TabControl, bool>();
@@ -22,6 +25,7 @@ namespace ScriptEditor
         private static readonly Dictionary<ScrollBar, ScrollBarBorderWindow> ScrollBarBorders = new Dictionary<ScrollBar, ScrollBarBorderWindow>();
         private static readonly Dictionary<Control, ControlBorderWindow> ControlBorders = new Dictionary<Control, ControlBorderWindow>();
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
+        private static readonly HashSet<CheckBox> DrawnCheckBoxes = new HashSet<CheckBox>();
         private static readonly Dictionary<TextBoxBase, BorderStyle> TextBoxBorders = new Dictionary<TextBoxBase, BorderStyle>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
         private static readonly Dictionary<ComboBox, DrawMode> ComboDrawModes = new Dictionary<ComboBox, DrawMode>();
@@ -32,12 +36,14 @@ namespace ScriptEditor
         private static readonly Dictionary<ListView, ListViewGridWindow> ListGridWindows = new Dictionary<ListView, ListViewGridWindow>();
         private static readonly HashSet<Control> DynamicControls = new HashSet<Control>();
         private static readonly HashSet<ContextMenuStrip> ThemedContextMenus = new HashSet<ContextMenuStrip>();
-        private static readonly ToolStripProfessionalRenderer DarkToolStripRenderer = new ToolStripProfessionalRenderer(new DarkColorTable());
+        private static readonly ToolStripProfessionalRenderer DarkToolStripRenderer = new DarkRenderer();
+        private static readonly Image DarkHelpIcon = CreateHelpIcon(true);
+        private static readonly Image LightHelpIcon = CreateHelpIcon(false);
 
         internal static void Start()
         {
-                        SetPreferredTheme(IsDark);
-Application.Idle += delegate { ApplyToOpenForms(); };
+            SetPreferredTheme(IsDark);
+            Application.Idle += delegate { ApplyToOpenForms(); };
         }
 
         internal static bool IsDark {
@@ -56,8 +62,10 @@ Application.Idle += delegate { ApplyToOpenForms(); };
         internal static void Apply(Form form)
         {
             bool dark = IsDark;
-                        SetPreferredTheme(dark);
-ApplyControl(form, dark);
+            SetPreferredTheme(dark);
+            ApplyControl(form, dark);
+            if (TitleBarHookedForms.Add(form))
+                form.HandleCreated += delegate { SetTitleBarTheme(form, IsDark); };
             SetTitleBarTheme(form, dark);
             AppliedForms[form] = dark;
             form.Invalidate(true);
@@ -171,6 +179,21 @@ ApplyControl(form, dark);
                 }
             }
 
+            CheckBox checkBox = control as CheckBox;
+            if (checkBox != null && checkBox.Appearance == Appearance.Normal) {
+                if (DrawnCheckBoxes.Add(checkBox)) {
+                    checkBox.Paint += DrawCheckBox;
+                    checkBox.CheckedChanged += delegate { checkBox.Invalidate(); };
+                    checkBox.CheckStateChanged += delegate { checkBox.Invalidate(); };
+                    checkBox.EnabledChanged += delegate { checkBox.Invalidate(); };
+                    checkBox.MouseEnter += delegate { checkBox.Invalidate(); };
+                    checkBox.MouseLeave += delegate { checkBox.Invalidate(); };
+                    checkBox.GotFocus += delegate { checkBox.Invalidate(); };
+                    checkBox.LostFocus += delegate { checkBox.Invalidate(); };
+                }
+                checkBox.Invalidate();
+            }
+
             ComboBox themedCombo = control as ComboBox;
             if (themedCombo != null) {
                 FlatStyle original;
@@ -273,6 +296,64 @@ ApplyControl(form, dark);
                 DarkText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
 
+        private static void DrawCheckBox(object sender, PaintEventArgs e)
+        {
+            if (!IsDark) return;
+
+            CheckBox checkBox = (CheckBox)sender;
+            Rectangle bounds = checkBox.ClientRectangle;
+            Color background = checkBox.BackColor.A == 0 && checkBox.Parent != null
+                ? checkBox.Parent.BackColor : checkBox.BackColor;
+            using (Brush backgroundBrush = new SolidBrush(background))
+                e.Graphics.FillRectangle(backgroundBrush, bounds);
+
+            const int glyphSize = 13;
+            Rectangle glyph = new Rectangle(0, System.Math.Max(0, (bounds.Height - glyphSize) / 2), glyphSize, glyphSize);
+            bool hovered = checkBox.Enabled && glyph.Contains(checkBox.PointToClient(Cursor.Position));
+            bool active = checkBox.CheckState != CheckState.Unchecked;
+            Color glyphBack = active
+                ? (checkBox.Enabled ? (hovered ? Color.FromArgb(18, 132, 224) : DarkAccent) : DarkSelection)
+                : DarkBack;
+            Color glyphBorder = checkBox.Enabled
+                ? (hovered ? Color.FromArgb(155, 205, 245) : Color.FromArgb(135, 135, 140))
+                : DarkBorder;
+
+            using (Brush glyphBrush = new SolidBrush(glyphBack))
+                e.Graphics.FillRectangle(glyphBrush, glyph);
+            using (Pen borderPen = new Pen(glyphBorder))
+                e.Graphics.DrawRectangle(borderPen, glyph.X, glyph.Y, glyph.Width - 1, glyph.Height - 1);
+
+            if (active) {
+                Color markColor = checkBox.Enabled ? Color.White : Color.FromArgb(205, 205, 210);
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (Pen markPen = new Pen(markColor, 2F)) {
+                    markPen.StartCap = LineCap.Square;
+                    markPen.EndCap = LineCap.Square;
+                    if (checkBox.CheckState == CheckState.Indeterminate) {
+                        e.Graphics.DrawLine(markPen, glyph.Left + 3, glyph.Top + 6,
+                            glyph.Right - 4, glyph.Top + 6);
+                    } else {
+                        e.Graphics.DrawLines(markPen, new Point[] {
+                            new Point(glyph.Left + 3, glyph.Top + 6),
+                            new Point(glyph.Left + 5, glyph.Top + 9),
+                            new Point(glyph.Left + 10, glyph.Top + 3)
+                        });
+                    }
+                }
+                e.Graphics.SmoothingMode = SmoothingMode.None;
+            }
+
+            Rectangle textBounds = new Rectangle(glyph.Right + 5, 0,
+                System.Math.Max(0, bounds.Width - glyph.Right - 5), bounds.Height);
+            Color textColor = checkBox.Enabled ? DarkText : Color.FromArgb(155, 155, 160);
+            TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+            if (!checkBox.UseMnemonic) flags |= TextFormatFlags.NoPrefix;
+            TextRenderer.DrawText(e.Graphics, checkBox.Text, checkBox.Font, textBounds, textColor, flags);
+
+            if (checkBox.Focused && checkBox.Enabled && textBounds.Width > 0)
+                ControlPaint.DrawFocusRectangle(e.Graphics, textBounds, textColor, background);
+        }
+
         private static void DrawComboBoxItem(object sender, DrawItemEventArgs e)
         {
             if (!IsDark) return;
@@ -300,6 +381,8 @@ ApplyControl(form, dark);
             foreach (ToolStripItem item in items) {
                 item.BackColor = dark ? DarkControl : SystemColors.Control;
                 item.ForeColor = dark ? DarkText : SystemColors.ControlText;
+                if (item.Name == "Help_toolStripButton")
+                    item.Image = dark ? DarkHelpIcon : LightHelpIcon;
                 ToolStripLabel linkLabel = item as ToolStripLabel;
                 if (linkLabel != null && linkLabel.IsLink) {
                     linkLabel.LinkColor = dark ? Color.FromArgb(86, 156, 214) : Color.MediumBlue;
@@ -356,7 +439,9 @@ ApplyControl(form, dark);
         }
         private static bool ShouldDrawDarkBorder(Control control)
         {
-            if (control is TextBoxBase || control is ComboBox || control is ListView || control is TreeView ||
+            TextBoxBase textBox = control as TextBoxBase;
+            if (textBox != null) return textBox.BorderStyle != BorderStyle.None;
+            if (control is ComboBox || control is ListView || control is TreeView ||
                 control is DataGridView || control is NumericUpDown) return true;
             Panel panel = control as Panel;
             if (panel != null && panel.BorderStyle != BorderStyle.None) return true;
@@ -710,6 +795,45 @@ ApplyControl(form, dark);
             ForceLight
         }
 
+        private sealed class DarkRenderer : ToolStripProfessionalRenderer
+        {
+            internal DarkRenderer() : base(new DarkColorTable()) { }
+
+            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+            {
+                if (IsDark)
+                    e.TextColor = e.Item.Enabled ? DarkText : Color.FromArgb(155, 155, 160);
+                base.OnRenderItemText(e);
+            }
+
+            protected override void OnRenderArrow(ToolStripArrowRenderEventArgs e)
+            {
+                if (IsDark) {
+                    e.ArrowColor = e.Item != null && e.Item.Enabled
+                        ? Color.FromArgb(235, 240, 245)
+                        : Color.FromArgb(135, 135, 140);
+                }
+                base.OnRenderArrow(e);
+            }
+        }
+
+        private static Image CreateHelpIcon(bool dark)
+        {
+            Bitmap icon = new Bitmap(16, 16);
+            using (Graphics graphics = Graphics.FromImage(icon)) {
+                graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                Color fill = dark ? Color.FromArgb(20, 135, 225) : Color.FromArgb(0, 105, 185);
+                Color border = dark ? Color.FromArgb(155, 210, 250) : Color.FromArgb(0, 70, 135);
+                using (Brush fillBrush = new SolidBrush(fill))
+                    graphics.FillEllipse(fillBrush, 1, 1, 14, 14);
+                using (Pen borderPen = new Pen(border))
+                    graphics.DrawEllipse(borderPen, 1, 1, 13, 13);
+                using (Font font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Pixel))
+                    TextRenderer.DrawText(graphics, "?", font, new Rectangle(1, 1, 14, 14), Color.White,
+                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+            }
+            return icon;
+        }
         private sealed class DarkColorTable : ProfessionalColorTable
         {
             public override Color ToolStripDropDownBackground { get { return DarkControl; } }

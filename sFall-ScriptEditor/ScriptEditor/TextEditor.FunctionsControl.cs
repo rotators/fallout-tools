@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -1083,6 +1083,7 @@ namespace ScriptEditor
 
         private void editorMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            InterfaceTheme.Apply(editorMenuStrip);
             if (currentTab == null /*&& !treeView1.Focused*/) {
                 e.Cancel = true;
                 return;
@@ -1102,6 +1103,9 @@ namespace ScriptEditor
             findDeclerationToolStripMenuItem.Enabled = false;
             findDefinitionToolStripMenuItem.Enabled = false;
             UpdateEditorToolStripMenu();
+            collapseAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, false);
+            expandAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, true);
+            collapseOtherProceduresMenuItem.Enabled = CodeFolder.HasProcedureAtLine(currentDocument, EditorContextLine);
         }
 
         private void editorMenuStrip_Closed(object sender, ToolStripDropDownClosedEventArgs e)
@@ -1110,6 +1114,7 @@ namespace ScriptEditor
             findDeclerationToolStripMenuItem.Enabled = true;
             findDefinitionToolStripMenuItem.Enabled = true;
             openIncludeToolStripMenuItem.Enabled = true;
+            editorContextLine = -1;
         }
         #endregion
 

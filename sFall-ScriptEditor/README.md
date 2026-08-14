@@ -1,4 +1,4 @@
-# Sfall Script Editor v.4+ (Extended version)
+# Sfall Script Editor v5.0 (Rotators Build)
 A script editor for classic game Fallout 2. Allows to edit and compile SSL scripts in a convenient way.
 
 #### Features:

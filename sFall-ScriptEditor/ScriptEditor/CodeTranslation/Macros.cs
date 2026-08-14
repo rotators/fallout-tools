@@ -140,7 +140,7 @@ namespace ScriptEditor.CodeTranslation
         {
             string token, macro, def;
             line = line.TrimStart();
-            int firstspace = line.IndexOf(' ');
+            int firstspace = line.IndexOfAny(new char[] { ' ', '\t', '\r', '\n' });
 
             if (firstspace == -1) return;
 

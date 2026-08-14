@@ -22,7 +22,8 @@ namespace ScriptEditor
 {
     partial class TextEditor : Form
     {
-        private const string SSE = AboutBox.appName + " - ";
+        private static readonly string AppTitle = AboutBox.appName + AboutBox.appDescription + " v." + AboutBox.appVersion;
+        private static readonly string SSE = AppTitle + " - ";
 
         private const string unsaved = "unsaved.ssl";
         private const string treeTipProcedure = "\n\n - Click and hold Ctrl key to paste the procedure name into the script.\n - Double click to goto the procedure.";
@@ -36,6 +37,10 @@ namespace ScriptEditor
         private readonly List<TabInfo> tabs = new List<TabInfo>();
         private TabInfo currentTab;
         private ToolStripLabel parserLabel;
+        private ToolStripMenuItem collapseAllProceduresMenuItem;
+        private ToolStripMenuItem expandAllProceduresMenuItem;
+        private ToolStripMenuItem collapseOtherProceduresMenuItem;
+        private int editorContextLine = -1;
 
         private SearchForm sf;
         private GoToLine goToLine;
@@ -93,6 +98,8 @@ namespace ScriptEditor
         public TextEditor(string[] args)
         {
             InitializeComponent();
+            ConfigureHelpMenu();
+            ConfigureEditorFoldingMenu();
 
             tabControl3.TabPages.RemoveAt(2); // скрываем от пользователя еще нереализованный функционал
 
@@ -165,8 +172,69 @@ namespace ScriptEditor
             DontFind.LoadAsync();
             CompileFail.LoadAsync();
 
-            this.Text += " v." + AboutBox.appVersion;
+            this.Text = AppTitle;
             tbOutput.Text = "***** " +  AboutBox.appName + " v." + AboutBox.appVersion + AboutBox.appDescription + " *****";
+        }
+
+        private void ConfigureHelpMenu()
+        {
+            ToolStripMenuItem repositoryItem = new ToolStripMenuItem("Rotators Tools Repository");
+            repositoryItem.Click += delegate { AboutBox.OpenRepository(this); };
+
+            ToolStripMenuItem scriptingDocumentationItem = new ToolStripMenuItem("Sfall scripting documentation");
+            scriptingDocumentationItem.Click += delegate { AboutBox.OpenSfallDocumentation(this); };
+
+            Help_toolStripButton.DropDownItems.Add(new ToolStripSeparator());
+            Help_toolStripButton.DropDownItems.Add(repositoryItem);
+            Help_toolStripButton.DropDownItems.Add(scriptingDocumentationItem);
+        }
+
+        private void ConfigureEditorFoldingMenu()
+        {
+            ToolStripMenuItem foldingMenu = new ToolStripMenuItem("Code folding");
+            collapseAllProceduresMenuItem = new ToolStripMenuItem("Collapse all procedures");
+            expandAllProceduresMenuItem = new ToolStripMenuItem("Expand all procedures");
+            collapseOtherProceduresMenuItem = new ToolStripMenuItem("Collapse all except active procedure");
+
+            collapseAllProceduresMenuItem.Click += CollapseAllProcedures_Click;
+            expandAllProceduresMenuItem.Click += ExpandAllProcedures_Click;
+            collapseOtherProceduresMenuItem.Click += CollapseOtherProcedures_Click;
+
+            foldingMenu.DropDownItems.Add(collapseAllProceduresMenuItem);
+            foldingMenu.DropDownItems.Add(expandAllProceduresMenuItem);
+            foldingMenu.DropDownItems.Add(new ToolStripSeparator());
+            foldingMenu.DropDownItems.Add(collapseOtherProceduresMenuItem);
+            editorMenuStrip.Items.Add(new ToolStripSeparator());
+            editorMenuStrip.Items.Add(foldingMenu);
+        }
+
+        private int EditorContextLine
+        {
+            get {
+                if (editorContextLine >= 0)
+                    return editorContextLine;
+                return currentTab == null ? -1 : currentActiveTextAreaCtrl.Caret.Line;
+            }
+        }
+
+        private void CollapseAllProcedures_Click(object sender, EventArgs e)
+        {
+            if (currentTab == null) return;
+            CodeFolder.SetAllProceduresFolded(currentDocument, true);
+        }
+
+        private void ExpandAllProcedures_Click(object sender, EventArgs e)
+        {
+            if (currentTab == null) return;
+            CodeFolder.SetAllProceduresFolded(currentDocument, false);
+        }
+
+        private void CollapseOtherProcedures_Click(object sender, EventArgs e)
+        {
+            if (currentTab == null) return;
+            int line = EditorContextLine;
+            if (CodeFolder.CollapseAllExceptProcedure(currentDocument, line))
+                currentActiveTextAreaCtrl.CenterViewOn(line, 0);
         }
 
 #if !DEBUG
@@ -382,11 +450,8 @@ namespace ScriptEditor
 
         private void SetActiveAreaEvents(TextEditorControl te)
         {
-            te.ActiveTextAreaControl.TextArea.MouseDown += delegate(object a1, MouseEventArgs a2) {
-                //if (a2.Button == MouseButtons.Left)
-                //    Utilities.SelectedTextColorRegion(currentActiveTextAreaCtrl);
-                autoComplete.Close();
-            };
+            te.ActiveTextAreaControl.TextArea.MouseDown -= TextArea_MouseDown;
+            te.ActiveTextAreaControl.TextArea.MouseDown += TextArea_MouseDown;
             te.ActiveTextAreaControl.TextArea.KeyUp += TextArea_KeyUp;
             te.ActiveTextAreaControl.TextArea.KeyPress += TextArea_KeyPressed;
             te.ActiveTextAreaControl.TextArea.MouseEnter += TextArea_SetFocus;
@@ -411,6 +476,24 @@ namespace ScriptEditor
             te.ActiveTextAreaControl.TextArea.ToolTipRequest += new ToolTipRequestEventHandler(TextArea_ToolTipRequest);
             te.ActiveTextAreaControl.Caret.PositionChanged += new EventHandler(Caret_PositionChanged);
             te.ActiveTextAreaControl.TextArea.MouseDoubleClick += new MouseEventHandler(TextArea_MouseDoubleClick);
+        }
+
+        private void TextArea_MouseDown(object sender, MouseEventArgs e)
+        {
+            autoComplete.Close();
+            if (e.Button != MouseButtons.Right)
+                return;
+
+            TextArea textArea = sender as TextArea;
+            if (textArea == null || textArea.Document.TotalNumberOfLines == 0) {
+                editorContextLine = -1;
+                return;
+            }
+
+            TextLocation location = textArea.TextView.GetLogicalPosition(
+                Math.Max(0, e.X - textArea.TextView.DrawingPosition.X),
+                e.Y - textArea.TextView.DrawingPosition.Y);
+            editorContextLine = Math.Max(0, Math.Min(textArea.Document.TotalNumberOfLines - 1, location.Y));
         }
 
         void TextArea_MouseDoubleClick(object sender, MouseEventArgs e) {
@@ -493,7 +576,7 @@ namespace ScriptEditor
                 Search_Panel(null, null);
             DecIndentStripButton.Enabled = false;
             CommentStripButton.Enabled = false;
-            Text = SSE.Remove(SSE.Length - 2);
+            Text = AppTitle;
             autoComplete.Close();
             includeFileToCodeToolStripMenuItem.Enabled = false;
         }
@@ -757,12 +840,13 @@ namespace ScriptEditor
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            (new AboutBox()).ShowDialog();
+            using (AboutBox aboutBox = new AboutBox())
+                aboutBox.ShowDialog(this);
         }
 
         private void helpToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start(".\\docs\\");
+            AboutBox.OpenDocumentationFolder(this);
         }
 
         private void massCompileToolStripMenuItem_Click(object sender, EventArgs e)

@@ -28,6 +28,8 @@ namespace SfallScriptEditor.Tests
             Run("stale single-instance arguments are ignored", StaleCommandLineArgumentsAreIgnored);
             Run("invalid parser line ranges are rejected", InvalidParserRangesAreRejected);
             Run("atomic document save replaces content", AtomicDocumentSaveReplacesContent);
+            Run("procedure folding commands affect member bodies", ProcedureFoldingCommandsAffectMemberBodies);
+            Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
 
             Console.WriteLine();
             Console.WriteLine("Tests: {0} passed, {1} failed", passed, failed);
@@ -206,6 +208,53 @@ namespace SfallScriptEditor.Tests
                 Equal("new", File.ReadAllText(path, Encoding.ASCII));
                 Equal(1, Directory.GetFiles(directory).Length);
             });
+        }
+
+        private static void ProcedureFoldingCommandsAffectMemberBodies()
+        {
+            IDocument document = new DocumentFactory().CreateDocument();
+            document.TextContent = "0\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n";
+            var first = new FoldMarker(document, 0, 0, 2, 1, FoldType.MemberBody, " FIRST ");
+            var second = new FoldMarker(document, 3, 0, 5, 1, FoldType.MemberBody, " SECOND ");
+            var variables = new FoldMarker(document, 6, 0, 8, 1, FoldType.TypeBody, " VARIABLES ");
+            document.FoldingManager.UpdateFoldings(new List<FoldMarker> { first, second, variables });
+
+            CodeFolder.SetAllProceduresFolded(document, true);
+            True(first.IsFolded && second.IsFolded, "Collapse all should fold every procedure.");
+            True(!variables.IsFolded, "Procedure folding must not affect non-procedure regions.");
+            True(CodeFolder.HasProcedure(document, true), "Folded procedures should be detected.");
+
+            CodeFolder.SetAllProceduresFolded(document, false);
+            True(!first.IsFolded && !second.IsFolded, "Expand all should unfold every procedure.");
+
+            True(CodeFolder.CollapseAllExceptProcedure(document, 4),
+                "A line inside a procedure should identify that procedure.");
+            True(first.IsFolded && !second.IsFolded,
+                "Only the procedure at the target line should remain expanded.");
+            True(!variables.IsFolded, "Other folding regions must remain unchanged.");
+
+            True(!CodeFolder.CollapseAllExceptProcedure(document, 7),
+                "A line outside a procedure should not trigger the command.");
+        }
+
+        private static void MultilineObjectMacrosRetainTheirIdentifier()
+        {
+            const string macroName = "VOODOO_disable_YouEncounter_message";
+            string[] lines = {
+                "#define " + macroName + " \\",
+                "              begin                               \\",
+                "               write_int(0x4C100C, 0x909039EB);   \\",
+                "              end                                 \\",
+                "              noop"
+            };
+            var macros = new SortedDictionary<string, Macro>();
+
+            new GetMacros(lines, "voodoo.h", String.Empty, macros, false);
+
+            True(macros.ContainsKey(macroName),
+                "A multiline object-like macro must be stored under its declared identifier.");
+            Equal(macroName, macros[macroName].token);
+            Equal(1, macros[macroName].declared);
         }
 
         private static void WithTempDirectory(Action<string> action)
