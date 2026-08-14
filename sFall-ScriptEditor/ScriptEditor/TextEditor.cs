@@ -990,7 +990,8 @@ namespace ScriptEditor
         {
             bool p = Settings.enableParser; //save prev.state
             int f = Settings.selectFont;
-            (new SettingsDialog()).ShowDialog();
+            using (SettingsDialog dialog = new SettingsDialog())
+                dialog.ShowDialog(this);
 
             ApplySettingsTabs(f != Settings.selectFont);
             if (currentTab != null) tabControl1_Selected(null, null);

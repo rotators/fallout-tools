@@ -16,6 +16,9 @@ namespace ScriptEditor
 
         public SettingsDialog()
         {
+            // Keep the native light controls out of the first visible frame. Their
+            // handles are created and themed in OnLoad before the dialog is revealed.
+            Opacity = 0D;
             outPath = Settings.outputDir;
             scriptsHPath = Settings.pathScriptsHFile;
             headersFilesPath = Settings.pathHeadersFiles;
@@ -76,6 +79,31 @@ namespace ScriptEditor
                 cbFonts.SelectedIndex = Settings.selectFont;
             } else
                 cbFonts.SelectedIndex = 0;
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            EnsureControlHandles(this);
+            InterfaceTheme.Apply(this);
+            PerformLayout();
+            Update();
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            // OnLoad has now created and themed every native child window.
+            InterfaceTheme.Apply(this);
+            Refresh();
+            Opacity = 1D;
+            base.OnShown(e);
+        }
+
+        private static void EnsureControlHandles(Control parent)
+        {
+            IntPtr handle = parent.Handle;
+            foreach (Control child in parent.Controls)
+                EnsureControlHandles(child);
         }
 
         private void ConfigureSettingsLayout()
