@@ -35,7 +35,7 @@ namespace ScriptEditor
                 regex = new Regex(@"\b" + sf.cbSearch.Text + @"\b", option);
 
             if (sf.rbFolder.Checked && (Settings.lastSearchPath == null || !Directory.Exists(Settings.lastSearchPath))) {
-                MessageBox.Show("No search path set.", "Error");
+                EditorNotifications.Show(this, "Select a folder before searching files.", NotificationKind.Warning);
                 return false;
             }
             if (!sf.cbFindAll.Checked) {
@@ -112,7 +112,7 @@ namespace ScriptEditor
                     return true;
                 }
             }
-            MessageBox.Show("Search string not found", "Search");
+            EditorNotifications.Show(this, "No matches found for '" + sf.cbSearch.Text + "'.");
             return false;
         }
         #endregion
@@ -307,7 +307,7 @@ namespace ScriptEditor
             if (refs == null)
                 return;
             if (refs.Length == 0) {
-                MessageBox.Show("No references found", "Reference", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                EditorNotifications.Show(this, "No references found for '" + word + "'.");
                 return;
             }
             DataGridView dgv = CommonDGV.DataGridCreate();

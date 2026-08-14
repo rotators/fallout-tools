@@ -98,9 +98,9 @@ namespace ScriptEditor
 
         private static void OpenDefaultApps()
         {
-            MessageBox.Show("Sfall Script Editor has been added to Windows' available applications.\n\n" +
-                "On the Default apps page, select the editor and choose the file types you want it to open.",
-                "Choose default apps", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            EditorNotifications.Show(Form.ActiveForm,
+                "Sfall Script Editor was added to Windows. Choose its file types on the Default apps page.",
+                NotificationKind.Success, 7000);
 
             string appSettingsUri = "ms-settings:defaultapps?registeredAppUser=" +
                 Uri.EscapeDataString(AboutBox.appName);

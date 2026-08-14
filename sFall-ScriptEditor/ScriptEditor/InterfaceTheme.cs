@@ -30,6 +30,7 @@ namespace ScriptEditor
         private static readonly Dictionary<Control, ControlBorderWindow> ControlBorders = new Dictionary<Control, ControlBorderWindow>();
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
         private static readonly HashSet<CheckBox> DrawnCheckBoxes = new HashSet<CheckBox>();
+        private static readonly Dictionary<CheckBox, Padding> CheckBoxPaddings = new Dictionary<CheckBox, Padding>();
         private static readonly Dictionary<TextBoxBase, BorderStyle> TextBoxBorders = new Dictionary<TextBoxBase, BorderStyle>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
         private static readonly Dictionary<ComboBox, DrawMode> ComboDrawModes = new Dictionary<ComboBox, DrawMode>();
@@ -186,6 +187,15 @@ namespace ScriptEditor
 
             CheckBox checkBox = control as CheckBox;
             if (checkBox != null && checkBox.Appearance == Appearance.Normal) {
+                Padding originalPadding;
+                if (!CheckBoxPaddings.TryGetValue(checkBox, out originalPadding)) {
+                    originalPadding = checkBox.Padding;
+                    CheckBoxPaddings.Add(checkBox, originalPadding);
+                }
+                checkBox.Padding = dark
+                    ? new Padding(originalPadding.Left, originalPadding.Top,
+                        originalPadding.Right + DpiHelper.Scale(checkBox, 6), originalPadding.Bottom)
+                    : originalPadding;
                 if (DrawnCheckBoxes.Add(checkBox)) {
                     checkBox.Paint += DrawCheckBox;
                     checkBox.CheckedChanged += delegate { checkBox.Invalidate(); };
@@ -321,9 +331,10 @@ namespace ScriptEditor
             if (!TabAppearances.TryGetValue(tabControl, out appearance)) { appearance = tabControl.Appearance; TabAppearances.Add(tabControl, appearance); }
             bool multiline;
             if (!TabMultiline.TryGetValue(tabControl, out multiline)) { multiline = tabControl.Multiline; TabMultiline.Add(tabControl, multiline); }
-            tabControl.Appearance = dark ? TabAppearance.FlatButtons : appearance;
-            tabControl.Multiline = dark ? true : multiline;
-            tabControl.DrawMode = dark ? TabDrawMode.OwnerDrawFixed : TabDrawMode.Normal;
+            tabControl.Appearance = appearance;
+            tabControl.Multiline = multiline;
+            tabControl.DrawMode = dark || tabControl is global::DraggableTabControl
+                ? TabDrawMode.OwnerDrawFixed : TabDrawMode.Normal;
             if (ThemedTabs.Add(tabControl)) tabControl.DrawItem += DrawTab;
             foreach (TabPage page in tabControl.TabPages) {
                 page.BackColor = dark ? DarkBack : SystemColors.Control;
@@ -337,11 +348,21 @@ namespace ScriptEditor
             if (!IsDark || e.Index < 0 || e.Index >= tabControl.TabPages.Count) return;
 
             bool selected = (e.State & DrawItemState.Selected) != 0;
-            Color back = selected ? DarkBack : DarkControl;
+            bool hovered = (e.State & DrawItemState.HotLight) != 0;
+            Color back = selected ? DarkBack : (hovered ? Color.FromArgb(60, 60, 64) : DarkControl);
             using (Brush brush = new SolidBrush(back)) e.Graphics.FillRectangle(brush, e.Bounds);
-            ControlPaint.DrawBorder(e.Graphics, e.Bounds, DarkBorder, ButtonBorderStyle.Solid);
+            using (Pen separator = new Pen(DarkBorder))
+                e.Graphics.DrawLine(separator, e.Bounds.Right - 1, e.Bounds.Top + 3,
+                    e.Bounds.Right - 1, e.Bounds.Bottom - 3);
+            if (selected) {
+                int accentHeight = DpiHelper.Scale(tabControl, 2);
+                using (Brush accent = new SolidBrush(DarkAccent))
+                    e.Graphics.FillRectangle(accent, e.Bounds.Left + 2,
+                        e.Bounds.Bottom - accentHeight, System.Math.Max(0, e.Bounds.Width - 4), accentHeight);
+            }
             TextRenderer.DrawText(e.Graphics, tabControl.TabPages[e.Index].Text, tabControl.Font, e.Bounds,
-                DarkText, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                selected ? Color.White : DarkText,
+                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
 
         private static void DrawCheckBox(object sender, PaintEventArgs e)
@@ -863,6 +884,66 @@ namespace ScriptEditor
                         : Color.FromArgb(135, 135, 140);
                 }
                 base.OnRenderArrow(e);
+            }
+
+            protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
+            {
+                if (!IsDark) {
+                    base.OnRenderItemCheck(e);
+                    return;
+                }
+
+                ToolStripMenuItem menuItem = e.Item as ToolStripMenuItem;
+                if (menuItem == null) {
+                    base.OnRenderItemCheck(e);
+                    return;
+                }
+
+                Rectangle imageArea = e.ImageRectangle;
+                int glyphSize = System.Math.Min(DpiHelper.Scale(e.ToolStrip, 14),
+                    System.Math.Min(imageArea.Width, imageArea.Height));
+                Rectangle glyph = new Rectangle(
+                    imageArea.Left + System.Math.Max(0, (imageArea.Width - glyphSize) / 2),
+                    imageArea.Top + System.Math.Max(0, (imageArea.Height - glyphSize) / 2),
+                    glyphSize, glyphSize);
+
+                bool enabled = menuItem.Enabled;
+                bool selected = menuItem.Selected;
+                Color glyphBack = enabled
+                    ? (selected ? Color.FromArgb(18, 132, 224) : DarkAccent)
+                    : Color.FromArgb(72, 72, 77);
+                Color glyphBorder = enabled
+                    ? (selected ? Color.FromArgb(170, 220, 255) : Color.FromArgb(95, 175, 235))
+                    : Color.FromArgb(105, 105, 110);
+                Color markColor = enabled ? Color.White : Color.FromArgb(185, 185, 190);
+
+                using (Brush background = new SolidBrush(glyphBack))
+                    e.Graphics.FillRectangle(background, glyph);
+                using (Pen border = new Pen(glyphBorder))
+                    e.Graphics.DrawRectangle(border, glyph.Left, glyph.Top,
+                        System.Math.Max(0, glyph.Width - 1), System.Math.Max(0, glyph.Height - 1));
+
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (Pen mark = new Pen(markColor,
+                    System.Math.Max(1.5F, DpiHelper.Scale(1.8F, e.ToolStrip.DeviceDpi)))) {
+                    mark.StartCap = LineCap.Square;
+                    mark.EndCap = LineCap.Square;
+                    if (menuItem.CheckState == CheckState.Indeterminate) {
+                        int y = glyph.Top + glyph.Height / 2;
+                        e.Graphics.DrawLine(mark, glyph.Left + DpiHelper.Scale(e.ToolStrip, 3), y,
+                            glyph.Right - DpiHelper.Scale(e.ToolStrip, 4), y);
+                    } else {
+                        e.Graphics.DrawLines(mark, new Point[] {
+                            new Point(glyph.Left + DpiHelper.Scale(e.ToolStrip, 3),
+                                glyph.Top + DpiHelper.Scale(e.ToolStrip, 7)),
+                            new Point(glyph.Left + DpiHelper.Scale(e.ToolStrip, 6),
+                                glyph.Top + DpiHelper.Scale(e.ToolStrip, 10)),
+                            new Point(glyph.Left + DpiHelper.Scale(e.ToolStrip, 11),
+                                glyph.Top + DpiHelper.Scale(e.ToolStrip, 4))
+                        });
+                    }
+                }
+                e.Graphics.SmoothingMode = SmoothingMode.None;
             }
         }
 

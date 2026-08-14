@@ -162,8 +162,9 @@ namespace ScriptEditor
             }
 
             tabs.Add(ti);
-            TabPage tp = new TabPage(ti.filename);
-            tp.ImageIndex = (ti.changed) ? 1 : 0;
+            TabPage tp = new TabPage(GetDocumentTabText(ti));
+            tp.ImageIndex = -1;
+            tp.ToolTipText = GetDocumentTabToolTip(ti);
             tabControl1.SuspendLayout();
             tp.SuspendLayout();
             te.Dock = DockStyle.Fill;
@@ -180,8 +181,7 @@ namespace ScriptEditor
             if (tabControl1.TabPages.Count == 1)
                 EnableFormControls();
             if (type == OpenType.File) {
-                if (!alwaysNew)
-                    tp.ToolTipText = ti.filepath;
+                UpdateDocumentTab(ti.index);
                 string ext = Path.GetExtension(file).ToLowerInvariant();
                 if (ext == ".ssl" || ext == ".h") {
                     te.Text = Utilities.NormalizeNewLine(te.Text);
@@ -233,8 +233,7 @@ namespace ScriptEditor
                     File.Delete(file);
                     ti.FileTime = File.GetLastWriteTime(ti.filepath);
 
-                    tabControl1.TabPages[ti.index].Text = tabs[ti.index].filename;
-                    tabControl1.TabPages[ti.index].ToolTipText = tabs[ti.index].filepath;
+                    UpdateDocumentTab(ti.index);
                     this.Text = SSE + ti.filepath + ((pDefineStripComboBox.SelectedIndex > 0) ? " [" + pDefineStripComboBox.Text + "]" : "");
 
                     ForceParseScript();
@@ -328,8 +327,7 @@ namespace ScriptEditor
             if (sfdScripts.ShowDialog() == DialogResult.OK) {
                 tab.filepath = sfdScripts.FileName;
                 tab.filename = Path.GetFileName(tab.filepath);
-                tabControl1.TabPages[tab.index].Text = tabs[tab.index].filename;
-                tabControl1.TabPages[tab.index].ToolTipText = tabs[tab.index].filepath;
+                UpdateDocumentTab(tab.index);
                 Save(tab, close);
                 Settings.AddRecentFile(tab.filepath);
                 string ext = Path.GetExtension(tab.filepath).ToLowerInvariant();
@@ -423,8 +421,7 @@ namespace ScriptEditor
                 foreach (Error e in tab.buildErrors)
                 {
                     if (e.type == et) {
-                        dgvErrors.Rows.Add(e.type.ToString(), Path.GetFileName(e.fileName), e.line, e);
-                        if (et == ErrorType.Error) dgvErrors.Rows[dgvErrors.Rows.Count - 1].Cells[0].Style.ForeColor = Color.Red;
+                        AddDiagnosticRow(e);
                     }
                 }
             }
@@ -448,7 +445,7 @@ namespace ScriptEditor
                 }
             } else {
                 if (showMessages && showIcon)
-                    new CompiledStatus(true, this).ShowCompileStatus();
+                    EditorNotifications.Show(this, "Compiled " + tab.filename + " successfully.", NotificationKind.Success);
                 parserLabel.Text = "Compiled: " + tab.filename + " at " + DateTime.Now.ToString("HH:mm:ss");
                 parserLabel.ForeColor = InterfaceTheme.IsDark ? Color.FromArgb(137, 209, 133) : Color.DarkGreen;
                 msg += "\r\n Compilation Successfully!\r\n";
@@ -473,7 +470,33 @@ namespace ScriptEditor
             return CheckTabs(tabs, filepath) != null;
         }
 
-        private void SetTabTextChange(int i) { tabControl1.TabPages[i].ImageIndex = (tabs[i].changed ? 1 : 0); }
+        private static string GetDocumentTabText(TabInfo tab)
+        {
+            if (tab == null)
+                return String.Empty;
+            return tab.filename + (tab.changed ? " *" : String.Empty);
+        }
+
+        private static string GetDocumentTabToolTip(TabInfo tab)
+        {
+            if (tab == null || String.IsNullOrEmpty(tab.filepath))
+                return tab == null ? String.Empty : tab.filename;
+            try { return Path.GetFullPath(tab.filepath); }
+            catch (Exception) { return tab.filepath; }
+        }
+
+        private void UpdateDocumentTab(int index)
+        {
+            if (index < 0 || index >= tabs.Count || index >= tabControl1.TabPages.Count)
+                return;
+            TabPage page = tabControl1.TabPages[index];
+            page.Text = GetDocumentTabText(tabs[index]);
+            page.ToolTipText = GetDocumentTabToolTip(tabs[index]);
+            page.ImageIndex = -1;
+            tabControl1.Invalidate();
+        }
+
+        private void SetTabTextChange(int i) { UpdateDocumentTab(i); }
 
         private void SwitchToTab(int index)
         {

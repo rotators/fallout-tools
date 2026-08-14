@@ -31,6 +31,8 @@ namespace SfallScriptEditor.Tests
             Run("procedure folding commands affect member bodies", ProcedureFoldingCommandsAffectMemberBodies);
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
+            Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
+            Run("notification severity is conveyed in text", NotificationSeverityIsConveyedInText);
 
             Console.WriteLine();
             Console.WriteLine("Tests: {0} passed, {1} failed", passed, failed);
@@ -216,6 +218,39 @@ namespace SfallScriptEditor.Tests
                 Equal("new", File.ReadAllText(path, Encoding.ASCII));
                 Equal(1, Directory.GetFiles(directory).Length);
             });
+        }
+
+        private static void PreviousTabSessionPreservesOrderAndSelection()
+        {
+            WithTempDirectory(directory => {
+                string first = Path.Combine(directory, "first.ssl");
+                string second = Path.Combine(directory, "second.ssl");
+                File.WriteAllText(first, "procedure start begin end");
+                File.WriteAllText(second, "procedure map_enter_p_proc begin end");
+
+                try {
+                    Settings.ClearLastSession();
+                    Settings.SaveLastSession(new[] { first, second }, 1);
+
+                    int selectedIndex;
+                    string[] restored = Settings.LoadLastSession(out selectedIndex);
+                    Equal(2, restored.Length);
+                    Equal(Path.GetFullPath(first), restored[0]);
+                    Equal(Path.GetFullPath(second), restored[1]);
+                    Equal(1, selectedIndex);
+                }
+                finally {
+                    Settings.ClearLastSession();
+                }
+            });
+        }
+
+        private static void NotificationSeverityIsConveyedInText()
+        {
+            Equal(String.Empty, EditorNotifications.GetPrefix(NotificationKind.Information));
+            Equal("Success: ", EditorNotifications.GetPrefix(NotificationKind.Success));
+            Equal("Notice: ", EditorNotifications.GetPrefix(NotificationKind.Warning));
+            Equal("Error: ", EditorNotifications.GetPrefix(NotificationKind.Error));
         }
 
         private static void ProcedureFoldingCommandsAffectMemberBodies()

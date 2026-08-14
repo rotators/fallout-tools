@@ -1370,7 +1370,7 @@ namespace ScriptEditor
             {
                 int shiftY = 0;
                 if (!HideNodes.ContainsKey(item.Key) && !nodesCanvas.Contains(item.Key)) {
-                    MessageBox.Show("Added new node from the script: " + item.Key, "Loading...");
+                    EditorNotifications.Show(this, "Added node from the script: " + item.Key, NotificationKind.Information, 3000);
                     AddNodeToCanvas(item, ref shiftY, ref shiftX);
                 }
             }
@@ -1429,7 +1429,8 @@ namespace ScriptEditor
                     else
                         HideNodes.Add(nodeName, canvasitem);
                 } else
-                    MessageBox.Show("Deleted existing dialog node: " + nodeName + ", that does not exist in the script code.", "Loading...");
+                    EditorNotifications.Show(this, "Removed dialog node not present in the script: " + nodeName,
+                        NotificationKind.Information, 3000);
             }
 
             ni = nav.Select(@"/NodesDiagram/Note");

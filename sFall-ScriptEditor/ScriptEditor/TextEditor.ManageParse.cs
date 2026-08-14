@@ -67,6 +67,7 @@ namespace ScriptEditor
             tbOutputParse.Text = string.Empty;
 
             firstParse = true;
+            bool initialParseCompleted = false;
             try {
                 GetMacros.GetGlobalMacros(Settings.pathHeadersFiles);
 
@@ -82,6 +83,7 @@ namespace ScriptEditor
                 CodeFolder.GetProceduresCollapse(cTab.textEditor.Document, cTab.filename);
 
                 GetParserErrorLog(cTab);
+                initialParseCompleted = true;
 
                 if (cTab.parseInfo.parseError) {
                     tabControl2.SelectedIndex = 2;
@@ -96,6 +98,12 @@ namespace ScriptEditor
                 parserIsRunning = false;
                 firstParse = false;
             }
+
+            // The first tab can become selected before this synchronous parse finishes.
+            // Publish that result immediately; selecting the already-active tab later does
+            // not raise another Selected event to rebuild the procedure browser.
+            if (initialParseCompleted && currentTab == cTab)
+                ParserCompleted(cTab, cTab.parseInfo.parseError);
         }
 
         // Parse script
@@ -347,7 +355,7 @@ namespace ScriptEditor
                 tbOutputParse.Text = tab.parserLog;
                 if (tsmShowParserLog.Checked) {
                     foreach (Error err in tab.parserErrors)
-                        dgvErrors.Rows.Add(err.type.ToString(), Path.GetFileName(err.fileName), err.line, err);
+                        AddDiagnosticRow(err);
                 }
             }
             if (tab.buildLog != null) {
@@ -356,9 +364,20 @@ namespace ScriptEditor
                     dgvErrors.Rows.Add("Build Log");
                     InterfaceTheme.ApplyGridSectionRow(dgvErrors.Rows[dgvErrors.Rows.Count - 1]);
                     foreach (Error err in tab.buildErrors)
-                        dgvErrors.Rows.Add(err.type.ToString(), Path.GetFileName(err.fileName), err.line, err);
+                        AddDiagnosticRow(err);
                 }
             }
+        }
+
+        private void AddDiagnosticRow(Error error)
+        {
+            int rowIndex = dgvErrors.Rows.Add(error.type.ToString(), Path.GetFileName(error.fileName), error.line, error);
+            if (error.type != ErrorType.Error) return;
+
+            DataGridViewCell typeCell = dgvErrors.Rows[rowIndex].Cells[0];
+            Color errorColor = InterfaceTheme.IsDark ? Color.FromArgb(255, 112, 105) : Color.Firebrick;
+            typeCell.Style.ForeColor = errorColor;
+            typeCell.Style.SelectionForeColor = errorColor;
         }
 
         public void intParserPrint(string info)

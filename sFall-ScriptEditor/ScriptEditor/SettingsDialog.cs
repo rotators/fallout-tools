@@ -10,6 +10,9 @@ namespace ScriptEditor
         private string scriptsHPath;
         private string headersFilesPath;
         private GroupBox groupFileAssociation;
+        private GroupBox groupEditorBehavior;
+        private GroupBox groupMessageOptions;
+        private CheckBox cbReopenLastTabs;
 
         public SettingsDialog()
         {
@@ -17,8 +20,10 @@ namespace ScriptEditor
             scriptsHPath = Settings.pathScriptsHFile;
             headersFilesPath = Settings.pathHeadersFiles;
             InitializeComponent();
+            ConfigureSettingsLayout();
             ConfigureFileAssociationSection();
             InterfaceTheme.Apply((Control)this);
+            PerformLayout();
 
             if (Settings.useMcpp) 
                 cmbPreprocessor.SelectedIndex = 1;
@@ -54,6 +59,7 @@ namespace ScriptEditor
             cbShowTips.Checked = Settings.showTips;
             cbShortDesc.Checked = Settings.shortDesc;
             cbStorePosition.Checked = Settings.storeLastPosition;
+            cbReopenLastTabs.Checked = Settings.reopenLastTabs;
             foreach (var item in Settings.msgListPath)
                 msgPathlistView.Items.Add(item.ToString());
             SetLabelText();
@@ -72,16 +78,131 @@ namespace ScriptEditor
                 cbFonts.SelectedIndex = 0;
         }
 
+        private void ConfigureSettingsLayout()
+        {
+            SuspendLayout();
+
+            ClientSize = DpiHelper.Scale(this, new Size(640, 656));
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+
+            SetLogicalBounds(groupBox6, 8, 6, 624, 56);
+            groupBox6.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox6.Text = "Appearance";
+            SetLogicalBounds(labelScriptStyle, 8, 23, 68, 17);
+            SetLogicalBounds(Highlight_comboBox, 78, 19, 108, 23);
+            SetLogicalBounds(labelInterfaceStyle, 202, 23, 86, 17);
+            SetLogicalBounds(InterfaceTheme_comboBox, 290, 19, 108, 23);
+            SetLogicalBounds(labelCodeFont, 414, 23, 62, 17);
+            SetLogicalBounds(cbFonts, 478, 19, 136, 23);
+
+            SetLogicalBounds(groupBox1, 8, 68, 400, 125);
+            groupBox1.Text = "Compilation";
+            SetLogicalBounds(cbUserCompile, 8, 22, 164, 20);
+            SetLogicalBounds(cmbPreprocessor, 180, 19, 206, 23);
+            SetLogicalBounds(cbUseBackward, 8, 49, 164, 20);
+            SetLogicalBounds(cbOptimize, 180, 46, 110, 23);
+            SetLogicalBounds(label6, 298, 50, 88, 17);
+            SetLogicalBounds(cbWarnings, 8, 76, 100, 20);
+            SetLogicalBounds(cbDebug, 116, 76, 78, 20);
+            SetLogicalBounds(cbShortCircuit, 202, 76, 184, 20);
+            SetLogicalBounds(cbWarnFailedCompile, 8, 101, 164, 20);
+            SetLogicalBounds(cbMultiThread, 180, 101, 206, 20);
+
+            SetLogicalBounds(groupBox4, 416, 68, 216, 50);
+            SetLogicalBounds(cbEnableParser, 8, 20, 92, 20);
+            SetLogicalBounds(cbParserWarn, 112, 20, 94, 20);
+
+            SetLogicalBounds(groupBox5, 416, 124, 216, 69);
+            SetLogicalBounds(cbAutocomplete, 8, 20, 166, 20);
+            SetLogicalBounds(cbNonColor, 182, 17, 24, 24);
+            SetLogicalBounds(cbAutoPaired, 8, 44, 198, 20);
+
+            groupEditorBehavior = new GroupBox();
+            groupEditorBehavior.Name = "groupEditorBehavior";
+            groupEditorBehavior.Text = "Editing";
+            groupEditorBehavior.TabStop = false;
+            SetLogicalBounds(groupEditorBehavior, 8, 199, 624, 83);
+            groupEditorBehavior.Controls.Add(cbShowTips);
+            groupEditorBehavior.Controls.Add(cbShortDesc);
+            groupEditorBehavior.Controls.Add(HintLang_comboBox);
+            groupEditorBehavior.Controls.Add(label2);
+            groupEditorBehavior.Controls.Add(cbStorePosition);
+            groupEditorBehavior.Controls.Add(cbTabsToSpaces);
+            groupEditorBehavior.Controls.Add(label7);
+            groupEditorBehavior.Controls.Add(tbTabSize);
+            cbReopenLastTabs = new CheckBox();
+            cbReopenLastTabs.AutoSize = true;
+            cbReopenLastTabs.Name = "cbReopenLastTabs";
+            cbReopenLastTabs.Text = "Reopen tabs from previous session";
+            cbReopenLastTabs.UseVisualStyleBackColor = true;
+            groupEditorBehavior.Controls.Add(cbReopenLastTabs);
+            SetLogicalBounds(cbShowTips, 8, 22, 94, 20);
+            SetLogicalBounds(cbShortDesc, 112, 22, 138, 20);
+            SetLogicalBounds(cbStorePosition, 260, 22, 132, 20);
+            SetLogicalBounds(cbReopenLastTabs, 400, 22, 210, 20);
+            SetLogicalBounds(label2, 8, 55, 126, 17);
+            label2.Text = "Description language:";
+            SetLogicalBounds(HintLang_comboBox, 136, 50, 112, 23);
+            SetLogicalBounds(cbTabsToSpaces, 270, 52, 174, 20);
+            SetLogicalBounds(label7, 452, 55, 104, 17);
+            label7.Text = "Tab/indent size:";
+            SetLogicalBounds(tbTabSize, 558, 50, 52, 23);
+            toolTip.SetToolTip(cbReopenLastTabs,
+                "Automatically reopen the script tabs that were open when the editor last closed.");
+            Controls.Add(groupEditorBehavior);
+
+            SetLogicalBounds(groupBox2, 8, 288, 624, 146);
+            groupBox2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox2.Text = "Paths";
+            SetLogicalBounds(cbCompilePath, 418, 16, 194, 20);
+            SetLogicalBounds(textBox2, 8, 34, 568, 23);
+            SetLogicalBounds(bChange, 580, 32, 34, 27);
+            SetLogicalBounds(cbIncludePath, 402, 58, 210, 20);
+            SetLogicalBounds(textBox1, 8, 75, 568, 23);
+            SetLogicalBounds(bHeaders, 580, 73, 34, 27);
+            SetLogicalBounds(label8, 8, 101, 190, 17);
+            SetLogicalBounds(tbScriptsHPath, 8, 117, 568, 23);
+            SetLogicalBounds(bScriptsH, 580, 115, 34, 27);
+
+            groupMessageOptions = new GroupBox();
+            groupMessageOptions.Name = "groupMessageOptions";
+            groupMessageOptions.Text = "Message files";
+            groupMessageOptions.TabStop = false;
+            SetLogicalBounds(groupMessageOptions, 8, 440, 624, 51);
+            groupMessageOptions.Controls.Add(cbAutoOpenMessages);
+            groupMessageOptions.Controls.Add(cbAssociateID);
+            groupMessageOptions.Controls.Add(label5);
+            groupMessageOptions.Controls.Add(tbLanguage);
+            SetLogicalBounds(cbAutoOpenMessages, 8, 21, 148, 20);
+            SetLogicalBounds(cbAssociateID, 170, 21, 136, 20);
+            SetLogicalBounds(label5, 330, 24, 134, 17);
+            label5.Text = "Message language:";
+            SetLogicalBounds(tbLanguage, 468, 20, 138, 23);
+            Controls.Add(groupMessageOptions);
+
+            SetLogicalBounds(button1, 532, 621, 100, 27);
+
+            ResumeLayout(false);
+            PerformLayout();
+        }
+
+        private void SetLogicalBounds(Control control, int x, int y, int width, int height)
+        {
+            control.SetBounds(DpiHelper.Scale(this, x), DpiHelper.Scale(this, y),
+                DpiHelper.Scale(this, width), DpiHelper.Scale(this, height));
+        }
+
         private void ConfigureFileAssociationSection()
         {
-            groupBox3.Size = DpiHelper.Scale(this, new Size(330, 100));
-            msgPathlistView.Size = DpiHelper.Scale(this, new Size(318, 75));
-            columnHeader1.Width = DpiHelper.Scale(this, 310);
+            groupBox3.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            SetLogicalBounds(groupBox3, 8, 497, 466, 118);
+            SetLogicalBounds(msgPathlistView, 8, 20, 450, 90);
+            columnHeader1.Width = DpiHelper.Scale(this, 442);
 
             groupFileAssociation = new GroupBox();
-            groupFileAssociation.Location = DpiHelper.Scale(this, new Point(341, 385));
+            groupFileAssociation.Location = DpiHelper.Scale(this, new Point(482, 497));
             groupFileAssociation.Name = "groupFileAssociation";
-            groupFileAssociation.Size = DpiHelper.Scale(this, new Size(161, 68));
+            groupFileAssociation.Size = DpiHelper.Scale(this, new Size(150, 118));
             groupFileAssociation.TabIndex = 44;
             groupFileAssociation.TabStop = false;
             groupFileAssociation.Text = "File association";
@@ -89,16 +210,16 @@ namespace ScriptEditor
             label3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             label3.AutoSize = false;
             label3.Font = Font;
-            label3.Location = DpiHelper.Scale(this, new Point(8, 16));
-            label3.Size = DpiHelper.Scale(this, new Size(145, 26));
+            label3.Location = DpiHelper.Scale(this, new Point(8, 20));
+            label3.Size = DpiHelper.Scale(this, new Size(134, 48));
             label3.Text = "Choose which supported files Windows opens with this editor.";
             label3.TextAlign = ContentAlignment.TopLeft;
 
             bAssociate.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             bAssociate.Font = Font;
-            bAssociate.Location = DpiHelper.Scale(this, new Point(8, 42));
-            bAssociate.Size = DpiHelper.Scale(this, new Size(145, 23));
-            bAssociate.Text = "Choose default apps...";
+            bAssociate.Location = DpiHelper.Scale(this, new Point(8, 78));
+            bAssociate.Size = DpiHelper.Scale(this, new Size(134, 28));
+            bAssociate.Text = "Set file associations...";
 
             groupFileAssociation.Controls.Add(label3);
             groupFileAssociation.Controls.Add(bAssociate);
@@ -161,6 +282,7 @@ namespace ScriptEditor
             Settings.msgListPath.Clear();
             Settings.selectFont= (byte)cbFonts.SelectedIndex;
             Settings.storeLastPosition = cbStorePosition.Checked;
+            Settings.reopenLastTabs = cbReopenLastTabs.Checked;
             Settings.compileBackwardMode = cbUseBackward.Checked ? 1 : 0;
 
             foreach (ListViewItem item in msgPathlistView.Items)

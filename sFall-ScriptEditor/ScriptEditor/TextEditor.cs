@@ -61,6 +61,7 @@ namespace ScriptEditor
         private bool roundTrip = false;
         private bool savingRunning = false;
         private bool isClosing = false;
+        private Timer statusMessageTimer;
 
         internal TreeView VarTree = new TreeView();
         private TabPage VarTab = new TabPage("Variables");
@@ -101,6 +102,7 @@ namespace ScriptEditor
             ConfigureHelpMenu();
             ConfigureEditorFoldingMenu();
             ConfigureMainToolbar();
+            ConfigureStatusNotifications();
 
             tabControl3.TabPages.RemoveAt(2); // скрываем от пользователя еще нереализованный функционал
 
@@ -354,6 +356,8 @@ namespace ScriptEditor
             if (!Settings.firstRun)
                 Settings_ToolStripMenuItem.PerformClick();
 
+            bool restoredPreviousSession = RestorePreviousSession();
+
             // open documents passed from command line
             foreach (string fArg in commandsArgs)
             {
@@ -367,6 +371,8 @@ namespace ScriptEditor
             this.Deactivate += TextEditor_Deactivate;
             SingleInstanceManager.SendEditorOpenMessage();
             InterfaceTheme.Apply(this);
+            if (restoredPreviousSession)
+                BeginInvoke((MethodInvoker)ExpandRestoredProcedureGroups);
         }
 
         private void TextEditor_Resize(object sender, EventArgs e)
@@ -428,6 +434,7 @@ namespace ScriptEditor
                 KeepScriptSetting(tabs[i], skip);
             }
 
+            SaveOpenTabSession();
             isClosing = true;
             if (bwSyntaxParser.IsBusy)
                 bwSyntaxParser.CancelAsync();
@@ -437,6 +444,107 @@ namespace ScriptEditor
             Settings.editorSplitterPosition2 = splitContainer2.SplitterDistance;
             Settings.SaveSettingData(this);
             SyntaxFile.DeleteSyntaxFile();
+        }
+
+        private void ConfigureStatusNotifications()
+        {
+            EmptyStripStatusLabel.AutoSize = false;
+            EmptyStripStatusLabel.Spring = true;
+            EmptyStripStatusLabel.TextAlign = ContentAlignment.MiddleLeft;
+            EmptyStripStatusLabel.Padding = new Padding(DpiHelper.Scale(this, 6), 0, 0, 0);
+            LineStripStatusLabel.Spring = false;
+            LineStripStatusLabel.Width = DpiHelper.Scale(this, 100);
+            ColStripStatusLabel.Spring = false;
+            ColStripStatusLabel.Width = DpiHelper.Scale(this, 100);
+
+            statusMessageTimer = new Timer(components);
+            statusMessageTimer.Interval = 5000;
+            statusMessageTimer.Tick += delegate {
+                statusMessageTimer.Stop();
+                EmptyStripStatusLabel.Text = String.Empty;
+                EmptyStripStatusLabel.ToolTipText = String.Empty;
+                EmptyStripStatusLabel.ForeColor = InterfaceTheme.IsDark ? Color.Gainsboro : SystemColors.ControlText;
+                EmptyStripStatusLabel.BackColor = InterfaceTheme.IsDark ? Color.FromArgb(53, 53, 56) : SystemColors.Control;
+            };
+        }
+
+        internal void ShowStatusMessage(string message, NotificationKind kind, int duration)
+        {
+            if (InvokeRequired) {
+                BeginInvoke(new Action<string, NotificationKind, int>(ShowStatusMessage), message, kind, duration);
+                return;
+            }
+
+            Color back;
+            Color fore;
+            EditorNotifications.GetColors(kind, InterfaceTheme.IsDark, out back, out fore);
+            EmptyStripStatusLabel.Text = EditorNotifications.GetPrefix(kind) + message.Replace('\r', ' ').Replace('\n', ' ');
+            EmptyStripStatusLabel.ToolTipText = message;
+            EmptyStripStatusLabel.ForeColor = kind == NotificationKind.Information
+                ? (InterfaceTheme.IsDark ? Color.FromArgb(130, 190, 235) : Color.FromArgb(0, 90, 160))
+                : fore;
+            EmptyStripStatusLabel.BackColor = kind == NotificationKind.Information
+                ? (InterfaceTheme.IsDark ? Color.FromArgb(53, 53, 56) : SystemColors.Control)
+                : back;
+            statusMessageTimer.Stop();
+            statusMessageTimer.Interval = Math.Max(1000, duration);
+            statusMessageTimer.Start();
+        }
+
+        private bool RestorePreviousSession()
+        {
+            if (!Settings.reopenLastTabs)
+                return false;
+
+            int selectedIndex;
+            string[] paths = Settings.LoadLastSession(out selectedIndex);
+            if (paths.Length > 0) {
+                Settings.globalProceduresCollapsed = false;
+                Settings.localProceduresCollapsed = false;
+            }
+            TabInfo selectedTab = null;
+            bool restoredAny = false;
+            for (int i = 0; i < paths.Length; i++) {
+                if (!File.Exists(paths[i]))
+                    continue;
+                TabInfo restored = Open(paths[i], OpenType.File, addToMRU: false, seltab: false);
+                restoredAny |= restored != null;
+                if (i == selectedIndex)
+                    selectedTab = restored;
+            }
+            if (selectedTab != null && selectedTab.index >= 0 && selectedTab.index < tabControl1.TabCount)
+                tabControl1.SelectTab(selectedTab.index);
+
+            return restoredAny;
+        }
+
+        private void ExpandRestoredProcedureGroups()
+        {
+            Settings.globalProceduresCollapsed = false;
+            Settings.localProceduresCollapsed = false;
+            if (ProcTree.Nodes.Count > 0)
+                ProcTree.Nodes[0].Expand();
+            if (ProcTree.Nodes.Count > 1)
+                ProcTree.Nodes[1].Expand();
+        }
+
+        private void SaveOpenTabSession()
+        {
+            if (!Settings.reopenLastTabs) {
+                Settings.ClearLastSession();
+                return;
+            }
+
+            List<string> paths = new List<string>();
+            int selectedIndex = -1;
+            foreach (TabInfo tab in tabs) {
+                if (String.IsNullOrWhiteSpace(tab.filepath) || !File.Exists(tab.filepath))
+                    continue;
+                if (tab == currentTab)
+                    selectedIndex = paths.Count;
+                paths.Add(tab.filepath);
+            }
+            Settings.SaveLastSession(paths, selectedIndex);
         }
         #endregion
 
@@ -465,6 +573,11 @@ namespace ScriptEditor
             intParserTimer.Tick += new EventHandler(InternalParser_Tick);
 
             // Tabs Swapped
+            tabControl1.ShowCloseButtons = true;
+            tabControl1.TabCloseRequested += delegate(object sender, TabCloseRequestedEventArgs e) {
+                if (e.TabIndex >= 0 && e.TabIndex < tabs.Count)
+                    Close(tabs[e.TabIndex]);
+            };
             tabControl1.tabsSwapped += delegate(object sender, TabsSwappedEventArgs e) {
                 TabInfo tmp = tabs[e.aIndex];
                 tabs[e.aIndex] = tabs[e.bIndex];
@@ -920,14 +1033,20 @@ namespace ScriptEditor
             StringBuilder FullMsg = new StringBuilder();
             dgvErrors.Rows.Clear();
             string msg;
+            int succeeded = 0;
+            int failed = 0;
             for (int i = 0; i < tabs.Count; i++) {
                 //FullMsg.AppendLine("*** " + tabs[i].filename);
-                Compile(tabs[i], out msg, false);
+                if (Compile(tabs[i], out msg, false)) succeeded++;
+                else failed++;
                 tabs[i].buildLog = msg;
                 FullMsg.AppendLine(msg);
                 FullMsg.AppendLine();
             }
             tbOutput.Text = FullMsg.ToString();
+            EditorNotifications.Show(this,
+                String.Format("Compiled {0} open script(s); {1} failed. See the Build log for details.", succeeded, failed),
+                failed == 0 ? NotificationKind.Success : NotificationKind.Warning, 7000);
         }
 
         private void cutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1629,14 +1748,14 @@ namespace ScriptEditor
                 dgvErrors.Rows.Clear();
 
             foreach (Error err in report)
-                dgvErrors.Rows.Add(err.type.ToString(), Path.GetFileName(err.fileName), err.line, err);
+                AddDiagnosticRow(err);
 
             if (report.Count > 0) {
                 currentTab.parserErrors = report;
                 tabControl2.SelectedIndex = 2;
                 MaximizeLog();
             } else
-                MessageBox.Show("No mistakes!", "Checker");
+                EditorNotifications.Show(this, "No message-structure problems found.", NotificationKind.Success);
         }
 
         private void FontSizeStripStatusLabel_Click(object sender, EventArgs e)

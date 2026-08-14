@@ -661,7 +661,7 @@ namespace ScriptEditor
         {
             string find_str = SearchStripTextBox.Text.Trim();
             if (find_str.Length == 0) {
-                MessageBox.Show("Nothing found.");
+                EditorNotifications.Show(this, "Enter text to search for.", NotificationKind.Warning);
                 return;
             }
 
@@ -693,7 +693,7 @@ namespace ScriptEditor
             }
 
             if (findPosition.col == -1)
-                System.Media.SystemSounds.Exclamation.Play();
+                EditorNotifications.Show(this, "No matching message text was found.");
             else {
                 SelectLine = findPosition;
             }

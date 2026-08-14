@@ -341,14 +341,14 @@ namespace ScriptEditor
         private void Downbutton_Click(object sender, EventArgs e)
         {
             cell curfind = Finds(SelectLine.row, SelectLine.col + 1);
-            if (curfind.col == 0) MessageBox.Show("Nothing found.");
+            if (curfind.col == 0) EditorNotifications.Show(this, "No further matching script was found.");
             else SelectLine = curfind;
         }
 
         private void Upbutton_Click(object sender, EventArgs e)
         {
             cell curfind = Finds(SelectLine.row, SelectLine.col + 1, -1);
-            if (curfind.col == 0) MessageBox.Show("Nothing found.");
+            if (curfind.col == 0) EditorNotifications.Show(this, "No previous matching script was found.");
             else SelectLine = curfind;
         }
 

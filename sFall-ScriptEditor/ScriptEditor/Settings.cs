@@ -26,6 +26,7 @@ namespace ScriptEditor
 
         private static readonly string RecentPath = Path.Combine(SettingsFolder, "recent.dat");
         private static readonly string SettingsPath = Path.Combine(SettingsFolder, "settings.dat");
+        private static readonly string LastSessionPath = Path.Combine(SettingsFolder, "last-session.dat");
 
         public static readonly string SearchHistoryPath = Path.Combine(SettingsFolder, "SearchHistory.ini");
         public static readonly string SearchFoldersPath = Path.Combine(SettingsFolder, "SearchPaths.ini");
@@ -112,6 +113,8 @@ namespace ScriptEditor
         public static SearchScope searchScope = SearchScope.AllOpenScripts;
         public static bool searchRegularExpression;
         public static bool searchFindAllMatches;
+        public static bool reopenLastTabs = true;
+        private static bool procedureTreeExpandedDefaultApplied;
 
         // for Flowchart
         public static bool autoUpdate = false;
@@ -335,11 +338,24 @@ namespace ScriptEditor
                         searchRegularExpression = br.ReadBoolean();
                     if (br.BaseStream.Position < br.BaseStream.Length)
                         searchFindAllMatches = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        reopenLastTabs = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        procedureTreeExpandedDefaultApplied = br.ReadBoolean();
                 } catch {
                     MessageBox.Show("An error occurred while reading configuration file.\n"
                                     + "File setting.dat may be in wrong format.", "Setting read error");
                 }
                 br.Close();
+            }
+
+            // Existing installations may have retained a collapsed state from the
+            // original tree-state implementation. Reset it once, then continue to
+            // remember the user's explicit choice on subsequent launches.
+            if (!procedureTreeExpandedDefaultApplied) {
+                globalProceduresCollapsed = false;
+                localProceduresCollapsed = false;
+                procedureTreeExpandedDefaultApplied = true;
             }
             // Recent files are optional state. A truncated file must not prevent startup.
             if (brRecent == null) return;
@@ -517,6 +533,8 @@ namespace ScriptEditor
             bw.Write((byte)searchScope);
             bw.Write(searchRegularExpression);
             bw.Write(searchFindAllMatches);
+            bw.Write(reopenLastTabs);
+            bw.Write(procedureTreeExpandedDefaultApplied);
             bw.Close();
 
             // Recent files
@@ -540,6 +558,71 @@ namespace ScriptEditor
             bwRecent.Close();
             // Store folding procedures
             SaveScriptsProceduresFolding();
+        }
+
+        public static void SaveLastSession(IEnumerable<string> filePaths, int selectedIndex)
+        {
+            if (!Directory.Exists(SettingsFolder))
+                Directory.CreateDirectory(SettingsFolder);
+
+            List<string> paths = new List<string>();
+            foreach (string path in filePaths) {
+                if (!String.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    paths.Add(Path.GetFullPath(path));
+            }
+
+            string temporaryPath = LastSessionPath + ".tmp";
+            try {
+                using (BinaryWriter writer = new BinaryWriter(File.Create(temporaryPath))) {
+                    writer.Write((byte)1);
+                    writer.Write(selectedIndex >= 0 && selectedIndex < paths.Count ? selectedIndex : -1);
+                    writer.Write(paths.Count);
+                    foreach (string path in paths)
+                        writer.Write(path);
+                }
+
+                TryDeleteFile(LastSessionPath);
+                File.Move(temporaryPath, LastSessionPath);
+            } catch (Exception ex) {
+                TryDeleteFile(temporaryPath);
+                Program.printLog("   Could not save the previous tab session: " + ex.Message);
+            }
+        }
+
+        public static string[] LoadLastSession(out int selectedIndex)
+        {
+            selectedIndex = -1;
+            if (!File.Exists(LastSessionPath))
+                return new string[0];
+
+            try {
+                using (BinaryReader reader = new BinaryReader(File.OpenRead(LastSessionPath))) {
+                    if (reader.ReadByte() != 1)
+                        throw new InvalidDataException("Unsupported session-file version.");
+
+                    selectedIndex = reader.ReadInt32();
+                    int count = reader.ReadInt32();
+                    if (count < 0 || count > 256)
+                        throw new InvalidDataException("Invalid number of saved tabs.");
+
+                    string[] paths = new string[count];
+                    for (int i = 0; i < count; i++)
+                        paths[i] = reader.ReadString();
+                    if (selectedIndex < 0 || selectedIndex >= count)
+                        selectedIndex = -1;
+                    return paths;
+                }
+            } catch (Exception ex) {
+                selectedIndex = -1;
+                Program.printLog("   Ignored invalid previous tab session: " + ex.Message);
+                return new string[0];
+            }
+        }
+
+        public static void ClearLastSession()
+        {
+            TryDeleteFile(LastSessionPath);
+            TryDeleteFile(LastSessionPath + ".tmp");
         }
 
         internal static void CleanupScriptTempDirectory(bool removeDirectory)

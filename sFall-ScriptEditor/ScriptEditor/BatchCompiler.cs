@@ -123,7 +123,7 @@ namespace ScriptEditor
         {
             string[] infiles = System.IO.Directory.GetFiles(path, "*.ssl", System.IO.SearchOption.AllDirectories);
             if (infiles.Length == 0) {
-                MessageBox.Show("Nothing found to compile", "Warning");
+                EditorNotifications.Show(Form.ActiveForm, "No .ssl files were found to compile.", NotificationKind.Warning);
                 return;
             }
             BatchCompiler bc = new BatchCompiler(infiles);

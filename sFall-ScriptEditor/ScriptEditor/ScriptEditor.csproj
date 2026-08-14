@@ -107,6 +107,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="DpiHelper.cs" />
+    <Compile Include="EditorNotifications.cs" />
     <Compile Include="DialogPreview.Designer.cs">
       <DependentUpon>DialogPreview.cs</DependentUpon>
     </Compile>

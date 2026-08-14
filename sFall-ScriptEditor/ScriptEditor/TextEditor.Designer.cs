@@ -668,7 +668,7 @@ namespace ScriptEditor {
             this.tabControl2.Controls.Add(this.tabPageBuild);
             this.tabControl2.Controls.Add(this.tabPageError);
             this.tabControl2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl2.ItemSize = new System.Drawing.Size(75, 18);
+            this.tabControl2.ItemSize = new System.Drawing.Size(80, 24);
             this.tabControl2.Location = new System.Drawing.Point(0, 0);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
@@ -895,10 +895,10 @@ namespace ScriptEditor {
             this.tabControl3.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tabControl3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tabControl3.ImageList = this.imageList1;
-            this.tabControl3.ItemSize = new System.Drawing.Size(60, 18);
+            this.tabControl3.ItemSize = new System.Drawing.Size(82, 24);
             this.tabControl3.Location = new System.Drawing.Point(0, 0);
             this.tabControl3.Name = "tabControl3";
-            this.tabControl3.Padding = new System.Drawing.Point(0, 0);
+            this.tabControl3.Padding = new System.Drawing.Point(8, 3);
             this.tabControl3.SelectedIndex = 0;
             this.tabControl3.ShowToolTips = true;
             this.tabControl3.Size = new System.Drawing.Size(265, 654);
@@ -2721,6 +2721,7 @@ namespace ScriptEditor {
             this.tabControl1.ImageList = this.imageList1;
             this.tabControl1.Location = new System.Drawing.Point(0, 25);
             this.tabControl1.Name = "tabControl1";
+            this.tabControl1.Padding = new System.Drawing.Point(16, 3);
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.ShowToolTips = true;
             this.tabControl1.Size = new System.Drawing.Size(984, 601);
