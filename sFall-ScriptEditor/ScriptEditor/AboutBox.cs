@@ -16,10 +16,10 @@ namespace ScriptEditor
         public static readonly string appDescription = " - Rotators Build";
         private int licenseLinkStart = -1;
         private int licenseLinkLength;
-        
         public AboutBox()
         {
             InitializeComponent();
+            CancelButton = okButton;
             ConfigureLayout();
 
             this.Text += appName + appDescription;

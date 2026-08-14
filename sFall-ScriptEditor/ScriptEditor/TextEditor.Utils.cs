@@ -450,7 +450,6 @@ namespace ScriptEditor
             FindForwardButton.PerformClick();
             if (!SearchToolStrip.Visible) {
                 SearchToolStrip.Visible = true;
-                TabClose_button.Top += (SearchToolStrip.Visible) ? 25 : -25;
             }
         }
 
@@ -461,7 +460,6 @@ namespace ScriptEditor
                 return;
             }
             SearchToolStrip.Visible = !SearchToolStrip.Visible;
-            TabClose_button.Top += (SearchToolStrip.Visible) ? 25 : -25;
         }
         #endregion
 

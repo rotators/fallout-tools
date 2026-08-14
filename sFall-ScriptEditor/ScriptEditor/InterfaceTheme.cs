@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
@@ -26,7 +25,6 @@ namespace ScriptEditor
         private static readonly Dictionary<TabControl, TabAppearance> TabAppearances = new Dictionary<TabControl, TabAppearance>();
         private static readonly Dictionary<TabControl, bool> TabMultiline = new Dictionary<TabControl, bool>();
         private static readonly Dictionary<ToolStripStatusLabel, ToolStripStatusLabelBorderSides> StatusBorders = new Dictionary<ToolStripStatusLabel, ToolStripStatusLabelBorderSides>();
-        private static readonly Dictionary<ScrollBar, ScrollBarBorderWindow> ScrollBarBorders = new Dictionary<ScrollBar, ScrollBarBorderWindow>();
         private static readonly Dictionary<Control, ControlBorderWindow> ControlBorders = new Dictionary<Control, ControlBorderWindow>();
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
         private static readonly HashSet<CheckBox> DrawnCheckBoxes = new HashSet<CheckBox>();
@@ -116,8 +114,8 @@ namespace ScriptEditor
             ApplyTypography(control);
             ApplyNativeTheme(control, dark);
             if (control is ICSharpCode.TextEditor.TextEditorControl) {
+                RegisterDynamicThemingToChildren(control);
                 ApplyNativeThemeToChildren(control, dark);
-                ApplyScrollBarBorders(control);
                 return;
             }
 
@@ -567,11 +565,16 @@ namespace ScriptEditor
         private static void DynamicHandleCreated(object sender, System.EventArgs e)
         {
             Control control = (Control)sender;
-            bool dark = IsDark;
-            ApplyNativeTheme(control, dark);
-            ScrollBar scrollBar = control as ScrollBar;
-            if (dark && scrollBar != null && !ScrollBarBorders.ContainsKey(scrollBar))
-                ScrollBarBorders.Add(scrollBar, new ScrollBarBorderWindow(scrollBar));
+            ApplyNativeTheme(control, IsDark);
+            control.Invalidate();
+        }
+
+        private static void RegisterDynamicThemingToChildren(Control control)
+        {
+            foreach (Control child in control.Controls) {
+                RegisterDynamicTheming(child);
+                RegisterDynamicThemingToChildren(child);
+            }
         }
 
         private static void DynamicControlAdded(object sender, ControlEventArgs e)
@@ -798,81 +801,6 @@ namespace ScriptEditor
                 }
             }
         }
-        private static void ApplyScrollBarBorders(Control control)
-        {
-            ScrollBar scrollBar = control as ScrollBar;
-            if (scrollBar != null && !ScrollBarBorders.ContainsKey(scrollBar))
-                ScrollBarBorders.Add(scrollBar, new ScrollBarBorderWindow(scrollBar));
-            foreach (Control child in control.Controls) ApplyScrollBarBorders(child);
-        }
-
-        private sealed class ScrollBarBorderWindow : NativeWindow
-        {
-            private readonly ScrollBar scrollBar;
-
-            internal ScrollBarBorderWindow(ScrollBar scrollBar)
-            {
-                this.scrollBar = scrollBar;
-                AssignHandle(scrollBar.Handle);
-                scrollBar.HandleCreated += delegate { AssignHandle(scrollBar.Handle); };
-                scrollBar.HandleDestroyed += delegate { ReleaseHandle(); };
-            }
-
-            protected override void WndProc(ref Message m)
-            {
-                base.WndProc(ref m);
-                if (m.Msg != 0x000F || !IsDark || !scrollBar.IsHandleCreated) return;
-                using (Graphics graphics = Graphics.FromHwnd(scrollBar.Handle))
-                    DrawDarkScrollBar(graphics);
-            }
-
-            private void DrawDarkScrollBar(Graphics graphics)
-            {
-                bool vertical = scrollBar is VScrollBar;
-                int length = vertical ? scrollBar.Height : scrollBar.Width;
-                int breadth = vertical ? scrollBar.Width : scrollBar.Height;
-                int button = System.Math.Min(breadth, length / 2);
-                int trackLength = System.Math.Max(0, length - button * 2);
-
-                using (Brush controlBrush = new SolidBrush(DarkControl))
-                using (Brush trackBrush = new SolidBrush(DarkBack))
-                using (Brush thumbBrush = new SolidBrush(DarkSelection))
-                using (Brush arrowBrush = new SolidBrush(DarkText))
-                using (Pen borderPen = new Pen(DarkBorder))
-                {
-                    graphics.FillRectangle(controlBrush, scrollBar.ClientRectangle);
-                    Rectangle track = vertical
-                        ? new Rectangle(1, button, System.Math.Max(0, breadth - 2), trackLength)
-                        : new Rectangle(button, 1, trackLength, System.Math.Max(0, breadth - 2));
-                    graphics.FillRectangle(trackBrush, track);
-
-                    int range = System.Math.Max(1, scrollBar.Maximum - scrollBar.Minimum + 1);
-                    int page = System.Math.Max(1, scrollBar.LargeChange);
-                    int minimumThumb = System.Math.Min(trackLength, 18);
-                    int thumbLength = System.Math.Max(minimumThumb, (int)((long)trackLength * page / range));
-                    thumbLength = System.Math.Min(trackLength, thumbLength);
-                    int maximumPosition = System.Math.Max(scrollBar.Minimum, scrollBar.Maximum - page + 1);
-                    int positionRange = System.Math.Max(1, maximumPosition - scrollBar.Minimum);
-                    int movable = System.Math.Max(0, trackLength - thumbLength);
-                    int offset = (int)((long)movable * (scrollBar.Value - scrollBar.Minimum) / positionRange);
-                    Rectangle thumb = vertical
-                        ? new Rectangle(3, button + offset, System.Math.Max(0, breadth - 6), thumbLength)
-                        : new Rectangle(button + offset, 3, thumbLength, System.Math.Max(0, breadth - 6));
-                    graphics.FillRectangle(thumbBrush, thumb);
-
-                    int center = breadth / 2;
-                    int inset = System.Math.Max(3, breadth / 4);
-                    if (vertical) {
-                        graphics.FillPolygon(arrowBrush, new Point[] { new Point(center, inset), new Point(inset, button - inset), new Point(breadth - inset, button - inset) });
-                        graphics.FillPolygon(arrowBrush, new Point[] { new Point(center, length - inset), new Point(inset, length - button + inset), new Point(breadth - inset, length - button + inset) });
-                    } else {
-                        graphics.FillPolygon(arrowBrush, new Point[] { new Point(inset, center), new Point(button - inset, inset), new Point(button - inset, breadth - inset) });
-                        graphics.FillPolygon(arrowBrush, new Point[] { new Point(length - inset, center), new Point(length - button + inset, inset), new Point(length - button + inset, breadth - inset) });
-                    }
-                    graphics.DrawRectangle(borderPen, 0, 0, System.Math.Max(0, scrollBar.Width - 1), System.Math.Max(0, scrollBar.Height - 1));
-                }
-            }
-        }
         private static void SetTitleBarTheme(Form form, bool dark)
         {
             if (!form.IsHandleCreated) return;
@@ -888,7 +816,12 @@ namespace ScriptEditor
             if (!control.IsHandleCreated) return;
             try {
                 AllowDarkModeForWindow(control.Handle, dark);
-                bool darkInput = dark && (control is ComboBox || control is TextBoxBase);
+                // Editable text/combo controls use classic drawing to avoid light
+                // Windows hot-state flashes. RichTextBox is the exception: its vertical
+                // scrollbar is part of the native window and needs the Explorer dark
+                // theme in order to render a dark track, thumb, and arrow buttons.
+                bool darkInput = dark && (control is ComboBox ||
+                    (control is TextBoxBase && !(control is RichTextBox)));
                 string theme = darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer");
                 string themeParts = darkInput ? "" : null;
                 SetWindowTheme(control.Handle, theme, themeParts);

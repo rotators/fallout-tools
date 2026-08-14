@@ -900,7 +900,6 @@ namespace ScriptEditor
 
         private void EnableFormControls()
         {
-            TabClose_button.Visible = true;
             Split_button.Visible = true;
             splitDocumentToolStripMenuItem.Enabled = true;
             openAllIncludesScriptToolStripMenuItem.Enabled = true;
@@ -916,9 +915,6 @@ namespace ScriptEditor
             setOnlyOnce = true;
 
             int xLocation = tabControl1.DisplayRectangle.Right;
-            TabClose_button.Left = xLocation - TabClose_button.Width + 1;
-            TabClose_button.Top = tabControl1.DisplayRectangle.Top - 1;
-
             Split_button.Left = xLocation - Split_button.Width;
             Split_button.Top = tabControl1.DisplayRectangle.Bottom - Split_button.Height;
 
