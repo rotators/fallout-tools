@@ -32,6 +32,7 @@ namespace ScriptEditor
         private static readonly Dictionary<CheckBox, Padding> CheckBoxPaddings = new Dictionary<CheckBox, Padding>();
         private static readonly HashSet<RadioButton> DrawnRadioButtons = new HashSet<RadioButton>();
         private static readonly Dictionary<TextBoxBase, BorderStyle> TextBoxBorders = new Dictionary<TextBoxBase, BorderStyle>();
+        private static readonly Dictionary<NumericUpDown, BorderStyle> NumericUpDownBorders = new Dictionary<NumericUpDown, BorderStyle>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
         private static readonly Dictionary<ComboBox, DrawMode> ComboDrawModes = new Dictionary<ComboBox, DrawMode>();
         private static readonly HashSet<ComboBox> DrawnCombos = new HashSet<ComboBox>();
@@ -133,6 +134,13 @@ namespace ScriptEditor
                     textBox.BorderStyle = textBox.Multiline && (textBox.Dock == DockStyle.Fill || textBox.ReadOnly) ? BorderStyle.None : BorderStyle.FixedSingle;
                 else
                     textBox.BorderStyle = original;
+            }
+
+            NumericUpDown numericUpDown = control as NumericUpDown;
+            if (numericUpDown != null) {
+                BorderStyle original;
+                if (!NumericUpDownBorders.TryGetValue(numericUpDown, out original)) { original = numericUpDown.BorderStyle; NumericUpDownBorders.Add(numericUpDown, original); }
+                numericUpDown.BorderStyle = dark ? BorderStyle.None : original;
             }
 
             ComboBox comboBox = control as ComboBox;
@@ -633,7 +641,8 @@ namespace ScriptEditor
                     int width = System.Math.Max(0, control.Width - 1);
                     int height = System.Math.Max(0, control.Height - 1);
                     graphics.DrawRectangle(pen, 0, 0, width, height);
-                    if (width > 2 && height > 2) graphics.DrawRectangle(pen, 1, 1, width - 2, height - 2);
+                    if (!(control is NumericUpDown) && width > 2 && height > 2)
+                        graphics.DrawRectangle(pen, 1, 1, width - 2, height - 2);
 
                 }
             }
@@ -799,7 +808,7 @@ namespace ScriptEditor
                 // Windows hot-state flashes. RichTextBox is the exception: its vertical
                 // scrollbar is part of the native window and needs the Explorer dark
                 // theme in order to render a dark track, thumb, and arrow buttons.
-                bool darkInput = dark && (control is ComboBox ||
+                bool darkInput = dark && (control is ComboBox || control is NumericUpDown ||
                     (control is TextBoxBase && !(control is RichTextBox)));
                 string theme = darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer");
                 string themeParts = darkInput ? "" : null;
