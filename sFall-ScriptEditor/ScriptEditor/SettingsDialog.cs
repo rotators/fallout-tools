@@ -204,10 +204,10 @@ namespace ScriptEditor
             groupBox2.Text = "Paths";
             SetLogicalBounds(groupBox2.Controls["label1"], 8, 18, 190, 17);
             SetLogicalBounds(groupBox2.Controls["label4"], 8, 59, 190, 17);
-            SetLogicalBounds(cbCompilePath, 387, 14, 155, 20);
+            SetLogicalBounds(cbCompilePath, 387, 16, 155, 20);
             SetLogicalBounds(textBox2, 8, 34, 568, 20);
             SetLogicalBounds(bChange, 580, 34, 34, 23);
-            SetLogicalBounds(cbIncludePath, 387, 55, 190, 20);
+            SetLogicalBounds(cbIncludePath, 387, 57, 190, 20);
             SetLogicalBounds(textBox1, 8, 75, 568, 20);
             SetLogicalBounds(bHeaders, 580, 75, 34, 23);
             SetLogicalBounds(label8, 8, 101, 190, 17);

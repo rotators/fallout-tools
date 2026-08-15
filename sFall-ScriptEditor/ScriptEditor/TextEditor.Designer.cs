@@ -1,4 +1,4 @@
-namespace ScriptEditor {
+﻿namespace ScriptEditor {
     partial class TextEditor {
         /// <summary>
         /// Required designer variable.
@@ -73,7 +73,7 @@ namespace ScriptEditor {
             this.tsmShowBuildLog = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator43 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmiClearAllLog = new System.Windows.Forms.ToolStripMenuItem();
-            this.dgvErrors = new System.Windows.Forms.DataGridView();
+            this.dgvErrors = new ScriptEditor.TextEditorUI.DataGridViewEx();
             this.cType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cFile = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.cLine = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -2804,7 +2804,7 @@ namespace ScriptEditor {
         private DraggableTabControl tabControl2;
         private System.Windows.Forms.TabPage tabPageBuild;
         private System.Windows.Forms.TabPage tabPageError;
-        private System.Windows.Forms.DataGridView dgvErrors;
+        private ScriptEditor.TextEditorUI.DataGridViewEx dgvErrors;
         private System.ComponentModel.BackgroundWorker bwSyntaxParser;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.ContextMenuStrip editorMenuStrip;

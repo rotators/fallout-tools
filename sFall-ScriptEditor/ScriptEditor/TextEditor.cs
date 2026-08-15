@@ -101,6 +101,7 @@ namespace ScriptEditor
 
            Program.SetDoubleBuffered(panel1);
            Program.SetDoubleBuffered(dgvErrors);
+           dgvErrors.Scroll += dgvErrors_Scroll;
         }
 
         #region Main form control
@@ -1364,6 +1365,11 @@ namespace ScriptEditor
                 return;
             }
             RegisterScript.Registration(fName);
+        }
+
+        private void dgvErrors_Scroll(object sender, ScrollEventArgs e)
+        {
+            dgvErrors.Invalidate(true);
         }
 
         private void dgvErrors_DoubleClick(object sender, EventArgs e)

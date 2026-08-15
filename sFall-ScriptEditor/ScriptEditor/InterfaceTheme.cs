@@ -39,6 +39,7 @@ namespace ScriptEditor
         private static readonly Dictionary<ComboBox, ComboBoxWindow> ComboWindows = new Dictionary<ComboBox, ComboBoxWindow>();
         private static readonly Dictionary<GroupBox, FlatStyle> GroupStyles = new Dictionary<GroupBox, FlatStyle>();
         private static readonly Dictionary<ListView, bool> ListGridLines = new Dictionary<ListView, bool>();
+        private static readonly Dictionary<DataGridView, DataGridViewHeaderBorderStyle> GridHeaderBorders = new Dictionary<DataGridView, DataGridViewHeaderBorderStyle>();
         private static readonly Dictionary<ListView, ListViewGridWindow> ListGridWindows = new Dictionary<ListView, ListViewGridWindow>();
         private static readonly HashSet<Control> DynamicControls = new HashSet<Control>();
         private static readonly HashSet<ContextMenuStrip> ThemedContextMenus = new HashSet<ContextMenuStrip>();
@@ -171,10 +172,16 @@ namespace ScriptEditor
                 grid.DefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.WindowText;
                 grid.DefaultCellStyle.SelectionBackColor = dark ? DarkSelection : SystemColors.Highlight;
                 grid.DefaultCellStyle.SelectionForeColor = dark ? Color.White : SystemColors.HighlightText;
-                grid.ColumnHeadersDefaultCellStyle.BackColor = dark ? DarkControl : SystemColors.Control;
+                grid.ColumnHeadersDefaultCellStyle.BackColor = dark ? Color.FromArgb(62, 62, 66) : SystemColors.Control;
                 grid.ColumnHeadersDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.ControlText;
                 grid.RowHeadersDefaultCellStyle.BackColor = dark ? DarkControl : SystemColors.Control;
                 grid.RowHeadersDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.ControlText;
+                DataGridViewHeaderBorderStyle originalHeaderBorder;
+                if (!GridHeaderBorders.TryGetValue(grid, out originalHeaderBorder)) {
+                    originalHeaderBorder = grid.ColumnHeadersBorderStyle;
+                    GridHeaderBorders.Add(grid, originalHeaderBorder);
+                }
+                grid.ColumnHeadersBorderStyle = dark ? DataGridViewHeaderBorderStyle.None : originalHeaderBorder;
                 foreach (DataGridViewRow row in grid.Rows) {
                     if (object.ReferenceEquals(row.Tag, GridSectionRowTag))
                         ApplyGridSectionRow(row, dark);
@@ -604,8 +611,9 @@ namespace ScriptEditor
         {
             TextBoxBase textBox = control as TextBoxBase;
             if (textBox != null) return textBox.BorderStyle != BorderStyle.None;
-            if (control is ComboBox || control is ListView ||
-                control is DataGridView || control is NumericUpDown) return true;
+            if (control is ComboBox || control is ListView || control is NumericUpDown) return true;
+            DataGridView grid = control as DataGridView;
+            if (grid != null) return grid.BorderStyle != BorderStyle.None;
             Panel panel = control as Panel;
             if (panel != null && panel.BorderStyle != BorderStyle.None) return true;
             PictureBox picture = control as PictureBox;
