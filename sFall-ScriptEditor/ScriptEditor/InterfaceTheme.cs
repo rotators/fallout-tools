@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
@@ -34,6 +34,7 @@ namespace ScriptEditor
         private static readonly Dictionary<TextBoxBase, BorderStyle> TextBoxBorders = new Dictionary<TextBoxBase, BorderStyle>();
         private static readonly Dictionary<NumericUpDown, BorderStyle> NumericUpDownBorders = new Dictionary<NumericUpDown, BorderStyle>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
+        private static readonly Dictionary<ComboBox, int> ComboItemHeights = new Dictionary<ComboBox, int>();
         private static readonly Dictionary<ComboBox, DrawMode> ComboDrawModes = new Dictionary<ComboBox, DrawMode>();
         private static readonly HashSet<ComboBox> DrawnCombos = new HashSet<ComboBox>();
         private static readonly Dictionary<ComboBox, ComboBoxWindow> ComboWindows = new Dictionary<ComboBox, ComboBoxWindow>();
@@ -154,6 +155,14 @@ namespace ScriptEditor
                     ComboDrawModes.Add(comboBox, originalDrawMode);
                 }
                 comboBox.DrawMode = dark ? DrawMode.OwnerDrawFixed : originalDrawMode;
+                if (comboBox.Name == "cbFonts") {
+                    int originalItemHeight;
+                    if (!ComboItemHeights.TryGetValue(comboBox, out originalItemHeight)) {
+                        originalItemHeight = comboBox.ItemHeight;
+                        ComboItemHeights.Add(comboBox, originalItemHeight);
+                    }
+                    comboBox.ItemHeight = originalItemHeight + (dark ? 3 : 0);
+                }
                 if (DrawnCombos.Add(comboBox)) comboBox.DrawItem += DrawComboBoxItem;
                 ComboBoxWindow comboWindow;
                 if (!ComboWindows.TryGetValue(comboBox, out comboWindow)) {
