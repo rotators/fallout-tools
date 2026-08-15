@@ -31,13 +31,13 @@
             this.rbAll = new System.Windows.Forms.RadioButton();
             this.rbFolder = new System.Windows.Forms.RadioButton();
             this.label2 = new System.Windows.Forms.Label();
-            this.bChange = new ScriptEditor.DarkDisabledButton();
+            this.bChange = new System.Windows.Forms.Button();
             this.cbSearchSubfolders = new System.Windows.Forms.CheckBox();
             this.bSearch = new System.Windows.Forms.Button();
             this.fbdSearchFolder = new System.Windows.Forms.FolderBrowserDialog();
             this.cbFindAll = new System.Windows.Forms.CheckBox();
             this.tbReplace = new System.Windows.Forms.TextBox();
-            this.bReplace = new ScriptEditor.DarkDisabledButton();
+            this.bReplace = new System.Windows.Forms.Button();
             this.cbSearchPath = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
             this.lbFindFiles = new System.Windows.Forms.ListBox();
@@ -83,7 +83,6 @@
             // 
             // rbCurrent
             // 
-            this.rbCurrent.AutoSize = false;
             this.rbCurrent.Location = new System.Drawing.Point(153, 91);
             this.rbCurrent.Name = "rbCurrent";
             this.rbCurrent.Size = new System.Drawing.Size(150, 17);
@@ -93,7 +92,6 @@
             // 
             // rbAll
             // 
-            this.rbAll.AutoSize = false;
             this.rbAll.Checked = true;
             this.rbAll.Location = new System.Drawing.Point(153, 120);
             this.rbAll.Name = "rbAll";
@@ -105,7 +103,6 @@
             // 
             // rbFolder
             // 
-            this.rbFolder.AutoSize = false;
             this.rbFolder.Location = new System.Drawing.Point(153, 149);
             this.rbFolder.Name = "rbFolder";
             this.rbFolder.Size = new System.Drawing.Size(135, 17);
@@ -235,7 +232,6 @@
             // cbCase
             // 
             this.cbCase.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cbCase.AutoSize = false;
             this.cbCase.Checked = true;
             this.cbCase.CheckState = System.Windows.Forms.CheckState.Checked;
             this.cbCase.Location = new System.Drawing.Point(225, 3);
@@ -315,7 +311,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.ClientSize = new System.Drawing.Size(520, 272);
+            this.ClientSize = new System.Drawing.Size(443, 272);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.labelCount);
             this.Controls.Add(this.cbFileMask);
@@ -343,7 +339,7 @@
             this.KeyPreview = true;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(1280, 1024);
-            this.MinimumSize = new System.Drawing.Size(512, 303);
+            this.MinimumSize = new System.Drawing.Size(435, 303);
             this.Name = "SearchForm";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -369,7 +365,7 @@
         internal System.Windows.Forms.Label labelCount;
         private System.Windows.Forms.ComboBox cbFileMask;
         internal System.Windows.Forms.Button bSearch;
-        internal ScriptEditor.DarkDisabledButton bReplace;
+        internal System.Windows.Forms.Button bReplace;
         internal System.Windows.Forms.RadioButton rbFolder;
         internal System.Windows.Forms.CheckBox cbCase;
         internal System.Windows.Forms.RadioButton rbCurrent;
@@ -377,7 +373,7 @@
         private System.Windows.Forms.CheckBox cbSearchSubfolders;
         internal System.Windows.Forms.CheckBox cbRegular;
         internal System.Windows.Forms.CheckBox cbFindAll;
-        private ScriptEditor.DarkDisabledButton bChange;
+        private System.Windows.Forms.Button bChange;
         private System.Windows.Forms.ComboBox cbSearchPath;
         private System.Windows.Forms.FolderBrowserDialog fbdSearchFolder;
         private System.Windows.Forms.CheckBox cbWord;

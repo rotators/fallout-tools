@@ -1,9 +1,11 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ScriptEditor
 {
@@ -19,8 +21,19 @@ namespace ScriptEditor
         {
             // Keep native light controls out of the first visible frame. Handles are
             // created and themed in OnLoad before the search window is revealed.
-            Opacity = 0D;
+            bool designTime = LicenseManager.UsageMode == LicenseUsageMode.Designtime;
             InitializeComponent();
+
+            // The WinForms designer must be able to construct the control tree without
+            // reading the user's configuration or creating runtime theme hooks.
+            if (designTime)
+                return;
+
+            Opacity = 0D;
+            bChange.FlatStyle = FlatStyle.Flat;
+            bReplace.FlatStyle = FlatStyle.Flat;
+            bChange.Paint += DarkDisabledButton.PaintDisabledButton;
+            bReplace.Paint += DarkDisabledButton.PaintDisabledButton;
 
             cbSearchPath.Items.AddRange((Settings.searchListPath.Count > 0)
                                         ? Settings.searchListPath.Cast<String>().ToArray()
@@ -212,7 +225,7 @@ namespace ScriptEditor
             rbCurrent.Enabled = !running;
             rbAll.Enabled = !running;
             rbFolder.Enabled = !running;
-            cbSearchPath.Enabled = !running && rbFolder.Checked;
+            SetSearchPathEnabled(!running && rbFolder.Checked);
             cbSearchSubfolders.Enabled = !running && rbFolder.Checked;
             cbFileMask.Enabled = !running && rbFolder.Checked;
             bChange.Enabled = !running && rbFolder.Checked;
@@ -277,8 +290,26 @@ namespace ScriptEditor
             bChange.Enabled = folderSearch;
             cbSearchSubfolders.Enabled = folderSearch;
             cbFileMask.Enabled = folderSearch;
-            cbSearchPath.Enabled = folderSearch;
+            SetSearchPathEnabled(folderSearch);
             bReplace.Enabled = !folderSearch;
+        }
+
+        private void SetSearchPathEnabled(bool enabled)
+        {
+            bool redrawWasSuppressed = false;
+            if (cbSearchPath.IsHandleCreated) {
+                SendMessage(cbSearchPath.Handle, WmSetRedraw, IntPtr.Zero, IntPtr.Zero);
+                redrawWasSuppressed = true;
+            }
+
+            cbSearchPath.Enabled = enabled;
+
+            if (redrawWasSuppressed) {
+                InterfaceTheme.Apply(cbSearchPath);
+                SendMessage(cbSearchPath.Handle, WmSetRedraw, new IntPtr(1), IntPtr.Zero);
+                cbSearchPath.Invalidate(true);
+                cbSearchPath.Update();
+            }
         }
         private void cbRegular_CheckedChanged(object sender, EventArgs e)
         {
@@ -325,52 +356,10 @@ namespace ScriptEditor
             Settings.lastSearchPath = String.Equals(cbSearchPath.Text, "<unset>", StringComparison.OrdinalIgnoreCase)
                 ? null : cbSearchPath.Text;
         }
+
+        private const int WmSetRedraw = 0x000B;
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int message, IntPtr wParam, IntPtr lParam);
     }
-    internal sealed class DarkDisabledButton : Button
-    {
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            if (!InterfaceTheme.IsDark) {
-                base.OnPaint(e);
-                return;
-            }
-
-            bool mouseOver = Enabled && ClientRectangle.Contains(PointToClient(Cursor.Position));
-            bool pressed = mouseOver && Capture && MouseButtons == MouseButtons.Left;
-            Color backColor = pressed ? Color.FromArgb(40, 40, 42)
-                : mouseOver ? Color.FromArgb(85, 85, 90)
-                : Color.FromArgb(53, 53, 56);
-            Color textColor = Enabled ? Color.Gainsboro : Color.FromArgb(170, 170, 175);
-            Color borderColor = Color.FromArgb(68, 68, 72);
-            e.Graphics.Clear(backColor);
-            ControlPaint.DrawBorder(e.Graphics, ClientRectangle, borderColor, ButtonBorderStyle.Solid);
-
-            Size textSize = TextRenderer.MeasureText(Text, Font, Size.Empty, TextFormatFlags.NoPadding);
-            int imageWidth = Image == null ? 0 : Image.Width;
-            int spacing = Image == null || Text.Length == 0 ? 0 : DpiHelper.Scale(this, 4);
-            int contentWidth = imageWidth + spacing + textSize.Width;
-            int edge = DpiHelper.Scale(this, 2);
-            int x = System.Math.Max(edge, (ClientSize.Width - contentWidth) / 2);
-            if (Image != null) {
-                int imageY = (ClientSize.Height - Image.Height) / 2;
-                if (Enabled)
-                    e.Graphics.DrawImage(Image, x, imageY, Image.Width, Image.Height);
-                else
-                    ControlPaint.DrawImageDisabled(e.Graphics, Image, x, imageY, backColor);
-                x += imageWidth + spacing;
-            }
-            Rectangle textBounds = new Rectangle(x, 0,
-                System.Math.Max(0, ClientSize.Width - x - edge), ClientSize.Height);
-            TextRenderer.DrawText(e.Graphics, Text, Font, textBounds, textColor,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.NoPadding);
-
-            if (Enabled && Focused && ShowFocusCues) {
-                Rectangle focusBounds = ClientRectangle;
-                int focusInset = DpiHelper.Scale(this, 3);
-                focusBounds.Inflate(-focusInset, -focusInset);
-                ControlPaint.DrawFocusRectangle(e.Graphics, focusBounds, textColor, backColor);
-            }
-        }
-    }
-
 }

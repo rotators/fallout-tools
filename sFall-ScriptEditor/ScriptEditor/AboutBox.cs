@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
@@ -19,15 +20,11 @@ namespace ScriptEditor
         public AboutBox()
         {
             InitializeComponent();
-            CancelButton = okButton;
-            ConfigureLayout();
-
+            if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+                return;
             this.Text += appName + appDescription;
-            this.labelProductName.Text = appName;
             this.labelVersion.Text = String.Format("Version {0}   Build {1}", appVersion,
                 File.GetLastWriteTime(Application.ExecutablePath).ToString("yyyy-MM-dd HH:mm"));
-            this.linkRepository.Text = "Repository: github.com/rotators/fallout-tools";
-            this.linkRepository.LinkClicked += Repository_LinkClicked;
             InterfaceTheme.Apply(this);
             FormatDescription();
         }
@@ -126,88 +123,6 @@ namespace ScriptEditor
                 MessageBox.Show(owner, "Could not open the " + description + ".\n" + ex.Message,
                     "Open link", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-        private void ConfigureLayout()
-        {
-            SuspendLayout();
-            tableLayoutPanel.SuspendLayout();
-
-            ClientSize = DpiHelper.Scale(this, new Size(520, 420));
-            Padding = DpiHelper.Scale(this, new Padding(8));
-
-            tableLayoutPanel.Controls.Remove(logoPictureBox);
-            logoPictureBox.Visible = false;
-            tableLayoutPanel.ColumnCount = 1;
-            tableLayoutPanel.ColumnStyles.Clear();
-            tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            tableLayoutPanel.RowStyles.Clear();
-            tableLayoutPanel.RowCount = 8;
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(32F, DeviceDpi)));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(24F, DeviceDpi)));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(28F, DeviceDpi)));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, DpiHelper.Scale(36F, DeviceDpi)));
-
-            labelProductName.AutoSize = false;
-            labelProductName.MaximumSize = Size.Empty;
-            labelProductName.Margin = Padding.Empty;
-            labelProductName.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
-            tableLayoutPanel.SetColumn(labelProductName, 0);
-
-            labelVersion.Margin = Padding.Empty;
-            labelVersion.MaximumSize = Size.Empty;
-            labelVersion.Font = new Font("Segoe UI", 9F);
-            tableLayoutPanel.SetColumn(labelVersion, 0);
-
-            linkRepository.Margin = Padding.Empty;
-            linkRepository.MaximumSize = Size.Empty;
-            linkRepository.Font = new Font("Segoe UI", 9F);
-            tableLayoutPanel.SetColumn(linkRepository, 0);
-
-            LinkLabel linkSfallDocumentation = new LinkLabel();
-            linkSfallDocumentation.Dock = DockStyle.Fill;
-            linkSfallDocumentation.Margin = Padding.Empty;
-            linkSfallDocumentation.Font = new Font("Segoe UI", 9F);
-            linkSfallDocumentation.Text = "Sfall scripting documentation: sfall-team.github.io/sfall";
-            linkSfallDocumentation.TextAlign = ContentAlignment.MiddleLeft;
-            linkSfallDocumentation.LinkClicked += SfallDocumentation_LinkClicked;
-            tableLayoutPanel.Controls.Add(linkSfallDocumentation, 0, 3);
-
-            LinkLabel linkLocalDocumentation = new LinkLabel();
-            linkLocalDocumentation.Dock = DockStyle.Fill;
-            linkLocalDocumentation.Margin = Padding.Empty;
-            linkLocalDocumentation.Font = new Font("Segoe UI", 9F);
-            linkLocalDocumentation.Text = "Open local documentation folder";
-            linkLocalDocumentation.TextAlign = ContentAlignment.MiddleLeft;
-            linkLocalDocumentation.LinkClicked += LocalDocumentation_LinkClicked;
-            tableLayoutPanel.Controls.Add(linkLocalDocumentation, 0, 4);
-
-            Label labelComponents = new Label();
-            labelComponents.Dock = DockStyle.Fill;
-            labelComponents.Margin = Padding.Empty;
-            labelComponents.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            labelComponents.Text = "Components and licenses";
-            labelComponents.TextAlign = ContentAlignment.MiddleLeft;
-            tableLayoutPanel.Controls.Add(labelComponents, 0, 5);
-
-            tableLayoutPanel.SetRow(textBoxDescription, 6);
-            tableLayoutPanel.SetColumn(textBoxDescription, 0);
-            textBoxDescription.Margin = DpiHelper.Scale(this, new Padding(0, 0, 0, 8));
-            textBoxDescription.BorderStyle = BorderStyle.None;
-            textBoxDescription.Font = new Font("Segoe UI", 9F);
-            textBoxDescription.WordWrap = true;
-            textBoxDescription.ScrollBars = RichTextBoxScrollBars.Vertical;
-
-            tableLayoutPanel.SetRow(okButton, 7);
-            tableLayoutPanel.SetColumn(okButton, 0);
-            okButton.Size = DpiHelper.Scale(this, new Size(90, 28));
-
-            tableLayoutPanel.ResumeLayout(true);
-            ResumeLayout(true);
         }
 
         private void FormatDescription()

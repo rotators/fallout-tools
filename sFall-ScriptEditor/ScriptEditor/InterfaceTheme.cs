@@ -699,6 +699,18 @@ namespace ScriptEditor
 
             protected override void WndProc(ref Message m)
             {
+                if (m.Msg == 0x000F && IsDark && comboBox.IsHandleCreated &&
+                    comboBox.DropDownStyle == ComboBoxStyle.DropDownList) {
+                    PaintStruct paintStruct = new PaintStruct { reserved = new byte[32] };
+                    BeginPaint(comboBox.Handle, ref paintStruct);
+                    EndPaint(comboBox.Handle, ref paintStruct);
+                    if (comboBox.Enabled)
+                        DrawArrowButton();
+                    else
+                        DrawDisabledComboBox();
+                    return;
+                }
+
                 if (m.Msg == PaintComboMessage) {
                     paintPending = false;
                     if (IsDark && comboBox.IsHandleCreated) {
@@ -887,8 +899,24 @@ namespace ScriptEditor
             internal System.IntPtr hwndList;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PaintStruct
+        {
+            internal System.IntPtr hdc;
+            internal bool erase;
+            internal NativeRect rcPaint;
+            internal bool restore;
+            internal bool increment;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+            internal byte[] reserved;
+        }
+
         [DllImport("user32.dll")]
         private static extern bool GetComboBoxInfo(System.IntPtr hwndCombo, ref ComboBoxInfo info);
+        [DllImport("user32.dll")]
+        private static extern System.IntPtr BeginPaint(System.IntPtr hWnd, ref PaintStruct paintStruct);
+        [DllImport("user32.dll")]
+        private static extern bool EndPaint(System.IntPtr hWnd, ref PaintStruct paintStruct);
         [DllImport("user32.dll")]
         private static extern bool PostMessage(System.IntPtr hwnd, int message, System.IntPtr wParam, System.IntPtr lParam);
         [DllImport("user32.dll")]
