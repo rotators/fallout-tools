@@ -218,6 +218,7 @@ namespace ScriptEditor
             this.Text = AppTitle;
             tbOutput.Text = "***** " +  AboutBox.appName + " v." + AboutBox.appVersion + AboutBox.appDescription + " *****";
             InterfaceTheme.Apply(this);
+            ColorTheme.ApplyRightPanelTheme();
         }
 
         private void ConfigureHelpMenu()
@@ -672,7 +673,7 @@ namespace ScriptEditor
             splitContainer1.Panel2Collapsed = true;
             tabControl1.Visible = tabControl1.TabPages.Count > 0;
             splitContainer2.Panel1MinSize = 300;
-            splitContainer2.Panel2MinSize = 150;
+            splitContainer2.Panel2MinSize = 260;
             splitContainer1.SplitterDistance = Size.Height;
 
             if (Settings.editorSplitterPosition == -1)
@@ -683,7 +684,7 @@ namespace ScriptEditor
             if (Settings.editorSplitterPosition2 != -1)
                 splitContainer2.SplitterDistance = Settings.editorSplitterPosition2;
             else
-                splitContainer2.SplitterDistance = Size.Width - 200;
+                splitContainer2.SplitterDistance = Size.Width - 260;
 
             showLogWindowToolStripMenuItem.Checked = Settings.showLog;
             if (Settings.enableParser)
@@ -699,8 +700,14 @@ namespace ScriptEditor
             this.Deactivate += TextEditor_Deactivate;
             SingleInstanceManager.SendEditorOpenMessage();
             InterfaceTheme.Apply(this);
+            ColorTheme.ApplyRightPanelTheme();
             Refresh();
             Opacity = 1D;
+            if (Settings.IsWindowMaximized(SavedWindows.Main)) {
+                WindowState = FormWindowState.Maximized;
+                if (Settings.editorSplitterPosition2 != -1)
+                    splitContainer2.SplitterDistance = Settings.editorSplitterPosition2;
+            }
 
             // Let native Search & Replace controls complete their first paint while
             // invisible. The reusable dialog can then appear without a light-theme
@@ -1151,6 +1158,7 @@ namespace ScriptEditor
         private void ApplySettingsTabs(bool alsoFont = false)
         {
             ColorTheme.SetTheme();
+            ColorTheme.ApplyRightPanelTheme();
 
             // Apply settings to all open documents
             foreach (TabInfo ct in tabs) {

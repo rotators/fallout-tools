@@ -140,6 +140,11 @@ namespace ScriptEditor
             f.StartPosition = FormStartPosition.Manual;
         }
 
+        public static bool IsWindowMaximized(SavedWindows window)
+        {
+            return windowPositions[(int)window].maximized;
+        }
+
         public static void SaveWindowPosition(SavedWindows window, Form f)
         {
             WindowPos wp = new WindowPos();

@@ -32,7 +32,7 @@ namespace ScriptEditor.TextEditorUI
 
         public static Color HighlightProcedureTree {
             get {
-                return ScriptEditor.InterfaceTheme.IsDark
+                return IsDarkTheme || ScriptEditor.InterfaceTheme.IsDark
                     ? Color.FromArgb(255, 214, 82)
                     : Color.FromArgb(0, 90, 180);
             }
@@ -82,6 +82,47 @@ namespace ScriptEditor.TextEditorUI
             FunctionNodes(mainForm.FunctionsTree.Nodes);
             mainForm.FunctionTreeLeft.EndUpdate();
             mainForm.FunctionsTree.EndUpdate();
+        }
+
+        // The right-hand code browser follows the code style when the Dark
+        // highlighting scheme is selected. The general interface pass runs
+        // after the code-style pass during startup and would otherwise reset
+        // these trees to the light application palette.
+        internal static void ApplyRightPanelTheme()
+        {
+            if (mainForm == null)
+                return;
+
+            bool dark = IsDarkTheme || ScriptEditor.InterfaceTheme.IsDark;
+            Color back = dark ? Color.FromArgb(40, 40, 42) : Color.FromArgb(250, 250, 255);
+            Color fore = dark ? Color.Gainsboro : SystemColors.WindowText;
+
+            mainForm.FunctionsTree.BackColor = back;
+            mainForm.FunctionsTree.ForeColor = fore;
+            Color lines = dark ? Color.FromArgb(68, 68, 72) : Color.Gainsboro;
+            mainForm.FunctionsTree.LineColor = lines;
+
+            mainForm.ProcTree.BackColor = back;
+            mainForm.ProcTree.ForeColor = fore;
+            mainForm.ProcTree.LineColor = dark ? lines : SystemColors.WindowText;
+
+            mainForm.VarTree.BackColor = back;
+            mainForm.VarTree.ForeColor = fore;
+            mainForm.VarTree.LineColor = dark ? lines : SystemColors.WindowText;
+
+            ApplySectionNodeColors(mainForm.ProcTree.Nodes, dark);
+            ApplySectionNodeColors(mainForm.VarTree.Nodes, dark);
+            if (IsDarkTheme)
+                FunctionNodes(mainForm.FunctionsTree.Nodes);
+        }
+
+        private static void ApplySectionNodeColors(TreeNodeCollection nodes, bool dark)
+        {
+            Color section = dark ? Color.FromArgb(86, 156, 214) : Color.DodgerBlue;
+            foreach (TreeNode node in nodes) {
+                if (node.Tag is int)
+                    node.ForeColor = node.Nodes.Count == 0 ? Color.Gray : section;
+            }
         }
 
         private static void SetDarkTheme()

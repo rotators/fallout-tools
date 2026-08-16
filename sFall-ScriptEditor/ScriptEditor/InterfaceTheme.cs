@@ -114,6 +114,9 @@ namespace ScriptEditor
             bool dark = IsDark;
             SetPreferredTheme(dark);
             ApplyControl(form, dark);
+            TextEditor editor = form as TextEditor;
+            if (editor != null)
+                TextEditorUI.ColorTheme.ApplyRightPanelTheme();
             if (TitleBarHookedForms.Add(form))
                 form.HandleCreated += delegate { SetTitleBarTheme(form, IsDark); };
             SetTitleBarTheme(form, dark);

@@ -798,7 +798,11 @@ namespace ScriptEditor
 
         #region Tree browser control
 
-        private void CreateTabVarTree() { tabControl3.TabPages.Insert(1, VarTab); }
+        private void CreateTabVarTree()
+        {
+            tabControl3.TabPages.Insert(1, VarTab);
+            ColorTheme.ApplyRightPanelTheme();
+        }
 
         private enum TreeStatus { idle, update, freeze }
 
@@ -884,7 +888,7 @@ namespace ScriptEditor
             TreeNode rootNode;
             foreach (var s in TREEPROCEDURES) {
                 rootNode = ProcTree.Nodes.Add(s, s);
-                rootNode.ForeColor = Color.DodgerBlue;
+                rootNode.ForeColor = ColorTheme.IsDarkTheme || InterfaceTheme.IsDark ? Color.FromArgb(86, 156, 214) : Color.DodgerBlue;
             }
             ProcTree.Nodes[0].ToolTipText = "Procedures declared and located in headers files." + treeTipProcedure;
             ProcTree.Nodes[0].Tag = 0; // global tag
@@ -926,7 +930,7 @@ namespace ScriptEditor
 
                 foreach (var s in TREEVARIABLES) {
                     rootNode = VarTree.Nodes.Add(s);
-                    rootNode.ForeColor = Color.DodgerBlue;
+                    rootNode.ForeColor = ColorTheme.IsDarkTheme || InterfaceTheme.IsDark ? Color.FromArgb(86, 156, 214) : Color.DodgerBlue;
                     }
                 VarTree.Nodes[0].ToolTipText = "Variables declared and located in headers files." + treeTipVariable;
                 VarTree.Nodes[0].Tag = 0;
