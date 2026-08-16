@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor {
+namespace ScriptEditor {
     partial class TextEditor {
         /// <summary>
         /// Required designer variable.

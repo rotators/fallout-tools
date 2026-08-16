@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Drawing;
@@ -22,7 +22,6 @@ namespace ScriptEditor
             InitializeComponent();
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
                 return;
-            this.Text += appName + appDescription;
             this.labelVersion.Text = String.Format("Version {0}   Build {1}", appVersion,
                 File.GetLastWriteTime(Application.ExecutablePath).ToString("yyyy-MM-dd HH:mm"));
             InterfaceTheme.Apply(this);

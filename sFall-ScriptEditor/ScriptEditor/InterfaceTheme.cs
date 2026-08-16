@@ -979,6 +979,16 @@ namespace ScriptEditor
         private sealed class DarkRenderer : ToolStripProfessionalRenderer
         {
             internal DarkRenderer() : base(new DarkColorTable()) { }
+            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+            {
+                if (IsDark && e.ToolStrip is StatusStrip) {
+                    using (Pen pen = new Pen(DarkControl))
+                        e.Graphics.DrawLine(pen, 0, 0, System.Math.Max(0, e.ToolStrip.Width - 1), 0);
+                    return;
+                }
+
+                base.OnRenderToolStripBorder(e);
+            }
 
             protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
             {
