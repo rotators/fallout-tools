@@ -12,64 +12,59 @@ namespace ScriptEditor.TextEditorUI.ToolTips
 
         public static void DrawMessage(DrawToolTipEventArgs e)
         {
-            LinearGradientBrush gradientDefault = new LinearGradientBrush(e.Bounds,
-                                                        Color.White, Color.Lavender,
-                                                        LinearGradientMode.Vertical);
-
-            // Draw the custom background
-            e.Graphics.FillRectangle(gradientDefault, e.Bounds);
-
-            // Draw the custom border to appear 3-dimensional
-            e.Graphics.DrawLines(new Pen(Color.Gray), new Point[] {
-                new Point (0, e.Bounds.Height - 1),
-                new Point (e.Bounds.Width - 1, e.Bounds.Height - 1),
-                new Point (e.Bounds.Width - 1, 0)
-            });
-            e.Graphics.DrawLines(new Pen(Color.DarkGray), new Point[] {
-                new Point (0, e.Bounds.Height - 1),
-                new Point (0, 0),
-                new Point (e.Bounds.Width - 1, 0)
-            });
-
-            // Draw the standard text with customized formatting options
-            e.DrawText(sff);
+            using (LinearGradientBrush gradientDefault = new LinearGradientBrush(e.Bounds,
+                Color.White, Color.Lavender, LinearGradientMode.Vertical))
+            using (Pen lightBorder = new Pen(Color.Gray))
+            using (Pen darkBorder = new Pen(Color.DarkGray)) {
+                e.Graphics.FillRectangle(gradientDefault, e.Bounds);
+                e.Graphics.DrawLines(lightBorder, new Point[] {
+                    new Point(0, e.Bounds.Height - 1),
+                    new Point(e.Bounds.Width - 1, e.Bounds.Height - 1),
+                    new Point(e.Bounds.Width - 1, 0)
+                });
+                e.Graphics.DrawLines(darkBorder, new Point[] {
+                    new Point(0, e.Bounds.Height - 1),
+                    new Point(0, 0),
+                    new Point(e.Bounds.Width - 1, 0)
+                });
+                e.DrawText(sff);
+            }
         }
 
         public static void DrawSizeMessage(DrawToolTipEventArgs e)
         {
-            DrawToolTipEventArgs args = new DrawToolTipEventArgs(e.Graphics, e.AssociatedWindow, e.AssociatedControl, e.Bounds, e.ToolTipText, Color.LightYellow, Color.Black,
-                new Font("Arial", 12.0F, FontStyle.Regular, GraphicsUnit.Point));
-            DrawMessage(args);
+            using (Font font = new Font("Arial", 12.0F, FontStyle.Regular, GraphicsUnit.Point)) {
+                DrawToolTipEventArgs args = new DrawToolTipEventArgs(e.Graphics, e.AssociatedWindow, e.AssociatedControl,
+                    e.Bounds, e.ToolTipText, Color.LightYellow, Color.Black, font);
+                DrawMessage(args);
+            }
         }
 
         public static void DrawInfo(DrawToolTipEventArgs e)
         {
-            LinearGradientBrush gradientInfo = new LinearGradientBrush(e.Bounds,
-                                                    ColorTheme.TipGradient.Color,
-                                                    ColorTheme.TipGradient.BackgroundColor,
-                                                    LinearGradientMode.Vertical);
-            // Draw the custom background
-            e.Graphics.FillRectangle(gradientInfo, e.Bounds);
+            using (LinearGradientBrush gradientInfo = new LinearGradientBrush(e.Bounds,
+                ColorTheme.TipGradient.Color, ColorTheme.TipGradient.BackgroundColor, LinearGradientMode.Vertical)) {
+                e.Graphics.FillRectangle(gradientInfo, e.Bounds);
 
-            if (ColorTheme.IsDarkTheme) {
-                Rectangle border = new Rectangle(e.Bounds.Location, new Size(e.Bounds.Width - 1, e.Bounds.Height - 1));
-                e.Graphics.DrawRectangle(new Pen(ColorTheme.TipBorderFrame), border);
+                if (ColorTheme.IsDarkTheme) {
+                    Rectangle border = new Rectangle(e.Bounds.Location, new Size(e.Bounds.Width - 1, e.Bounds.Height - 1));
+                    using (Pen borderPen = new Pen(ColorTheme.TipBorderFrame))
+                        e.Graphics.DrawRectangle(borderPen, border);
 
-                Point locationText = e.Bounds.Location;
-                locationText.Offset(DpiHelper.Scale(3, (int)e.Graphics.DpiX),
-                    DpiHelper.Scale(1, (int)e.Graphics.DpiY));
-                e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-                Font font;
-                if (e.Font.Size > 11.5f) {
-                    font = new Font(e.Font.FontFamily, 11.5f, FontStyle.Regular, GraphicsUnit.Pixel);
+                    Point locationText = e.Bounds.Location;
+                    locationText.Offset(DpiHelper.Scale(3, (int)e.Graphics.DpiX),
+                        DpiHelper.Scale(1, (int)e.Graphics.DpiY));
+                    e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+                    if (e.Font.Size > 11.5f) {
+                        using (Font font = new Font(e.Font.FontFamily, 11.5f, FontStyle.Regular, GraphicsUnit.Pixel))
+                            e.Graphics.DrawString(e.ToolTipText, font, ColorTheme.TipText, locationText, sf);
+                    } else {
+                        e.Graphics.DrawString(e.ToolTipText, e.Font, ColorTheme.TipText, locationText, sf);
+                    }
                 } else {
-                    font = e.Font;
+                    e.DrawBorder();
+                    e.DrawText(sff);
                 }
-                e.Graphics.DrawString(e.ToolTipText, font, ColorTheme.TipText, locationText, sf);
-            } else {
-               e.DrawBorder();
-               // Draw the standard text with customized formatting options
-               e.DrawText(sff);
             }
         }
 

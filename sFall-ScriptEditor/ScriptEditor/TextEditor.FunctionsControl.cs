@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 using ICSharpCode.TextEditor;
@@ -18,6 +19,9 @@ namespace ScriptEditor
 {
     partial class TextEditor
     {
+        private readonly Queue<string> pendingBuildLogLines = new Queue<string>();
+        private bool buildLogFlushPending;
+
         #region Main functions
 
         public enum OpenType { None, File, Text }
@@ -1483,9 +1487,57 @@ namespace ScriptEditor
 
         public void PrintBuildLog(object sender, System.Diagnostics.DataReceivedEventArgs e)
         {
-            tbOutput.BeginInvoke((MethodInvoker)(() =>
-                tbOutput.AppendText(e.Data + Environment.NewLine))
-            );
+            if (e == null || e.Data == null || IsDisposed || !IsHandleCreated)
+                return;
+
+            bool scheduleFlush = false;
+            lock (pendingBuildLogLines) {
+                pendingBuildLogLines.Enqueue(e.Data);
+                if (!buildLogFlushPending) {
+                    buildLogFlushPending = true;
+                    scheduleFlush = true;
+                }
+            }
+
+            if (!scheduleFlush)
+                return;
+
+            try {
+                BeginInvoke((MethodInvoker)FlushBuildLog);
+            } catch (InvalidOperationException) {
+                lock (pendingBuildLogLines) {
+                    pendingBuildLogLines.Clear();
+                    buildLogFlushPending = false;
+                }
+            }
+        }
+
+        private void FlushBuildLog()
+        {
+            StringBuilder output = new StringBuilder();
+            bool hasMore;
+            lock (pendingBuildLogLines) {
+                while (pendingBuildLogLines.Count > 0 && output.Length < 32768)
+                    output.AppendLine(pendingBuildLogLines.Dequeue());
+                hasMore = pendingBuildLogLines.Count > 0;
+                if (!hasMore)
+                    buildLogFlushPending = false;
+            }
+
+            if (!IsDisposed && tbOutput.IsHandleCreated && output.Length > 0)
+                tbOutput.AppendText(output.ToString());
+
+            if (!hasMore || IsDisposed || !IsHandleCreated)
+                return;
+
+            try {
+                BeginInvoke((MethodInvoker)FlushBuildLog);
+            } catch (InvalidOperationException) {
+                lock (pendingBuildLogLines) {
+                    pendingBuildLogLines.Clear();
+                    buildLogFlushPending = false;
+                }
+            }
         }
         #endregion
     }

@@ -42,7 +42,6 @@ namespace ScriptEditor
             { "NewProcStripButton", "DarkToolbar_CreateProcedure" }, { "tsbUpdateParserData", "DarkToolbar_RefreshParser" },
             { "Help_toolStripButton", "DarkToolbar_Help" }, { "ViewArgsStripButton", "DarkToolbar_QuickTips" }
         };
-        private static readonly HashSet<StatusStrip> PaintedStatusStrips = new HashSet<StatusStrip>();
         private static readonly Dictionary<Control, ControlBorderWindow> ControlBorders = new Dictionary<Control, ControlBorderWindow>();
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
         private static readonly Dictionary<Button, Image> LightButtonImages = new Dictionary<Button, Image>();
@@ -247,6 +246,10 @@ namespace ScriptEditor
                 }
                 comboWindow.PaintNow();
             }
+
+            ProgressBar progressBar = control as ProgressBar;
+            if (progressBar != null)
+                ApplyNativeProgressBar(progressBar, dark);
 
             DataGridView grid = control as DataGridView;
             if (grid != null) {
@@ -717,9 +720,6 @@ namespace ScriptEditor
             toolStrip.RenderMode = dark ? ToolStripRenderMode.Professional : ToolStripRenderMode.System;
             if (dark) toolStrip.Renderer = DarkToolStripRenderer;
             ApplyToolStripItems(toolStrip.Items, dark);
-            StatusStrip statusStrip = toolStrip as StatusStrip;
-            if (statusStrip != null && PaintedStatusStrips.Add(statusStrip))
-                statusStrip.Paint += DrawStatusStripBorders;
         }
 
         private static void ApplyToolStripItems(ToolStripItemCollection items, bool dark)
@@ -786,38 +786,101 @@ namespace ScriptEditor
             }
             item.Image = lightImage;
         }
-        private static void DrawStatusStripBorders(object sender, PaintEventArgs e)
-        {
-            if (!IsDark) return;
-
-            StatusStrip statusStrip = sender as StatusStrip;
-            if (statusStrip == null) return;
-            using (Pen pen = new Pen(DarkBorder)) {
-                foreach (ToolStripItem item in statusStrip.Items) {
-                    ToolStripStatusLabel statusLabel = item as ToolStripStatusLabel;
-                    ToolStripStatusLabelBorderSides sides;
-                    if (statusLabel == null || !StatusBorders.TryGetValue(statusLabel, out sides) ||
-                        sides == ToolStripStatusLabelBorderSides.None) continue;
-
-                    Rectangle bounds = item.Bounds;
-                    if (bounds.Width < 1 || bounds.Height < 1) continue;
-                    if ((sides & ToolStripStatusLabelBorderSides.Left) != 0)
-                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Top, bounds.Left, bounds.Bottom - 1);
-                    if ((sides & ToolStripStatusLabelBorderSides.Top) != 0)
-                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Top, bounds.Right - 1, bounds.Top);
-                    if ((sides & ToolStripStatusLabelBorderSides.Right) != 0)
-                        e.Graphics.DrawLine(pen, bounds.Right - 1, bounds.Top, bounds.Right - 1, bounds.Bottom - 1);
-                    if ((sides & ToolStripStatusLabelBorderSides.Bottom) != 0)
-                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Bottom - 1, bounds.Right - 1, bounds.Bottom - 1);
-                }
-            }
-        }
         private static void RegisterDynamicTheming(Control control)
         {
             if (!DynamicControls.Add(control)) return;
             control.HandleCreated += DynamicHandleCreated;
             control.ControlAdded += DynamicControlAdded;
             control.VisibleChanged += DynamicVisibleChanged;
+            control.Disposed += DynamicControlDisposed;
+        }
+
+        private static void DynamicControlDisposed(object sender, System.EventArgs e)
+        {
+            Control control = (Control)sender;
+            DynamicControls.Remove(control);
+            ControlBorders.Remove(control);
+
+            Form form = control as Form;
+            if (form != null) {
+                AppliedForms.Remove(form);
+                TitleBarHookedForms.Remove(form);
+            }
+            TabControl tabControl = control as TabControl;
+            if (tabControl != null) {
+                ThemedTabs.Remove(tabControl);
+                TabAppearances.Remove(tabControl);
+                TabMultiline.Remove(tabControl);
+            }
+            ToolStrip toolStrip = control as ToolStrip;
+            if (toolStrip != null) {
+                ContextMenuStrip contextMenu = toolStrip as ContextMenuStrip;
+                if (contextMenu != null)
+                    ThemedContextMenus.Remove(contextMenu);
+                RemoveToolStripItemThemeState(toolStrip.Items);
+            }
+            ButtonBase button = control as ButtonBase;
+            if (button != null)
+                ButtonStyles.Remove(button);
+            Button imageButton = control as Button;
+            if (imageButton != null)
+                LightButtonImages.Remove(imageButton);
+            CheckBox checkBox = control as CheckBox;
+            if (checkBox != null) {
+                DrawnCheckBoxes.Remove(checkBox);
+                CheckBoxPaddings.Remove(checkBox);
+            }
+            RadioButton radioButton = control as RadioButton;
+            if (radioButton != null)
+                DrawnRadioButtons.Remove(radioButton);
+            TextBoxBase textBox = control as TextBoxBase;
+            if (textBox != null)
+                TextBoxBorders.Remove(textBox);
+            NumericUpDown numericUpDown = control as NumericUpDown;
+            if (numericUpDown != null) {
+                NumericUpDownBorders.Remove(numericUpDown);
+                NumericUpDownHeights.Remove(numericUpDown);
+            }
+            ComboBox comboBox = control as ComboBox;
+            if (comboBox != null) {
+                ComboStyles.Remove(comboBox);
+                ComboItemHeights.Remove(comboBox);
+                ComboDrawModes.Remove(comboBox);
+                DrawnCombos.Remove(comboBox);
+                ComboWindows.Remove(comboBox);
+            }
+            GroupBox groupBox = control as GroupBox;
+            if (groupBox != null)
+                GroupStyles.Remove(groupBox);
+            ListView listView = control as ListView;
+            if (listView != null) {
+                ListGridLines.Remove(listView);
+                ListGridWindows.Remove(listView);
+            }
+            DataGridView grid = control as DataGridView;
+            if (grid != null) {
+                GridHeaderBorders.Remove(grid);
+                ThemedGrids.Remove(grid);
+                foreach (DataGridViewColumn column in grid.Columns) {
+                    GridColumnSelectionStyles.Remove(column);
+                    DataGridViewComboBoxColumn comboBoxColumn = column as DataGridViewComboBoxColumn;
+                    if (comboBoxColumn != null)
+                        GridComboBoxColumnStyles.Remove(comboBoxColumn);
+                }
+            }
+        }
+
+        private static void RemoveToolStripItemThemeState(ToolStripItemCollection items)
+        {
+            foreach (ToolStripItem item in items) {
+                LightToolStripImages.Remove(item);
+                ToolStripStatusLabel statusLabel = item as ToolStripStatusLabel;
+                if (statusLabel != null)
+                    StatusBorders.Remove(statusLabel);
+                ToolStripDropDownItem dropDown = item as ToolStripDropDownItem;
+                if (dropDown != null)
+                    RemoveToolStripItemThemeState(dropDown.DropDownItems);
+            }
         }
 
         private static void DynamicHandleCreated(object sender, System.EventArgs e)
@@ -1073,6 +1136,28 @@ namespace ScriptEditor
                 }
             }
         }
+        private static void ApplyNativeProgressBar(ProgressBar progressBar, bool dark)
+        {
+            if (!progressBar.IsHandleCreated)
+                return;
+
+            if (dark) {
+                SetWindowTheme(progressBar.Handle, string.Empty, string.Empty);
+                SendMessage(progressBar.Handle, PbmSetBkColor, System.IntPtr.Zero, ToColorRef(DarkBack));
+                SendMessage(progressBar.Handle, PbmSetBarColor, System.IntPtr.Zero, ToColorRef(DarkAccent));
+            } else {
+                SetWindowTheme(progressBar.Handle, "Explorer", null);
+                SendMessage(progressBar.Handle, PbmSetBkColor, System.IntPtr.Zero, new System.IntPtr(-1));
+                SendMessage(progressBar.Handle, PbmSetBarColor, System.IntPtr.Zero, new System.IntPtr(-1));
+            }
+            InvalidateRect(progressBar.Handle, System.IntPtr.Zero, true);
+        }
+
+        private static System.IntPtr ToColorRef(Color color)
+        {
+            return new System.IntPtr(color.R | (color.G << 8) | (color.B << 16));
+        }
+
         private static void SetTitleBarTheme(Form form, bool dark)
         {
             if (!form.IsHandleCreated) return;
@@ -1194,6 +1279,8 @@ namespace ScriptEditor
         [DllImport("uxtheme.dll", EntryPoint = "#136")]
         private static extern void FlushMenuThemes();
 
+        private const int PbmSetBarColor = 0x0409;
+        private const int PbmSetBkColor = 0x2001;
         private const int TvmSetExtendedStyle = 0x112C;
         private const int TvsExDoubleBuffer = 0x0004;
 
