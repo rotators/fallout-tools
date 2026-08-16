@@ -53,8 +53,11 @@ namespace ScriptEditor
 
         private void Headers_Load(object sender, EventArgs e)
         {
-            xy_pos.X += TextEditor.ActiveForm.Bounds.X - (int)(this.Size.Width / 2.5f);
-            xy_pos.Y += TextEditor.ActiveForm.Bounds.Y + 60;
+            Form activeForm = TextEditor.ActiveForm;
+            if (activeForm != null && !activeForm.IsDisposed) {
+                xy_pos.X += activeForm.Bounds.X - (int)(this.Size.Width / 2.5f);
+                xy_pos.Y += activeForm.Bounds.Y + 60;
+            }
             this.Location = xy_pos;
         }
 
