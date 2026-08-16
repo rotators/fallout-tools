@@ -167,6 +167,7 @@ namespace ScriptEditor
 
             tabs.Add(ti);
             TabPage tp = new TabPage(GetDocumentTabText(ti));
+            documentTabs.Add(tp, ti);
             tp.ImageIndex = -1;
             tp.ToolTipText = GetDocumentTabToolTip(ti);
             tabControl1.SuspendLayout();
@@ -284,28 +285,69 @@ namespace ScriptEditor
             }
         }
 
+        private void DetectExternalChanges()
+        {
+            foreach (TabInfo tab in tabs) {
+                if (String.IsNullOrEmpty(tab.filepath))
+                    continue;
+
+                bool changedOutsideEditor = !tab.CheckFileTime();
+                if (tab.externallyChanged == changedOutsideEditor)
+                    continue;
+
+                tab.externallyChanged = changedOutsideEditor;
+                UpdateDocumentTab(tab.index);
+            }
+        }
+
         private void CheckChandedFile()
         {
-            if (!currentTab.CheckFileTime()) {
-                this.Activated -= TextEditor_Activated;
-                DialogResult result = ScriptEditor.ThemedMessageBox.Show(currentTab.filepath +
-                                                      "\nThe script file was changed outside the editor." +
-                                                      "\nDo you want to update the script file?",
-                                                      "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (result == DialogResult.Yes) {
+            if (currentTab == null || String.IsNullOrEmpty(currentTab.filepath))
+                return;
+
+            if (!currentTab.externallyChanged && currentTab.CheckFileTime())
+                return;
+
+            this.Activated -= TextEditor_Activated;
+            try {
+                if (!File.Exists(currentTab.filepath)) {
+                    ScriptEditor.ThemedMessageBox.Show(currentTab.filepath + "\nThe file was deleted outside the editor.\nSave this tab to recreate it.",
+                        "File deleted", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     currentTab.FileTime = File.GetLastWriteTime(currentTab.filepath);
-                    int caretLine = currentActiveTextAreaCtrl.Caret.Line;
-                    int scrollValue = currentActiveTextAreaCtrl.VScrollBar.Value;
-                    currentTab.textEditor.BeginUpdate();
+                    currentTab.externallyChanged = false;
+                    UpdateDocumentTab(currentTab.index);
+                    return;
+                }
+
+                string warning = currentTab.filepath + "\nThe file was changed outside the editor.";
+                if (currentTab.changed)
+                    warning += "\nReloading will discard unsaved changes.";
+
+                DialogResult result = ScriptEditor.ThemedMessageBox.Show(warning + "\nDo you want to reload it?",
+                    "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (result != DialogResult.Yes) {
+                    currentTab.FileTime = File.GetLastWriteTime(currentTab.filepath);
+                    currentTab.externallyChanged = false;
+                    UpdateDocumentTab(currentTab.index);
+                    return;
+                }
+
+                int caretLine = currentActiveTextAreaCtrl.Caret.Line;
+                int scrollValue = currentActiveTextAreaCtrl.VScrollBar.Value;
+                currentTab.textEditor.BeginUpdate();
+                try {
                     currentTab.textEditor.LoadFile(currentTab.filepath, false, true);
                     currentActiveTextAreaCtrl.VScrollBar.Value = scrollValue;
                     currentActiveTextAreaCtrl.Caret.Line = caretLine;
+                } finally {
                     currentTab.textEditor.EndUpdate();
+                }
 
-                    currentTab.changed = false;
-                    SetTabTextChange(currentTab.index);
-                } else
-                    currentTab.FileTime = File.GetLastWriteTime(currentTab.filepath);
+                currentTab.FileTime = File.GetLastWriteTime(currentTab.filepath);
+                currentTab.changed = false;
+                currentTab.externallyChanged = false;
+                SetTabTextChange(currentTab.index);
+            } finally {
                 this.Activated += TextEditor_Activated;
             }
         }
@@ -337,6 +379,9 @@ namespace ScriptEditor
                         GetMacros.GetGlobalMacros(Settings.pathHeadersFiles);
 
                     tab.changed = false;
+
+                    tab.externallyChanged = false;
+
                     SetTabTextChange(tab.index);
                 } finally {
                     savingRunning = false;
@@ -385,11 +430,16 @@ namespace ScriptEditor
 
         private void Close(TabInfo tab)
         {
-            if (tab == null | tab.index == -1)
+            SynchronizeDocumentTabOrder();
+            TabPage page = FindDocumentTabPage(tab);
+            if (page == null)
                 return;
 
-            int i = tab.index;
-            var tag = tabControl1.TabPages[i].Tag;
+            int i = tabControl1.TabPages.IndexOf(page);
+            if (i < 0)
+                return;
+
+            var tag = page.Tag;
             if (tag != null)
                 ((NodeDiagram)tag).Close(); //also close diagram editor
 
@@ -411,10 +461,12 @@ namespace ScriptEditor
                 }
             }
             KeepScriptSetting(tab, skip);
+            RememberClosedDocument(tab);
 
             if (i == tabControl1.SelectedIndex && tabControl1.TabPages.Count >= 3) {
-                if (previousTabIndex != -1) {
-                    tabControl1.SelectedIndex = previousTabIndex; // переход к предыдущей выбранной вкладке
+                if (previousTab != null && previousTab.index >= 0 && previousTab.index < tabControl1.TabPages.Count &&
+                    previousTab != tab) {
+                    tabControl1.SelectedIndex = previousTab.index; // переход к предыдущей выбранной вкладке
                 }
                 else if (tabControl1.SelectedIndex < tabControl1.TabPages.Count - 1) {
                     if (i > 0) tabControl1.SelectedIndex++; // переход к следущей по номеру вкладки
@@ -422,6 +474,7 @@ namespace ScriptEditor
                     tabControl1.SelectedIndex--;
                 }
             }
+            documentTabs.Remove(page);
             tabControl1.TabPages.RemoveAt(i);
             tabs.RemoveAt(i);
             if (tabControl1.TabPages.Count == 0) tabControl1.Visible = false;
@@ -436,7 +489,7 @@ namespace ScriptEditor
                 }
             }
             tab.index = -1;
-            previousTabIndex = -1; // сбросить после удаления вкладки
+            previousTab = null; // сбросить после удаления вкладки
         }
 
         private bool Compile(TabInfo tab, out string msg, bool showMessages = true, bool preprocess = false, bool showIcon = true)
@@ -515,7 +568,7 @@ namespace ScriptEditor
         {
             if (tab == null)
                 return String.Empty;
-            return tab.filename;
+            return (tab.externallyChanged ? "! " : String.Empty) + tab.filename;
         }
 
         private static string GetDocumentTabToolTip(TabInfo tab)
@@ -526,16 +579,60 @@ namespace ScriptEditor
             catch (Exception) { return tab.filepath; }
         }
 
+        private TabPage FindDocumentTabPage(TabInfo tab)
+        {
+            if (tab == null)
+                return null;
+
+            foreach (KeyValuePair<TabPage, TabInfo> pair in documentTabs) {
+                if (object.ReferenceEquals(pair.Value, tab))
+                    return pair.Key;
+            }
+            return null;
+        }
+
+        private TabInfo GetDocumentTabAt(int index)
+        {
+            if (index < 0 || index >= tabControl1.TabPages.Count)
+                return null;
+
+            TabInfo tab;
+            return documentTabs.TryGetValue(tabControl1.TabPages[index], out tab) ? tab : null;
+        }
+
+        private void SynchronizeDocumentTabOrder()
+        {
+            if (tabs.Count != documentTabs.Count || documentTabs.Count != tabControl1.TabPages.Count)
+                return;
+
+            List<TabInfo> orderedTabs = new List<TabInfo>(tabControl1.TabPages.Count);
+            foreach (TabPage page in tabControl1.TabPages) {
+                TabInfo tab;
+                if (!documentTabs.TryGetValue(page, out tab))
+                    return;
+                orderedTabs.Add(tab);
+            }
+
+            tabs.Clear();
+            tabs.AddRange(orderedTabs);
+            for (int index = 0; index < tabs.Count; index++)
+                tabs[index].index = index;
+        }
+
         private void UpdateDocumentTab(int index)
         {
             if (index < 0 || index >= tabs.Count || index >= tabControl1.TabPages.Count)
                 return;
-            TabPage page = tabControl1.TabPages[index];
-            page.Text = GetDocumentTabText(tabs[index]);
-            page.ToolTipText = GetDocumentTabToolTip(tabs[index])
-                + (tabs[index].changed ? Environment.NewLine + "Modified" : String.Empty);
+            TabInfo tab = tabs[index];
+            TabPage page = FindDocumentTabPage(tab);
+            if (page == null)
+                return;
+            page.Text = GetDocumentTabText(tab);
+            page.ToolTipText = GetDocumentTabToolTip(tab)
+                + (tab.changed ? Environment.NewLine + "Modified" : String.Empty)
+                + (tab.externallyChanged ? Environment.NewLine + "Changed outside the editor" : String.Empty);
             page.ImageIndex = -1;
-            tabControl1.SetDocumentModified(page, tabs[index].changed);
+            tabControl1.SetDocumentModified(page, tab.changed);
             tabControl1.Invalidate();
         }
 
@@ -559,9 +656,17 @@ namespace ScriptEditor
                 SetFormControlsOff();
             } else {
                 if (currentTab != null) {
-                    previousTabIndex = currentTab.index;
+                    previousTab = currentTab;
                 }
-                currentTab = tabs[tabControl1.SelectedIndex];
+                SynchronizeDocumentTabOrder();
+                TabInfo selectedTab;
+                if (tabControl1.SelectedTab == null || !documentTabs.TryGetValue(tabControl1.SelectedTab, out selectedTab)) {
+                    currentTab = null;
+                    parserLabel.Text = (Settings.enableParser) ? "Parser: No file" : parseoff;
+                    SetFormControlsOff();
+                    return;
+                }
+                currentTab = selectedTab;
                 //if (!Settings.enableParser && currentTab.parseInfo != null)
                 //    currentTab.parseInfo.parseData = false;
 
@@ -603,7 +708,10 @@ namespace ScriptEditor
                 ControlFormStateOn_Off();
                 this.Text = SSE + currentTab.filepath + ((pDefineStripComboBox.SelectedIndex > 0) ? " [" + pDefineStripComboBox.Text + "]" : "");
 
-                if (sender != null) CheckChandedFile();
+                if (sender != null) {
+                    DetectExternalChanges();
+                    CheckChandedFile();
+                }
             }
         }
         #endregion
@@ -612,6 +720,8 @@ namespace ScriptEditor
         public void SelectLine(string file, int line, bool pselect = false, int column = -1, int sLen = -1)
         {
             if (line <= 0) return;
+
+            RecordNavigationLocation();
 
             bool not_this = false;
             if (currentTab == null || file != currentTab.filepath) {
@@ -683,6 +793,7 @@ namespace ScriptEditor
             } else
                 currentActiveTextAreaCtrl.CenterViewOn(start.Line - 15, 0);
             currentTab.textEditor.Refresh();
+            RecordNavigationLocation();
         }
 
         #region Tree browser control

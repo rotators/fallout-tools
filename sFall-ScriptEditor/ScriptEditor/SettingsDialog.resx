@@ -181,7 +181,7 @@ in case result is already known. Examples:
   <data name="cbAutocomplete.ToolTip" xml:space="preserve">
     <value>Enable displaying box with a list of suggested procedure names, 
 variables, constants and macros as you type.
-Showing the autocompletion box is performed by keyboard shortcuts [Alt + Spaces]
+Showing the autocompletion box is performed by keyboard shortcut [Ctrl + Space]
 (required program restart)</value>
   </data>
   <metadata name="MsgcontextMenu.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

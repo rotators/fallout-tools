@@ -38,6 +38,7 @@ namespace ScriptEditor.TextEditorUI
         public string filename;
 
         public bool changed;
+        public bool externallyChanged;
 
         private int textRevision;
 

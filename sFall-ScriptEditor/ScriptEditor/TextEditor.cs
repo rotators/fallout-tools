@@ -37,6 +37,7 @@ namespace ScriptEditor
         private static readonly System.Media.SoundPlayer CompileFail = new System.Media.SoundPlayer(Properties.Resources.CompileError);
 
         private readonly List<TabInfo> tabs = new List<TabInfo>();
+        private readonly Dictionary<TabPage, TabInfo> documentTabs = new Dictionary<TabPage, TabInfo>();
         private TabInfo currentTab;
         private ToolStripLabel parserLabel;
         private ToolStripMenuItem collapseAllProceduresMenuItem;
@@ -58,7 +59,25 @@ namespace ScriptEditor
         private SearchForm sf;
         private GoToLine goToLine;
 
-        private int previousTabIndex = -1;
+        private sealed class NavigationLocation
+        {
+            public string FilePath;
+            public TextLocation Position;
+        }
+
+        private sealed class ClosedDocumentLocation
+        {
+            public string FilePath;
+            public TextLocation Position;
+        }
+
+        private const int NavigationHistoryLimit = 100;
+        private const int RecentlyClosedDocumentLimit = 20;
+        private readonly List<NavigationLocation> navigationHistory = new List<NavigationLocation>();
+        private readonly List<ClosedDocumentLocation> recentlyClosedDocuments = new List<ClosedDocumentLocation>();
+        private int navigationHistoryIndex = -1;
+
+        private TabInfo previousTab;
         private int minimizeLogSize;
         private PositionType PosChangeType;
         private int moveActive = -1;
@@ -497,12 +516,110 @@ namespace ScriptEditor
             CodeFolder.SetAllProceduresFolded(currentDocument, false);
         }
 
+        private void RecordNavigationLocation()
+        {
+            if (currentTab == null || String.IsNullOrEmpty(currentTab.filepath))
+                return;
+
+            NavigationLocation location = new NavigationLocation {
+                FilePath = currentTab.filepath,
+                Position = currentActiveTextAreaCtrl.Caret.Position
+            };
+            if (navigationHistoryIndex >= 0) {
+                NavigationLocation current = navigationHistory[navigationHistoryIndex];
+                if (String.Equals(current.FilePath, location.FilePath, StringComparison.OrdinalIgnoreCase) &&
+                    current.Position.Equals(location.Position))
+                    return;
+            }
+            if (navigationHistoryIndex < navigationHistory.Count - 1)
+                navigationHistory.RemoveRange(navigationHistoryIndex + 1, navigationHistory.Count - navigationHistoryIndex - 1);
+            navigationHistory.Add(location);
+            if (navigationHistory.Count > NavigationHistoryLimit)
+                navigationHistory.RemoveAt(0);
+            navigationHistoryIndex = navigationHistory.Count - 1;
+            SetBackForwardButtonState();
+        }
+
+        private bool NavigateHistory(int direction)
+        {
+            int targetIndex = navigationHistoryIndex + direction;
+            if (targetIndex < 0 || targetIndex >= navigationHistory.Count)
+                return false;
+
+            NavigationLocation target = navigationHistory[targetIndex];
+            TabInfo tab = Open(target.FilePath, OpenType.File, false, alreadyOpen: false);
+            if (tab == null)
+                return false;
+
+            currentActiveTextAreaCtrl.Caret.Position = target.Position;
+            currentActiveTextAreaCtrl.CenterViewOn(currentActiveTextAreaCtrl.Caret.Line, 0);
+            navigationHistoryIndex = targetIndex;
+            SetBackForwardButtonState();
+            return true;
+        }
+
+        private void RememberClosedDocument(TabInfo tab)
+        {
+            if (isClosing || tab == null || String.IsNullOrEmpty(tab.filepath) || !File.Exists(tab.filepath))
+                return;
+
+            ClosedDocumentLocation location = new ClosedDocumentLocation {
+                FilePath = tab.filepath,
+                Position = tab.textEditor.ActiveTextAreaControl.Caret.Position
+            };
+            recentlyClosedDocuments.RemoveAll(item => String.Equals(item.FilePath, location.FilePath, StringComparison.OrdinalIgnoreCase));
+            recentlyClosedDocuments.Insert(0, location);
+            if (recentlyClosedDocuments.Count > RecentlyClosedDocumentLimit)
+                recentlyClosedDocuments.RemoveRange(RecentlyClosedDocumentLimit, recentlyClosedDocuments.Count - RecentlyClosedDocumentLimit);
+        }
+
+        private bool ReopenLastClosedDocument()
+        {
+            while (recentlyClosedDocuments.Count > 0) {
+                ClosedDocumentLocation location = recentlyClosedDocuments[0];
+                recentlyClosedDocuments.RemoveAt(0);
+                if (!File.Exists(location.FilePath))
+                    continue;
+
+                TabInfo tab = Open(location.FilePath, OpenType.File, false, alreadyOpen: false);
+                if (tab == null)
+                    continue;
+
+                currentActiveTextAreaCtrl.Caret.Position = location.Position;
+                currentActiveTextAreaCtrl.CenterViewOn(currentActiveTextAreaCtrl.Caret.Line, 0);
+                return true;
+            }
+            return false;
+        }
+
+
         private void CollapseOtherProcedures_Click(object sender, EventArgs e)
         {
             if (currentTab == null) return;
             int line = EditorContextLine;
             if (CodeFolder.CollapseAllExceptProcedure(currentDocument, line))
                 currentActiveTextAreaCtrl.CenterViewOn(line, 0);
+        }
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.Tab) && previousTab != null &&
+                previousTab.index >= 0 && previousTab.index < tabControl1.TabPages.Count &&
+                previousTab.index != tabControl1.SelectedIndex) {
+                tabControl1.SelectTab(previousTab.index);
+                return true;
+            }
+            if (keyData == (Keys.Alt | Keys.Left))
+                return NavigateHistory(-1);
+            if (keyData == (Keys.Alt | Keys.Right))
+                return NavigateHistory(1);
+            if (keyData == (Keys.Control | Keys.W) && currentTab != null) {
+                Close(currentTab);
+                return true;
+            }
+            if (keyData == (Keys.Control | Keys.Shift | Keys.T))
+                return ReopenLastClosedDocument();
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
 #if !DEBUG
@@ -645,14 +762,17 @@ namespace ScriptEditor
             if (currentTab == null) return;
             currentActiveTextAreaCtrl.TextArea.MouseEnter += TextArea_SetFocus;
 
-            if (WindowState != FormWindowState.Minimized)
+            if (WindowState != FormWindowState.Minimized) {
+                DetectExternalChanges();
                 CheckChandedFile();
+            }
             else {
                 Timer timer = new Timer();
                 timer.Interval = 500; // interval time - 0.5 sec
                 timer.Tick += delegate(object obj, EventArgs eArg) {
                     timer.Stop();
                     timer.Dispose();
+                    DetectExternalChanges();
                     CheckChandedFile();
                 };
                 timer.Start();
@@ -842,15 +962,22 @@ namespace ScriptEditor
             // Tabs Swapped
             tabControl1.ShowCloseButtons = true;
             tabControl1.TabCloseRequested += delegate(object sender, TabCloseRequestedEventArgs e) {
-                if (e.TabIndex >= 0 && e.TabIndex < tabs.Count)
-                    Close(tabs[e.TabIndex]);
+                if (e.TabIndex < 0 || e.TabIndex >= tabControl1.TabPages.Count)
+                    return;
+
+                TabInfo tab;
+                if (documentTabs.TryGetValue(tabControl1.TabPages[e.TabIndex], out tab))
+                    Close(tab);
             };
             tabControl1.tabsSwapped += delegate(object sender, TabsSwappedEventArgs e) {
-                TabInfo tmp = tabs[e.aIndex];
-                tabs[e.aIndex] = tabs[e.bIndex];
-                tabs[e.aIndex].index = e.aIndex;
-                tabs[e.bIndex] = tmp;
-                tabs[e.bIndex].index = e.bIndex;
+                if (e.aIndex < 0 || e.aIndex >= tabs.Count || e.bIndex < 0 || e.bIndex >= tabs.Count)
+                    return;
+
+                TabInfo movedTab = tabs[e.bIndex];
+                tabs.RemoveAt(e.bIndex);
+                tabs.Insert(e.aIndex, movedTab);
+                for (int index = 0; index < tabs.Count; index++)
+                    tabs[index].index = index;
             };
 
             // Create Variable Tab
@@ -1153,8 +1280,11 @@ namespace ScriptEditor
                 for (int i = 0; i < tabs.Count; i++)
                 {
                     if (tabControl1.GetTabRect(i).Contains(e.Location)) {
-                        if (e.Button == MouseButtons.Middle)
-                            Close(tabs[i]);
+                        if (e.Button == MouseButtons.Middle) {
+                            TabInfo tab = GetDocumentTabAt(i);
+                            if (tab != null)
+                                Close(tab);
+                        }
                         else if (e.Button == MouseButtons.Right) {
                             cmsTabControls.Tag = i;
 
@@ -1258,7 +1388,7 @@ namespace ScriptEditor
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Close(tabs[tabControl1.SelectedIndex]);
+            Close(currentTab);
         }
 
         private void recentItem_Click(object sender, EventArgs e)
@@ -1515,7 +1645,7 @@ namespace ScriptEditor
             if ((i & 0x10000000) != 0)
                 tabControl2.TabPages.RemoveAt(i ^ 0x10000000);
             else
-                Close(tabs[i]);
+                Close(GetDocumentTabAt(i));
         }
 
         void GoToLineToolStripMenuItemClick(object sender, EventArgs e)
@@ -1600,10 +1730,10 @@ namespace ScriptEditor
 
         void CloseAllButThisToolStripMenuItemClick(object sender, EventArgs e)
         {
-            int thisIndex = (int)cmsTabControls.Tag;
+            TabInfo tabToKeep = GetDocumentTabAt((int)cmsTabControls.Tag);
             for (int i = tabs.Count - 1; i >= 0; i--)
             {
-                if (i != thisIndex)
+                if (!object.ReferenceEquals(tabs[i], tabToKeep))
                     Close(tabs[i]);
             }
         }
@@ -1978,7 +2108,9 @@ namespace ScriptEditor
 
         private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Diagnostics.Process.Start("explorer", "/n, /select, " + tabs[(int)cmsTabControls.Tag].filepath);
+            TabInfo tab = GetDocumentTabAt((int)cmsTabControls.Tag);
+            if (tab != null && !String.IsNullOrEmpty(tab.filepath))
+                System.Diagnostics.Process.Start("explorer", "/n, /select, " + tab.filepath);
         }
 
         private void tsmiClearAllLog_Click(object sender, EventArgs e)
@@ -2106,7 +2238,9 @@ namespace ScriptEditor
 
         private void openInExternalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Settings.OpenInExternalEditor(tabs[(int)cmsTabControls.Tag].filepath);
+            TabInfo tab = GetDocumentTabAt((int)cmsTabControls.Tag);
+            if (tab != null && !String.IsNullOrEmpty(tab.filepath))
+                Settings.OpenInExternalEditor(tab.filepath);
         }
 
         private void includeFileToCodeToolStripMenuItem_Click(object sender, EventArgs e)

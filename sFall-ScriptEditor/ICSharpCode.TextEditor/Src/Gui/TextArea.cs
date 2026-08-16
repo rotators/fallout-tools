@@ -795,8 +795,7 @@ namespace ICSharpCode.TextEditor
 				UpdateLineToEnd(Caret.Line, Caret.Column);
 			}
 			
-			// I prefer to set NOT the standard column, if you type something
-//			++Caret.DesiredColumn;
+			SetDesiredColumn();
 		}
 		
 		/// <remarks>
@@ -838,6 +837,7 @@ namespace ICSharpCode.TextEditor
 					EndUpdate();
 				}
 			}
+			SetDesiredColumn();
 		}
 		
 		/// <remarks>
@@ -867,7 +867,7 @@ namespace ICSharpCode.TextEditor
 				UpdateLineToEnd(lineNr, Caret.Column);
 			}
 			++Caret.Column;
-//			++Caret.DesiredColumn;
+			SetDesiredColumn();
 		}
 		
 		protected override void Dispose(bool disposing)

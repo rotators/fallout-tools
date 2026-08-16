@@ -81,6 +81,15 @@ namespace ScriptEditor
 
                 dialog.Controls.Add(content);
                 InterfaceTheme.ApplyOnLoad(dialog);
+
+                // The theme can change the font and therefore the number of wrapped lines.
+                // Size after theming so the message row never clips its final line.
+                Size themedMessageSize = TextRenderer.MeasureText(message.Text, message.Font,
+                    new Size(message.MaximumSize.Width, Int32.MaxValue),
+                    TextFormatFlags.TextBoxControl | TextFormatFlags.WordBreak);
+                int contentHeight = themedMessageSize.Height + message.Margin.Vertical
+                    + buttonsPanel.GetPreferredSize(Size.Empty).Height;
+                dialog.ClientSize = new Size(450, Math.Max(118, contentHeight + dialog.Padding.Vertical));
                 return owner == null ? dialog.ShowDialog() : dialog.ShowDialog(owner);
             }
         }

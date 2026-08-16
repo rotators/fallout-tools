@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -784,15 +784,8 @@ namespace ScriptEditor
 
         private void SetBackForwardButtonState()
         {
-            if (currentTab.history.pointerCur > 0)
-                Back_toolStripButton.Enabled = true;
-            else
-                Back_toolStripButton.Enabled = false;
-
-            if (currentTab.history.pointerCur == currentTab.history.pointerEnd || currentTab.history.pointerCur < 0)
-                Forward_toolStripButton.Enabled = false;
-            else if (currentTab.history.pointerCur > 0 || currentTab.history.pointerCur < currentTab.history.pointerEnd)
-                Forward_toolStripButton.Enabled = true;
+            Back_toolStripButton.Enabled = navigationHistoryIndex > 0;
+            Forward_toolStripButton.Enabled = navigationHistoryIndex >= 0 && navigationHistoryIndex < navigationHistory.Count - 1;
         }
 
         private void Caret_PositionChanged(object sender, EventArgs e)
@@ -839,20 +832,12 @@ namespace ScriptEditor
 
         private void Back_toolStripButton_Click(object sender, EventArgs e)
         {
-            if (currentTab == null || currentTab.history.pointerCur == 0)
-                return;
-
-            currentTab.history.pointerCur--;
-            GotoViewLine();
+            NavigateHistory(-1);
         }
 
         private void Forward_toolStripButton_Click(object sender, EventArgs e)
         {
-            if (currentTab == null || currentTab.history.pointerCur >= currentTab.history.pointerEnd)
-                return;
-
-            currentTab.history.pointerCur++;
-            GotoViewLine();
+            NavigateHistory(1);
         }
 
         private void GotoViewLine()

@@ -1617,7 +1617,7 @@ namespace ScriptEditor {
             this.Back_toolStripButton.Name = "Back_toolStripButton";
             this.Back_toolStripButton.Size = new System.Drawing.Size(23, 22);
             this.Back_toolStripButton.Text = "Back";
-            this.Back_toolStripButton.ToolTipText = "Navigation Back ";
+            this.Back_toolStripButton.ToolTipText = "Navigation Back (Alt+Left)";
             this.Back_toolStripButton.Click += new System.EventHandler(this.Back_toolStripButton_Click);
             // 
             // Forward_toolStripButton
@@ -1629,7 +1629,7 @@ namespace ScriptEditor {
             this.Forward_toolStripButton.Name = "Forward_toolStripButton";
             this.Forward_toolStripButton.Size = new System.Drawing.Size(23, 22);
             this.Forward_toolStripButton.Text = "Forward";
-            this.Forward_toolStripButton.ToolTipText = "Navigation Forward ";
+            this.Forward_toolStripButton.ToolTipText = "Navigation Forward (Alt+Right)";
             this.Forward_toolStripButton.Click += new System.EventHandler(this.Forward_toolStripButton_Click);
             // 
             // GotoProc_StripButton
@@ -1779,7 +1779,7 @@ namespace ScriptEditor {
             // showAutocompleteWordToolStripMenuItem
             // 
             this.showAutocompleteWordToolStripMenuItem.Name = "showAutocompleteWordToolStripMenuItem";
-            this.showAutocompleteWordToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.Space)));
+            this.showAutocompleteWordToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Space)));
             this.showAutocompleteWordToolStripMenuItem.Size = new System.Drawing.Size(278, 22);
             this.showAutocompleteWordToolStripMenuItem.Text = "Autocomplete Word";
             this.showAutocompleteWordToolStripMenuItem.Click += new System.EventHandler(this.showAutocompleteWordToolStripMenuItem_Click);

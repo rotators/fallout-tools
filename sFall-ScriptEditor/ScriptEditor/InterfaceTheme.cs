@@ -40,7 +40,10 @@ namespace ScriptEditor
             { "qCompile_toolStripSplitButton", "DarkToolbar_Compile" }, { "toolStripDropDownButton2", "DarkToolbar_Options" },
             { "GoBeginStripButton", "DarkToolbar_GoDefinitions" }, { "OnlyProcStripButton", "DarkToolbar_CollapseFolders" },
             { "NewProcStripButton", "DarkToolbar_CreateProcedure" }, { "tsbUpdateParserData", "DarkToolbar_RefreshParser" },
-            { "Help_toolStripButton", "DarkToolbar_Help" }, { "ViewArgsStripButton", "DarkToolbar_QuickTips" }
+            { "Help_toolStripButton", "DarkToolbar_Help" }, { "ViewArgsStripButton", "DarkToolbar_QuickTips" },
+            { "Save_button", "DarkToolbar_ScriptListSaved" }, { "Addbutton", "DarkToolbar_ScriptListAdd" },
+            { "Delbutton", "DarkToolbar_ScriptListRemove" }, { "Upbutton", "DarkToolbar_ScriptListFindPrevious" },
+            { "Downbutton", "DarkToolbar_ScriptListFindNext" }, { "toolStripLabel1", "DarkToolbar_ScriptListFind" }
         };
         private static readonly Dictionary<Control, ControlBorderWindow> ControlBorders = new Dictionary<Control, ControlBorderWindow>();
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
@@ -63,6 +66,7 @@ namespace ScriptEditor
         private static readonly Dictionary<GroupBox, FlatStyle> GroupStyles = new Dictionary<GroupBox, FlatStyle>();
         private static readonly Dictionary<ListView, bool> ListGridLines = new Dictionary<ListView, bool>();
         private static readonly Dictionary<DataGridView, DataGridViewHeaderBorderStyle> GridHeaderBorders = new Dictionary<DataGridView, DataGridViewHeaderBorderStyle>();
+        private static readonly Dictionary<DataGridView, DataGridViewCellBorderStyle> GridCellBorders = new Dictionary<DataGridView, DataGridViewCellBorderStyle>();
         private static readonly HashSet<DataGridView> ThemedGrids = new HashSet<DataGridView>();
         private static readonly Dictionary<DataGridViewColumn, GridColumnSelectionStyle> GridColumnSelectionStyles = new Dictionary<DataGridViewColumn, GridColumnSelectionStyle>();
         private static readonly Dictionary<DataGridViewComboBoxColumn, GridComboBoxColumnStyle> GridComboBoxColumnStyles = new Dictionary<DataGridViewComboBoxColumn, GridComboBoxColumnStyle>();
@@ -254,7 +258,7 @@ namespace ScriptEditor
             DataGridView grid = control as DataGridView;
             if (grid != null) {
                 grid.BackgroundColor = dark ? DarkBack : SystemColors.ControlLight;
-                grid.GridColor = dark ? DarkBorder : SystemColors.ControlDark;
+                grid.GridColor = dark ? Color.FromArgb(56, 56, 60) : SystemColors.ControlDark;
                 grid.EnableHeadersVisualStyles = !dark;
                 grid.DefaultCellStyle.BackColor = dark ? DarkBack : SystemColors.Window;
                 grid.DefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.WindowText;
@@ -280,6 +284,13 @@ namespace ScriptEditor
                     GridHeaderBorders.Add(grid, originalHeaderBorder);
                 }
                 grid.ColumnHeadersBorderStyle = dark ? DataGridViewHeaderBorderStyle.None : originalHeaderBorder;
+                DataGridViewCellBorderStyle originalCellBorder;
+                if (!GridCellBorders.TryGetValue(grid, out originalCellBorder)) {
+                    originalCellBorder = grid.CellBorderStyle;
+                    GridCellBorders.Add(grid, originalCellBorder);
+                }
+                grid.CellBorderStyle = dark && originalCellBorder == DataGridViewCellBorderStyle.Raised
+                    ? DataGridViewCellBorderStyle.Single : originalCellBorder;
                 if (ThemedGrids.Add(grid)) {
                     grid.EditingControlShowing += GridEditingControlShowing;
                     grid.CellPainting += GridCellPainting;
@@ -431,6 +442,26 @@ namespace ScriptEditor
                 return;
 
             DataGridView grid = (DataGridView)sender;
+            DataGridViewButtonColumn buttonColumn = grid.Columns[e.ColumnIndex] as DataGridViewButtonColumn;
+            if (buttonColumn != null) {
+                bool buttonSelected = (e.State & DataGridViewElementStates.Selected) != 0;
+                Rectangle buttonCellBounds = e.CellBounds;
+                Rectangle buttonBounds = Rectangle.Inflate(buttonCellBounds, -2, -2);
+                using (SolidBrush backgroundBrush = new SolidBrush(buttonSelected ? DarkSelection : DarkBack))
+                using (SolidBrush buttonBrush = new SolidBrush(buttonSelected ? DarkSelection : DarkControl))
+                using (Pen borderPen = new Pen(DarkBorder)) {
+                    e.Graphics.FillRectangle(backgroundBrush, buttonCellBounds);
+                    e.Graphics.FillRectangle(buttonBrush, buttonBounds);
+                    e.Graphics.DrawRectangle(borderPen, buttonBounds.X, buttonBounds.Y,
+                        buttonBounds.Width - 1, buttonBounds.Height - 1);
+                    TextRenderer.DrawText(e.Graphics, e.FormattedValue == null ? string.Empty : e.FormattedValue.ToString(),
+                        e.CellStyle.Font, buttonBounds, DarkText,
+                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                }
+                e.Handled = true;
+                return;
+            }
+
             if (!(grid.Columns[e.ColumnIndex] is DataGridViewComboBoxColumn) ||
                 (grid.IsCurrentCellInEditMode && grid.CurrentCell != null &&
                  grid.CurrentCell.RowIndex == e.RowIndex && grid.CurrentCell.ColumnIndex == e.ColumnIndex))
@@ -777,6 +808,14 @@ namespace ScriptEditor
             }
 
             string resourceKey;
+            if (dark && item.Name == "Save_button" && item.Tag is bool && (bool)item.Tag) {
+                resourceKey = "DarkToolbar_ScriptListUnsaved";
+                Image unsavedImage = Properties.Resources.ResourceManager.GetObject(resourceKey) as Image;
+                if (unsavedImage != null) {
+                    item.Image = unsavedImage;
+                    return;
+                }
+            }
             if (dark && DarkToolbarIconKeys.TryGetValue(item.Name, out resourceKey)) {
                 Image darkImage = Properties.Resources.ResourceManager.GetObject(resourceKey) as Image;
                 if (darkImage != null) {
@@ -860,6 +899,7 @@ namespace ScriptEditor
             DataGridView grid = control as DataGridView;
             if (grid != null) {
                 GridHeaderBorders.Remove(grid);
+                GridCellBorders.Remove(grid);
                 ThemedGrids.Remove(grid);
                 foreach (DataGridViewColumn column in grid.Columns) {
                     GridColumnSelectionStyles.Remove(column);
@@ -917,8 +957,9 @@ namespace ScriptEditor
             TextBoxBase textBox = control as TextBoxBase;
             if (textBox != null) return textBox.BorderStyle != BorderStyle.None;
             if (control is ComboBox || control is ListView || control is NumericUpDown) return true;
-            DataGridView grid = control as DataGridView;
-            if (grid != null) return grid.BorderStyle != BorderStyle.None;
+            // DataGridView repaints its client area while scrolling. Drawing an overlay border
+            // from a NativeWindow hook leaves stale row fragments behind, so keep its border native.
+            if (control is DataGridView) return false;
             Panel panel = control as Panel;
             if (panel != null && panel.BorderStyle != BorderStyle.None) return true;
             PictureBox picture = control as PictureBox;

@@ -25,9 +25,9 @@ namespace ScriptEditor {
         /// </summary>
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(RegisterScript));
             this.dgvScripts = new ScriptEditor.TextEditorUI.DataGridViewEx();
             this.EntryCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -38,9 +38,10 @@ namespace ScriptEditor {
             this.cName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.groupBox = new System.Windows.Forms.GroupBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.AllowCheckBox = new System.Windows.Forms.CheckBox();
+            this.definitionHelpButton = new System.Windows.Forms.Button();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.DefinetextBox = new System.Windows.Forms.TextBox();
-            this.AllowCheckBox = new System.Windows.Forms.CheckBox();
             this.label2 = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.Save_button = new System.Windows.Forms.ToolStripButton();
@@ -67,14 +68,14 @@ namespace ScriptEditor {
             this.dgvScripts.BackgroundColor = System.Drawing.SystemColors.MenuBar;
             this.dgvScripts.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.dgvScripts.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.Raised;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvScripts.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.TopLeft;
+            dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvScripts.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dgvScripts.ColumnHeadersHeight = 24;
             this.dgvScripts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dgvScripts.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -85,13 +86,13 @@ namespace ScriptEditor {
             this.cVars,
             this.cName});
             this.dgvScripts.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvScripts.Location = new System.Drawing.Point(6, 19);
+            this.dgvScripts.Location = new System.Drawing.Point(6, 22);
             this.dgvScripts.MultiSelect = false;
             this.dgvScripts.Name = "dgvScripts";
             this.dgvScripts.RowHeadersVisible = false;
             this.dgvScripts.RowHeadersWidth = 30;
             this.dgvScripts.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.dgvScripts.Size = new System.Drawing.Size(724, 453);
+            this.dgvScripts.Size = new System.Drawing.Size(724, 447);
             this.dgvScripts.TabIndex = 0;
             this.dgvScripts.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvScripts_CellClick);
             this.dgvScripts.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvScripts_CellContentClick);
@@ -116,8 +117,8 @@ namespace ScriptEditor {
             // 
             // cScript
             // 
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            this.cScript.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            this.cScript.DefaultCellStyle = dataGridViewCellStyle5;
             this.cScript.HeaderText = "Script File";
             this.cScript.Name = "cScript";
             this.cScript.Resizable = System.Windows.Forms.DataGridViewTriState.False;
@@ -133,8 +134,8 @@ namespace ScriptEditor {
             // 
             // cVars
             // 
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.cVars.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.cVars.DefaultCellStyle = dataGridViewCellStyle6;
             this.cVars.HeaderText = "LVars:";
             this.cVars.Name = "cVars";
             this.cVars.Resizable = System.Windows.Forms.DataGridViewTriState.False;
@@ -154,17 +155,44 @@ namespace ScriptEditor {
             // 
             // groupBox
             // 
-            this.groupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox.Controls.Add(this.dgvScripts);
-            this.groupBox.Location = new System.Drawing.Point(3, 54);
+            this.groupBox.Location = new System.Drawing.Point(3, 57);
             this.groupBox.Name = "groupBox";
             this.groupBox.Padding = new System.Windows.Forms.Padding(6);
-            this.groupBox.Size = new System.Drawing.Size(736, 478);
+            this.groupBox.Size = new System.Drawing.Size(736, 475);
             this.groupBox.TabIndex = 1;
             this.groupBox.TabStop = false;
             this.groupBox.Text = "Scripts List";
+            // 
+            // AllowCheckBox
+            // 
+            this.AllowCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.AllowCheckBox.AutoSize = true;
+            this.AllowCheckBox.Enabled = false;
+            this.AllowCheckBox.ForeColor = System.Drawing.Color.Firebrick;
+            this.AllowCheckBox.Location = new System.Drawing.Point(674, 30);
+            this.AllowCheckBox.Name = "AllowCheckBox";
+            this.AllowCheckBox.Size = new System.Drawing.Size(56, 19);
+            this.AllowCheckBox.TabIndex = 8;
+            this.AllowCheckBox.Text = "Allow";
+            this.toolTip1.SetToolTip(this.AllowCheckBox, "Add the generated SCRIPT_ definition to scripts.h when the list is saved.");
+            this.AllowCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // definitionHelpButton
+            // 
+            this.definitionHelpButton.AccessibleDescription = "Show help for the definition registration options.";
+            this.definitionHelpButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.definitionHelpButton.Location = new System.Drawing.Point(647, 28);
+            this.definitionHelpButton.Name = "definitionHelpButton";
+            this.definitionHelpButton.Size = new System.Drawing.Size(21, 23);
+            this.definitionHelpButton.TabIndex = 10;
+            this.definitionHelpButton.Text = "?";
+            this.toolTip1.SetToolTip(this.definitionHelpButton, "Show definition options help");
+            this.definitionHelpButton.UseVisualStyleBackColor = true;
+            this.definitionHelpButton.Click += new System.EventHandler(this.definitionHelpButton_Click);
             // 
             // imageList1
             // 
@@ -175,34 +203,20 @@ namespace ScriptEditor {
             // 
             // DefinetextBox
             // 
-            this.DefinetextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.DefinetextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.DefinetextBox.Enabled = false;
-            this.DefinetextBox.Location = new System.Drawing.Point(185, 29);
+            this.DefinetextBox.Location = new System.Drawing.Point(211, 28);
             this.DefinetextBox.Name = "DefinetextBox";
-            this.DefinetextBox.Size = new System.Drawing.Size(497, 20);
+            this.DefinetextBox.Size = new System.Drawing.Size(428, 23);
             this.DefinetextBox.TabIndex = 7;
-            // 
-            // AllowCheckBox
-            // 
-            this.AllowCheckBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.AllowCheckBox.AutoSize = true;
-            this.AllowCheckBox.Enabled = false;
-            this.AllowCheckBox.ForeColor = System.Drawing.Color.Firebrick;
-            this.AllowCheckBox.Location = new System.Drawing.Point(688, 30);
-            this.AllowCheckBox.Name = "AllowCheckBox";
-            this.AllowCheckBox.Size = new System.Drawing.Size(51, 17);
-            this.AllowCheckBox.TabIndex = 8;
-            this.AllowCheckBox.Text = "Allow";
-            this.AllowCheckBox.UseVisualStyleBackColor = true;
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
             this.label2.ForeColor = System.Drawing.Color.RoyalBlue;
-            this.label2.Location = new System.Drawing.Point(6, 32);
+            this.label2.Location = new System.Drawing.Point(12, 31);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(173, 13);
+            this.label2.Size = new System.Drawing.Size(207, 20);
             this.label2.TabIndex = 9;
             this.label2.Text = "Add definition for script to Scripts.h:";
             // 
@@ -231,7 +245,7 @@ namespace ScriptEditor {
             this.Save_button.Image = ((System.Drawing.Image)(resources.GetObject("Save_button.Image")));
             this.Save_button.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.Save_button.Name = "Save_button";
-            this.Save_button.Size = new System.Drawing.Size(79, 22);
+            this.Save_button.Size = new System.Drawing.Size(82, 22);
             this.Save_button.Text = "Registered";
             this.Save_button.ToolTipText = "Save all changes to files.";
             this.Save_button.Click += new System.EventHandler(this.Save_button_Click);
@@ -310,8 +324,9 @@ namespace ScriptEditor {
             this.FindtextBox.AutoSize = false;
             this.FindtextBox.BackColor = System.Drawing.SystemColors.ControlLight;
             this.FindtextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.FindtextBox.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.FindtextBox.Name = "FindtextBox";
-            this.FindtextBox.Size = new System.Drawing.Size(300, 21);
+            this.FindtextBox.Size = new System.Drawing.Size(300, 23);
             // 
             // toolStripLabel1
             // 
@@ -329,9 +344,11 @@ namespace ScriptEditor {
             this.ClientSize = new System.Drawing.Size(742, 535);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.AllowCheckBox);
+            this.Controls.Add(this.definitionHelpButton);
             this.Controls.Add(this.DefinetextBox);
             this.Controls.Add(this.groupBox);
             this.Controls.Add(this.label2);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.KeyPreview = true;
             this.MinimumSize = new System.Drawing.Size(250, 250);
@@ -357,6 +374,7 @@ namespace ScriptEditor {
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.TextBox DefinetextBox;
         private System.Windows.Forms.CheckBox AllowCheckBox;
+        private System.Windows.Forms.Button definitionHelpButton;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.ToolStrip toolStrip1;

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using System.Text;
@@ -71,15 +72,23 @@ namespace ScriptEditor
         {
             get { return notSaved; }
             set {
-                Save_button.Text = "Saved";
                 notSaved = value;
-                if (value)
-                    Save_button.Image = imageList1.Images[1];
-                else
-                    Save_button.Image = imageList1.Images[0];
+                Save_button.Text = "Saved";
+                Save_button.Tag = value;
+                Save_button.Image = GetSaveButtonImage(value);
             }
         }
 
+        private Image GetSaveButtonImage(bool unsaved)
+        {
+            if (InterfaceTheme.IsDark) {
+                Image darkImage = Properties.Resources.ResourceManager.GetObject(
+                    unsaved ? "DarkToolbar_ScriptListUnsaved" : "DarkToolbar_ScriptListSaved") as Image;
+                if (darkImage != null)
+                    return darkImage;
+            }
+            return imageList1.Images[unsaved ? 1 : 0];
+        }
         const string DESCMSG = "#\r\n#   This file was built using Sfall Script Editor.\r\n#";
         const string SCRIPT_H = "SCRIPT_";
 
@@ -121,8 +130,7 @@ namespace ScriptEditor
                     lines.Add(script + "; # local_vars=0");
                     doAdd = true;
                     AllowCheckBox.Checked = Settings.allowDefine;
-                    Save_button.Image = imageList1.Images[1];
-                    notSaved = true;
+                    NotSaved = true;
                 }
                 AllowCheckBox.Enabled = true;
                 DefinetextBox.Enabled = true;
@@ -192,14 +200,14 @@ namespace ScriptEditor
 
         private void RegisterScript_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (cancel) return;
-            if (NotSaved) {
+            if (!cancel && NotSaved) {
                 if (ScriptEditor.ThemedMessageBox.Show("Save all changed to files?", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes) {
                     Save_button_Click(null, null);
                 }
             }
             UndatFile.selectDatFile = null;
-            TE.RegistredScriptDialogShow = false;
+            if (TE != null)
+                TE.RegistredScriptDialogShow = false;
         }
 
         private void Save_button_Click(object sender, EventArgs e)
@@ -249,6 +257,14 @@ namespace ScriptEditor
             }
         }
 
+        private void definitionHelpButton_Click(object sender, EventArgs e)
+        {
+            ScriptEditor.ThemedMessageBox.Show(
+                "When registering a new active script, the editor proposes a SCRIPT_ definition. " +
+                "Enable Allow to add that definition to scripts.h when you save. " +
+                "These options are disabled while editing the existing Scripts.lst.",
+                "Definition options");
+        }
         private void RegisterScript_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Escape) {
