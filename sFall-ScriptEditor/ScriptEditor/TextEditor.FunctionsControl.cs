@@ -1398,16 +1398,19 @@ namespace ScriptEditor
         private void SizeFontToString()
         {
             // base 10 (min 5,  max 30)
-            float percent = (float)((10 + Settings.sizeFont) / 10.0f) * 100.0f;
-            FontSizeStripStatusLabel.Text = percent.ToString() + '%';
-
-            if (currentTab != null) {
-                var fontName = currentTab.textEditor.TextEditorProperties.Font.Name;
-                var font = new Font(fontName, 10.0f + Settings.sizeFont, FontStyle.Regular);
-                currentTab.textEditor.TextEditorProperties.Font = font;
-                currentTab.textEditor.Refresh();
-                currentActiveTextAreaCtrl.Caret.RecreateCaret();
+            int percent = (10 + Settings.sizeFont) * 10;
+            FontSizeStripStatusLabel.Text = percent.ToString() + "% \u25BE";
+            foreach (TabInfo tab in tabs) {
+                if (String.Equals(Path.GetExtension(tab.filename ?? String.Empty), ".msg", StringComparison.OrdinalIgnoreCase))
+                    tab.textEditor.TextEditorProperties.Font = new Font("Verdana", 10 + Settings.sizeFont,
+                        FontStyle.Regular, GraphicsUnit.Point);
+                else
+                    Settings.SetTextAreaFont(tab.textEditor);
+                tab.textEditor.Refresh();
             }
+
+            if (currentTab != null)
+                currentActiveTextAreaCtrl.Caret.RecreateCaret();
         }
 
         public void SetFocusDocument()

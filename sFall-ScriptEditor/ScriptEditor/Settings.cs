@@ -445,6 +445,15 @@ namespace ScriptEditor
             TE.TextEditorProperties.Font = font;
         }
 
+        public static float GetTextAreaFontBaseSize()
+        {
+            int indexFont = selectFont - 1;
+            if (indexFont < 0 || indexFont >= Fonts.Families.Length)
+                return 10.0f;
+
+            float size;
+            return FontAdjustSize.TryGetValue(Fonts.Families[indexFont].Name, out size) ? size : 10.0f;
+        }
         private static void WriteWindowPos(BinaryWriter bw, int i)
         {
             bw.Write(windowPositions[i].maximized);

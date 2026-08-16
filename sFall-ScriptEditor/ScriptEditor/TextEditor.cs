@@ -44,6 +44,11 @@ namespace ScriptEditor
         private ToolStripMenuItem collapseOtherProceduresMenuItem;
         private ToolStripMenuItem goToMessageMenuItem;
         private ToolStripMenuItem previewDialogContextMenuItem;
+        private ContextMenuStrip fontSizeStatusMenu;
+        private ToolStripMenuItem zoomOutMenuItem;
+        private ToolStripMenuItem zoomInMenuItem;
+        private ToolStripMenuItem resetZoomMenuItem;
+        private readonly Dictionary<int, ToolStripMenuItem> zoomMenuItems = new Dictionary<int, ToolStripMenuItem>();
         private Procedure previewDialogContextProcedure;
         private Image collapseProceduresImage;
         private Image expandProceduresImage;
@@ -118,6 +123,7 @@ namespace ScriptEditor
             ConfigureOutlineButton();
             ConfigureMainToolbar();
             ConfigureStatusNotifications();
+            ConfigureStatusZoomMenu();
 
             tabControl3.TabPages.RemoveAt(2); // скрываем от пользователя еще нереализованный функционал
 
@@ -845,6 +851,8 @@ namespace ScriptEditor
         {
             te.ActiveTextAreaControl.TextArea.MouseDown -= TextArea_MouseDown;
             te.ActiveTextAreaControl.TextArea.MouseDown += TextArea_MouseDown;
+            te.ActiveTextAreaControl.TextArea.MouseWheel -= TextArea_MouseWheel;
+            te.ActiveTextAreaControl.TextArea.MouseWheel += TextArea_MouseWheel;
             te.ActiveTextAreaControl.TextArea.KeyUp += TextArea_KeyUp;
             te.ActiveTextAreaControl.TextArea.KeyPress += TextArea_KeyPressed;
             te.ActiveTextAreaControl.TextArea.MouseEnter += TextArea_SetFocus;
@@ -892,6 +900,24 @@ namespace ScriptEditor
             editorContextPosition = new TextLocation(Math.Max(0, Math.Min(line.Length, location.X)), editorContextLine);
         }
 
+        private void TextArea_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if ((Control.ModifierKeys & Keys.Control) == 0 || IsDisposed)
+                return;
+
+            BeginInvoke((MethodInvoker)delegate {
+                if (currentTab == null || currentTab.textEditor.ActiveTextAreaControl.TextArea != sender)
+                    return;
+
+                bool messageFile = Path.GetExtension(currentTab.filename ?? String.Empty)
+                    .Equals(".msg", StringComparison.OrdinalIgnoreCase);
+                float baseSize = messageFile ? 10.0f : Settings.GetTextAreaFontBaseSize();
+                int sizeOffset = (int)Math.Round(currentTab.textEditor.Font.Size - baseSize);
+                if (e.Delta < 0 && sizeOffset <= -4)
+                    sizeOffset = -5;
+                SetStatusZoom(sizeOffset);
+            });
+        }
         void TextArea_MouseDoubleClick(object sender, MouseEventArgs e) {
             if (e.Button != System.Windows.Forms.MouseButtons.Left) return;
             Utilities.SelectedTextColorRegion(currentActiveTextAreaCtrl.Caret.Position, currentActiveTextAreaCtrl);
@@ -1978,16 +2004,63 @@ namespace ScriptEditor
                 EditorNotifications.Show(this, "No message-structure problems found.", NotificationKind.Success);
         }
 
-        private void FontSizeStripStatusLabel_Click(object sender, EventArgs e)
+        private void ConfigureStatusZoomMenu()
         {
-            if (ctrlKeyPress) {
-                if (--Settings.sizeFont < -5) Settings.sizeFont = 20;
-            } else {
-                if (++Settings.sizeFont > 20) Settings.sizeFont = -5;
-            }
-            SizeFontToString();
+            fontSizeStatusMenu = new ContextMenuStrip(components);
+            zoomOutMenuItem = new ToolStripMenuItem("Zoom out");
+            zoomInMenuItem = new ToolStripMenuItem("Zoom in");
+            resetZoomMenuItem = new ToolStripMenuItem("Reset zoom (100%)");
+            zoomOutMenuItem.Click += delegate { SetStatusZoom(Settings.sizeFont - 1); };
+            zoomInMenuItem.Click += delegate { SetStatusZoom(Settings.sizeFont + 1); };
+            resetZoomMenuItem.Click += delegate { SetStatusZoom(0); };
+
+            fontSizeStatusMenu.Items.Add(zoomOutMenuItem);
+            fontSizeStatusMenu.Items.Add(zoomInMenuItem);
+            fontSizeStatusMenu.Items.Add(new ToolStripSeparator());
+            fontSizeStatusMenu.Items.Add(resetZoomMenuItem);
+            fontSizeStatusMenu.Items.Add(new ToolStripSeparator());
+            AddStatusZoomMenuItem(50);
+            AddStatusZoomMenuItem(100);
+            AddStatusZoomMenuItem(150);
+            AddStatusZoomMenuItem(200);
+            AddStatusZoomMenuItem(250);
+            AddStatusZoomMenuItem(300);
+            fontSizeStatusMenu.Opening += delegate {
+                UpdateStatusZoomMenu();
+                InterfaceTheme.Apply(fontSizeStatusMenu);
+            };
         }
 
+        private void AddStatusZoomMenuItem(int percent)
+        {
+            ToolStripMenuItem item = new ToolStripMenuItem(percent.ToString() + "%");
+            item.Tag = percent;
+            item.Click += delegate { SetStatusZoom((int)item.Tag / 10 - 10); };
+            zoomMenuItems.Add(percent, item);
+            fontSizeStatusMenu.Items.Add(item);
+        }
+
+        private void FontSizeStripStatusLabel_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left || e.Button == MouseButtons.Right)
+                fontSizeStatusMenu.Show(Cursor.Position);
+        }
+
+        private void UpdateStatusZoomMenu()
+        {
+            zoomOutMenuItem.Enabled = Settings.sizeFont > -5;
+            zoomInMenuItem.Enabled = Settings.sizeFont < 20;
+            resetZoomMenuItem.Enabled = Settings.sizeFont != 0;
+            int percent = (10 + Settings.sizeFont) * 10;
+            foreach (KeyValuePair<int, ToolStripMenuItem> pair in zoomMenuItems)
+                pair.Value.Checked = pair.Key == percent;
+        }
+
+        private void SetStatusZoom(int sizeOffset)
+        {
+            Settings.sizeFont = (sbyte)Math.Max(-5, Math.Min(20, sizeOffset));
+            SizeFontToString();
+        }
         private void decompileF1ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Settings.decompileF1 = decompileF1ToolStripMenuItem.Checked;

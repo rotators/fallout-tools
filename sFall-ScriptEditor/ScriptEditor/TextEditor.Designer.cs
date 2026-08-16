@@ -1239,14 +1239,14 @@ namespace ScriptEditor {
             | System.Windows.Forms.ToolStripStatusLabelBorderSides.Bottom)));
             this.FontSizeStripStatusLabel.BorderStyle = System.Windows.Forms.Border3DStyle.Etched;
             this.FontSizeStripStatusLabel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.FontSizeStripStatusLabel.IsLink = true;
+            this.FontSizeStripStatusLabel.IsLink = false;
             this.FontSizeStripStatusLabel.LinkBehavior = System.Windows.Forms.LinkBehavior.NeverUnderline;
             this.FontSizeStripStatusLabel.Name = "FontSizeStripStatusLabel";
-            this.FontSizeStripStatusLabel.Size = new System.Drawing.Size(50, 23);
-            this.FontSizeStripStatusLabel.Text = "100%";
-            this.FontSizeStripStatusLabel.ToolTipText = "The text font size. Hold key Ctrl + Mouse click decrease size.";
+            this.FontSizeStripStatusLabel.Size = new System.Drawing.Size(62, 23);
+            this.FontSizeStripStatusLabel.Text = "100% \u25BE";
+            this.FontSizeStripStatusLabel.ToolTipText = "Choose the text zoom level. Right-click also opens the zoom menu.";
             this.FontSizeStripStatusLabel.VisitedLinkColor = System.Drawing.Color.Blue;
-            this.FontSizeStripStatusLabel.Click += new System.EventHandler(this.FontSizeStripStatusLabel_Click);
+            this.FontSizeStripStatusLabel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FontSizeStripStatusLabel_MouseDown);
             // 
             // ToolStripMain
             // 
