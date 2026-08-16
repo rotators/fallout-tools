@@ -34,12 +34,8 @@
  * The macro expansion routines are placed here.
  */
 
-#if PREPROCESSED
-#include    "mcpp.H"
-#else
 #include    "system.H"
 #include    "internal.H"
-#endif
 
 #define ARG_ERROR   (-255)
 #define CERROR      1
@@ -57,7 +53,7 @@ typedef struct magic_seq {  /* Data of a sequence inserted between tokens   */
     int             space;              /* Space succeeds or not    */
 } MAGIC_SEQ;
 
-static const int      compat_mode=0;
+static const int      compat_mode = 0;
 /* Expand recursive macro more than Standard (for compatibility with GNUC)  */
 
 static char *   expand_std( DEFBUF * defp, char * out, char * out_end
@@ -355,7 +351,7 @@ static int  print_macro_inf(
  * Enabled by '#pragma MCPP debug macro_call' or -K option in STD mode.
  */
 {
-    MACRO_INF *     m_inf;
+    MACRO_INF *     m_inf = NULL;
     int     num;
     int     num_args;   /* Number of actual args (maybe less than expected) */
     int     i;
@@ -615,7 +611,7 @@ static char *   replace(
         /* Number of actual arguments (maybe less than expected)    */
     int     enable_trace_macro;     /* To exclude _Pragma() pseudo macro    */
     int     m_num = 0;              /* 'mac_num' of current macro   */
-    MACRO_INF *     m_inf;          /* Pointer into mac_inf[]       */
+    MACRO_INF *     m_inf = NULL;   /* Pointer into mac_inf[]       */
 
     enable_trace_macro = trace_macro && defp->nargs != DEF_PRAGMA;
     if (enable_trace_macro) {
@@ -653,8 +649,8 @@ static char *   replace(
         } else {
             m_inf->locs.start_col = m_inf->locs.start_line = 0L;
         }
-        m_inf->args = NULL;
-		m_inf->loc_args = NULL;       /* Default args */
+        m_inf->args = NULL;                         /* Default args */
+        m_inf->loc_args = NULL;
         for (num = 1, recurs = 0; num < m_num; num++)
             if (mac_inf[ num].defp == defp)
                 recurs++;           /* Recursively nested macro     */
@@ -907,11 +903,11 @@ static int  prescan(
      * inserted here and there.
      */
 
-    *out++ = TOK_SEP;                   /* Wrap replacement     */
-    workp = work_buf;                   /*  text with token     */
-    workp = stpcpy( workp, defp->repl); /*   separators to      */
-    *workp++ = TOK_SEP;                 /*    prevent unintended*/
-    *workp = EOS;                       /*     token merging.   */
+    *out++ = TOK_SEP;                       /* Wrap replacement     */
+    workp = work_buf;                       /*  text with token     */
+    workp = stpcpy( workp, defp->repl);     /*   separators to      */
+    *workp++ = TOK_SEP;                     /*    prevent unintended*/
+    *workp = EOS;                           /*     token merging.   */
     file = unget_string( work_buf, defp->name);
 
     while (c = get_ch(), file == infile) {  /* To the end of repl   */
@@ -1019,7 +1015,7 @@ static char *   catenate(
         if (*prev_token == TOK_SEP) {
             out = prev_token;
             prev_token = prev_prev_token;       /* Skip separator   */
-		}
+        }
         if (*prev_token == DEF_MAGIC 
                 || (mcpp_mode == STD && *prev_token == IN_SRC)) {
             size_t  len = 1;
@@ -1338,7 +1334,7 @@ static const char *     remove_magics(
     mac_n = arg_n = n = 0;
 
     while ((*tp++ = c = get_ch()) != RT_END && file == infile) {
-        char ** loc_tab;
+        char ** loc_tab = NULL;
         int     num, mark, rm, magic;
         size_t  len;
 
@@ -1628,7 +1624,7 @@ static char *   rescan(
     char *  tp = NULL;              /* Temporary pointer into buffer*/
     char *  out_p = out;            /* Current output pointer       */
     FILEINFO *  file;       /* Input sequences stacked on a "file"  */
-    DEFBUF *    inner;              /* Inner macro to replace       */
+    DEFBUF *    inner = NULL;       /* Inner macro to replace       */
     int     c;                      /* First character of token     */
     int     token_type;
     char *  mac_arg_start = NULL;
@@ -1716,7 +1712,7 @@ static char *   rescan(
                     if (inner->nargs >= 0 && mgc_seq.magic_start) {
                         /* Magic sequence is found between macro */
                         /* name and '('.  This is a nuisance.    */
-                        char *      mgc_cleared;
+                        const char *mgc_cleared;
                         size_t      seq_len;
                         size_t      arg_elen = option_flags.v ? ARG_E_LEN_V
                                             : ARG_E_LEN;
@@ -1739,7 +1735,7 @@ static char *   rescan(
                                     (const char *) infile->bptr, FALSE);
                                         /* Remove pair of magics    */
                             strcpy( infile->bptr, mgc_cleared);
-                            free( mgc_cleared);
+                            free( (void *) mgc_cleared);
                         }
                     }
                 }
@@ -1913,8 +1909,8 @@ static int  collect_args(
     int     nargs = 0;                  /* Number of collected args */
     int     var_arg = defp->nargs & VA_ARGS;    /* Variable args    */
     int     more_to_come = FALSE;       /* Next argument is expected*/
-    LOCATION *  locs;           /* Location of args in source file  */
-    LOCATION *  loc;                            /* Current locs     */
+    LOCATION *  locs = NULL;    /* Location of args in source file  */
+    LOCATION *  loc = NULL;                     /* Current locs     */
     MAGIC_SEQ   mgc_prefix;     /* MAC_INF seqs and spaces preceding an arg */
     int     c;
 

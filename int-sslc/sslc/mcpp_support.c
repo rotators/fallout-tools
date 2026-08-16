@@ -150,15 +150,16 @@ int mcpp_fputc(
     OUTDEST od
 )
 {
-	if(od==ERR) {
-		char msg[2];
-		msg[0]=(char)c;
-		msg[1]=0;
-		return outputStr(msg);
-	} else {
-		FILE *  stream = DEST2FP( od);
-		return (stream != NULL) ? fputc( c, stream) : EOF;
-	}
+    if (od == ERR) {
+        char msg[2];
+        msg[0] = (char)c;
+        msg[1] = 0;
+        return outputStr(msg);
+    } else {
+        FILE *  stream = DEST2FP( od);
+
+        return (stream != NULL) ? fputc( c, stream) : EOF;
+    }
 }
 
 int mcpp_fputs(
@@ -166,12 +167,13 @@ int mcpp_fputs(
     OUTDEST od
 )
 {
-	if(od==ERR) {
-		return outputStr(s);
-	} else {
-		FILE *stream = DEST2FP( od);
-		return (stream != NULL) ? fputs( s, stream) : EOF;
-	}
+    if (od == ERR) {
+        return outputStr(s);
+    } else {
+        FILE *  stream = DEST2FP( od);
+
+        return (stream != NULL) ? fputs( s, stream) : EOF;
+    }
 }
 
 #include <stdarg.h>
@@ -183,27 +185,27 @@ int mcpp_fprintf(
 )
 {
     va_list ap;
-	int rc;
+    int rc;
 
-	if(od==ERR) {
-		va_start( ap, format);
-		rc=vparseOutput(format, ap);
-		va_end(ap);
-		return rc;
-	} else {
-		FILE *  stream = DEST2FP( od);
+    if (od == ERR) {
+        va_start( ap, format);
+        rc = vparseOutput(format, ap);
+        va_end(ap);
+        return rc;
+    } else {
+        FILE *  stream = DEST2FP( od);
 
-		if (stream != NULL) {
-			va_start( ap, format);
-			rc = vfprintf( stream, format, ap);
-			va_end( ap);
+        if (stream != NULL) {
+            va_start( ap, format);
+            rc = vfprintf( stream, format, ap);
+            va_end( ap);
 
-			return rc;
+            return rc;
 
-		} else {
-			return EOF;
-		}
-	}
+        } else {
+            return EOF;
+        }
+    }
 }
 
 int     get_unexpandable(
@@ -483,9 +485,9 @@ char *  scan_quote(
     const char * const      unterm_string
                         = "Unterminated string literal%s";
     const char * const      unterm_char
-                        = "Unterminated character constant %s%.0ld%s";
+                        = "Unterminated character constant%s";
     const char * const      empty_const
-                        = "Empty character constant %s%.0ld%s";
+                        = "Empty character constant%s";
     const char *    skip;
     int         c;
     char *      out_p = out;
@@ -517,7 +519,7 @@ scan:
         if (diag && iscntrl( c) && ((char_type[ c] & SPA) == 0)
                 && (warn_level & 1))
             cwarn(
-            "Illegal control character %.0s0lx%02x in quotation"    /* _W1_ */
+            "Illegal control character %.0s0x%02lx in quotation"    /* _W1_ */
                     , NULL, (long) c, NULL);
         *out_p++ = c;
         if (out_end < out_p) {
@@ -546,16 +548,16 @@ scan:
                         goto  scan;         /* Splice the lines     */
                     /* Else end of file     */
                 } else {
-                    cerror( unterm_string, skip, 0L, NULL); /* _E_  */
+                    cerror( unterm_string, skip, 0L, NULL);         /* _E_  */
                 }
             } else if (delim == '\'') {
                 if (option_flags.lang_asm) {
                     /* STD, KR      */
                     if (warn_level & 1)
-                        cwarn( unterm_char, out, 0L, NULL); /* _W1_ */
+                        cwarn( unterm_char, NULL, 0L, NULL);        /* _W1_ */
                     goto  done;
                 } else {
-                    cerror( unterm_char, out, 0L, skip);    /* _E_  */
+                    cerror( unterm_char, skip, 0L, NULL);           /* _E_  */
                 }
             } else {
                 cerror( "Unterminated header name %s%.0ld%s"        /* _E_  */
@@ -566,9 +568,9 @@ scan:
             if (option_flags.lang_asm) {
                 /* STD, KR      */
                 if (warn_level & 1)
-                    cwarn( empty_const, out, 0L, skip);     /* _W1_ */
+                    cwarn( empty_const, skip, 0L, NULL);            /* _W1_ */
             } else {
-                cerror( empty_const, out, 0L, skip);        /* _E_  */
+                cerror( empty_const, skip, 0L, NULL);               /* _E_  */
                 out_p = NULL;
                 goto  done;
             }
@@ -1171,13 +1173,13 @@ int     get_ch( void)
     free( file->buffer);                    /* Free buffer          */
     if (infile == NULL) {                   /* If at end of input   */
         free( file->filename);
-        free( file->src_dir);
+        free( (void *) file->src_dir);
         free( file);    /* full_fname is the same with filename for main file*/
         return  CHAR_EOF;                   /* Return end of file   */
     }
     if (file->fp) {                         /* Source file included */
         free( file->filename);              /* Free filename        */
-        free( file->src_dir);               /* Free src_dir         */
+        free( (void *) file->src_dir);      /* Free src_dir         */
         fclose( file->fp);                  /* Close finished file  */
         /* Do not free file->real_fname and file->full_fname        */
         cur_fullname = infile->full_fname;
@@ -1326,7 +1328,7 @@ static char *   parse_line( void)
         default:
             if (iscntrl( c)) {
                 cerror(             /* Skip the control character   */
-    "Illegal control character %.0s0x%lx, skipped the character"    /* _E_  */
+    "Illegal control character %.0s0x%02lx, skipped the character"  /* _E_  */
                         , NULL, (long) c, NULL);
             } else {                        /* Any valid character  */
                 *tp++ = c;
@@ -1463,6 +1465,11 @@ static char *   get_line(
             cwarn( "Line number %.0s\"%ld\" got beyond range"       /* _W1_ */
                     , NULL, src_line, NULL);
         len = strlen( ptr);
+        if (len == 0) {
+            cerror( "Skipping line that begins with '\\0'", NULL, 0L, NULL);
+            continue;
+        }
+
         if (NBUFF - 1 <= ptr - infile->buffer + len
                 && *(ptr + len - 1) != '\n') {
                 /* The line does not yet end, though the buffer is full.    */
@@ -1691,8 +1698,8 @@ FILEINFO *  get_file(
         file->filename = NULL;
     }
     if (src_dir) {
-        file->src_dir = (char*)malloc( strlen( src_dir) + 1);
-        strcpy( file->src_dir, src_dir);
+        file->src_dir =
+            strcpy( (char*) malloc( strlen( src_dir) + 1), src_dir);
     } else {
         file->src_dir = NULL;
     }

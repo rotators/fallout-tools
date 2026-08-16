@@ -703,7 +703,7 @@ static int writeStatement(NodeList *n, int i, FILE *f) {
 			break;
 		}
 		case T_WHILE: {
-			int falseAddr, top, j, pos;
+			int falseAddr, top, pos;
 
 			falseAddr = outputTell(f);
 			writeInt(0, f);

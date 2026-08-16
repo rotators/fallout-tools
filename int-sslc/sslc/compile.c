@@ -301,10 +301,12 @@ int _stdcall parse_main(const char *filePath, const char* origPath, const char* 
 		FreeFileNames();
 		inited=0;
 	}
+
 	if (backMode) {
 		backwardcompat = 1;
 		lexClear();
 	}
+
 	foo.name = AddFileName(origPath);
 	foo.file = fopen(filePath, "r");
 

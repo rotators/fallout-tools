@@ -101,7 +101,7 @@
     const char **   inc_dirp;       /* Directory of #includer       */
     const char *    cur_fname;      /* Current source file name     */
                 /* cur_fname is not rewritten by #line directive    */
-    const char *      cur_fullname;
+    const char *    cur_fullname;
         /* Full path of current source file (i.e. infile->full_fname)       */
     int         no_source_line;     /* Do not output line in diag.  */
     char        identifier[ IDMAX + IDMAX/8];       /* Current identifier   */
@@ -150,7 +150,7 @@
  * of the -C option.  keep_comments is always falsified when compilation is
  * supressed by a false #if or when no_output is TRUE.
  */
-    const int     keep_comments = 0;          /* Write out comments flag  */
+    const int     keep_comments = 0;    /* Write out comments flag  */
 
 /*
  * keep_spaces is set to TRUE by the -k option.  If TRUE, spaces and tabs in
@@ -158,7 +158,7 @@
  * space.  option_flags.k contains the permanent state of the -k option.
  * keep_spaces is falsified when compilation is suppressed by a false #if.
  */
-    const int     keep_spaces = 0;            /* Keep white spaces of line*/
+    const int     keep_spaces = 0;      /* Keep white spaces of line*/
 
 /*
  * ifstack[] holds information about nested #if's.  It is always accessed via
@@ -260,7 +260,7 @@ static void     init_main( void)
 /* Initialize global variables on re-entering.  */
 {
     errors = src_col = 0;
-	stdc_val = stdc_ver = 0;
+    stdc_val = stdc_ver = 0;
     warn_level = -1;
     infile = NULL;
     in_directive = in_define = in_getarg = in_include = in_if = FALSE;
@@ -273,6 +273,8 @@ static void     init_main( void)
     std_limits.str_len = NBUFF;
     std_limits.id_len = IDMAX;
     std_limits.n_mac_pars =  NMACPARS;
+    sh_file = NULL;
+    sh_line = 0;
 }
 
 int     mcpp_lib_main
@@ -330,11 +332,10 @@ fatal_error_exit:
     clear_symtable();
 
     if (errors > 0 && option_flags.no_source_line == FALSE) {
-        mcpp_fprintf( ERR, "%d error%s in preprocessor.\n",
+        mcpp_fprintf( ERR, "\n%d error%s in preprocessor.\n",
                 errors, (errors == 1) ? "" : "s");
-        return  IO_ERROR;
     }
-    return  IO_SUCCESS;                             /* No errors    */
+    return  (errors > 0) ? IO_ERROR : IO_SUCCESS;
 }
 
 /*

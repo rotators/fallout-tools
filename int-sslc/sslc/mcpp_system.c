@@ -165,7 +165,7 @@ static const char **    incend;         /* -> active end of incdir  */
 static int          max_inc;            /* Number of incdir[]       */
 
 typedef struct inc_list {       /* List of directories or files     */
-    char *      name;           /* Filename or directory-name       */
+    const char *name;           /* Filename or directory-name       */
     size_t      len;                    /* Length of 'name'         */
 } INC_LIST;
 
@@ -195,7 +195,7 @@ static int          max_once;           /* Number of once_list[]    */
 
 static int      search_rule = SEARCH_INIT;  /* Rule to search include file  */
 
-static const int      nflag = TRUE;          /* Flag of -N (-undef) option       */
+static const int      nflag = TRUE;     /* Flag of -N (-undef) option       */
 static long     std_val = -1L;  /* Value of __STDC_VERSION__ or __cplusplus */
 
 #define MAX_DEF   256
@@ -1064,7 +1064,7 @@ static int  open_file(
     if (! fullname)                 /* Non-existent or directory    */
         return  FALSE;
     if (standard && included( fullname))        /* Once included    */
-        goto  _true;
+        return  TRUE;
         
     if ((max_open != 0 && max_open <= include_nest)
                             /* Exceed the known limit of open files */
@@ -1081,12 +1081,12 @@ static int  open_file(
         if ((fp = fopen( fullname, "r")) == NULL) {
             file->fp = fopen( cur_fullname, "r");
             fseek( file->fp, file->pos, SEEK_SET);
-            goto  _false;
+            goto  failed;
         }
         if (max_open == 0)      /* Remember the limit of the system */
             max_open = include_nest;
     } else if (fp == NULL)                  /* No read permission   */ 
-        goto  _false;
+        goto  failed;
     /* Truncate buffer of the includer to save memory   */
     len = (int) (file->bptr - file->buffer);
     if (len) {
@@ -1117,9 +1117,8 @@ static int  open_file(
     }
     src_line = 0;                       /* To read the first line   */
 
-_true:
     return  TRUE;
-_false:
+failed:
     free( fullname);
     return  FALSE;
 }
@@ -1141,6 +1140,32 @@ void    add_file(
     FILEINFO *      file;
     const char *    too_many_include_nest =
             "More than %.0s%ld nesting of #include";    /* _F_ _W4_ */
+
+    //
+    // When encoding is UTF-8, skip BOM if present.
+    //
+    if (mbchar == UTF8 && fp != NULL && ftell(fp) == 0)
+    {
+        const unsigned char UTF8_BOM[3] = {0xEF, 0xBB, 0xBF};
+        unsigned char FILE_HEAD[3] = {0, 0, 0};
+        int i;
+        for (i = 0; i < 3; ++i)
+        {
+            FILE_HEAD[i] = getc(fp);
+            if (FILE_HEAD[i] != UTF8_BOM[i])
+            {
+                if (FILE_HEAD[i] == (unsigned char)EOF)
+                {
+                    i--;
+                }
+                for (; i >= 0; --i)
+                {
+                    ungetc(FILE_HEAD[i], fp);
+                }
+                break;
+            }
+        }
+    }
 
     filename = set_fname( filename);    /* Search or append to fnamelist[]  */
     fullname = set_fname( fullname);    /* Search or append to fnamelist[]  */
@@ -1188,14 +1213,17 @@ static const char *     set_fname(
         if (fnamep->len == fnamelen && str_case_eq( fnamep->name, filename))
             return  filename;           /* Already registered       */
     }
-    fname_end->name = xmalloc( fnamelen + 1);
-    filename = strcpy( fname_end->name, filename);
+    filename = strcpy( xmalloc( fnamelen + 1), filename);
                                 /* Global pointer for get_file()    */
+    fname_end->name = filename;
     fname_end->len = fnamelen;
     fname_end++;
 
     return  filename;
 }
+
+FILEINFO*       sh_file;
+int             sh_line;
 
 void    sharp(
     FILEINFO *  sharp_file,
@@ -1207,8 +1235,6 @@ void    sharp(
  * else (i.e. 'sharp_file' is NULL) 'infile'.
  */
 {
-    static FILEINFO *   sh_file;
-    static int  sh_line;
     FILEINFO *  file;
     int         line;
 
@@ -1662,8 +1688,8 @@ static int  mcpp_getopt(
  * Get the next option (and it's argument) from the command line.
  */
 {
-    const char * const   error1 = ": option requires an argument --";
-    const char * const   error2 = ": illegal option --";
+    const char * const   error1 = ": option requires an argument -";
+    const char * const   error2 = ": illegal option -";
     static int      sp = 1;
     int             c;
     const char *    cp;

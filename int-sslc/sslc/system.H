@@ -239,7 +239,7 @@ typedef unsigned long long  uexpr_t;
 #define PRESTD_RESCAN_LIMIT 0x100
 #endif
 #ifndef NBUFF
-#define NBUFF               0x10000     /* Must be NWORK <= NBUFF   */
+#define NBUFF               0x40000     /* Must be NWORK <= NBUFF   */
 #endif
 #ifndef NWORK
 #define NWORK               NBUFF       /* 0x1000, 0x4000, 0x10000, ..  */

@@ -315,21 +315,21 @@ extern const struct option_flags_ {
         int     dollar_in_name;     /* Allow $ in identifiers       */
 } option_flags;
 
-static const int      mcpp_mode = STD;          /* Mode of preprocessing        */
+static const int mcpp_mode = STD;   /* Mode of preprocessing        */
 extern int      stdc_val;           /* Value of __STDC__            */
 extern long     stdc_ver;           /* Value of __STDC_VERSION__    */
-static const long cplus_val=0;          /* Value of __cplusplus for C++ */
+static const long cplus_val = 0;    /* Value of __cplusplus for C++ */
 extern int      stdc2;      /* cplus_val or (stdc_ver >= 199901L)   */
 extern int      stdc3;      /* (stdc_ver or cplus_val) >= 199901L   */
-static const int      standard = TRUE;           /* mcpp_mode is STD or POST_STD */
-static const int      std_line_prefix = STD_LINE_PREFIX;    /* #line in C source style      */
+static const int standard = TRUE;   /* mcpp_mode is STD or POST_STD */
+static const int std_line_prefix = STD_LINE_PREFIX;    /* #line in C source style      */
 extern int      warn_level;         /* Level of warning             */
 extern int      errors;             /* Error counter                */
 extern long     src_line;           /* Current source line number   */
 extern int      wrong_line;         /* Force #line to compiler      */
 extern int      newlines;           /* Count of blank lines         */
-extern const int      keep_comments;      /* Don't remove comments        */
-extern const int      keep_spaces;        /* Don't remove white spaces    */
+extern const int keep_comments;     /* Don't remove comments        */
+extern const int keep_spaces;       /* Don't remove white spaces    */
 extern int      include_nest;       /* Nesting level of #include    */
 extern const char *     null;       /* "" string for convenience    */
 extern const char **    inc_dirp;   /* Directory of #includer       */
@@ -349,20 +349,22 @@ extern FILE *   fp_in;              /* Input stream to preprocess   */
 extern FILE *   fp_out;             /* Output stream preprocessed   */
 extern FILE *   fp_err;             /* Diagnostics stream           */
 extern FILE *   fp_debug;           /* Debugging information stream */
-extern const int      insert_sep;         /* Inserted token separator flag*/
-static const int      mkdep=0;              /* Output source file dependency*/
-static const int      mbchar=0;             /* Encoding of multi-byte char  */
-static const int mbchk=0;              /* Possible multi-byte char     */
-static const int bsl_in_mbchar=0;      /* 2nd byte of mbchar has '\\'  */
-static const int bsl_need_escape=0;/* '\\' in mbchar should be escaped */
+extern const int insert_sep;        /* Inserted token separator flag*/
+static const int mkdep = 0;         /* Output source file dependency*/
+static const int mbchar = 0;        /* Encoding of multi-byte char  */
+static const int mbchk = 0;         /* Possible multi-byte char     */
+static const int bsl_in_mbchar = 0; /* 2nd byte of mbchar has '\\'  */
+static const int bsl_need_escape = 0; /* '\\' in mbchar should be escaped */
 extern long     in_asm;             /* In #asm - #endasm block      */
 extern jmp_buf  error_exit;         /* Exit on fatal error          */
-extern const char *   cur_fullname;       /* Full name of current source  */
+extern const char * cur_fullname;   /* Full name of current source  */
 extern char *   workp;              /* Free space in work[]         */
 extern char * const     work_end;   /* End of work[] buffer         */
 extern char     identifier[];       /* Lastly scanned name          */
 extern IFINFO   ifstack[];          /* Information of #if nesting   */
 extern char     work_buf[];
+extern FILEINFO * sh_file;
+extern int      sh_line;
         /* Temporary buffer for directive line and macro expansion  */
 
 #define xmalloc malloc

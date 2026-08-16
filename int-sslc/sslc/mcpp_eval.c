@@ -1200,12 +1200,11 @@ static expr_t   eval_signed(
     case OP_OR:     v1 |= v2;           break;
     case OP_ANA:    v1 = (v1 && v2);    break;
     case OP_ORO:    v1 = (v1 || v2);    break;
-    case OP_COL:
-        /*
-         * If v1 has the "true" value, v2 has the "false" value.
-         * The top of the value stack has the test.
-         */
-        v1 = (--*valpp)->val ? v1 : v2;
+    case OP_COL:    valp--;
+        if (valp->val)
+            v1 = v1;
+        else
+            v1 = v2;
         break;
     default:
         cfatal( illeg_op, op_name, 0L, NULL);
