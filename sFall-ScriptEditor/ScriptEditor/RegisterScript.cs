@@ -95,6 +95,7 @@ namespace ScriptEditor
             msgPath = msg;
             headerPath = header;
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
 
             dgvScripts.SelectionMode = DataGridViewSelectionMode.RowHeaderSelect;
             char[] space = new char[] { ' ' };
@@ -163,22 +164,22 @@ namespace ScriptEditor
         public static void Registration(string script)
         {
             if (Settings.outputDir == null) {
-                MessageBox.Show("No output path selected.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("No output path selected.", "Error");
                 return;
             }
             string lstPath = Path.Combine(Settings.outputDir, "scripts.lst");
             if (!File.Exists(lstPath)) {
-                MessageBox.Show("scripts.lst does not exist in your scripts output directory", "Error");
+                ScriptEditor.ThemedMessageBox.Show("scripts.lst does not exist in your scripts output directory", "Error");
                 return;
             }
             string msgPath = Path.Combine(Settings.outputDir, "../text/english/game/scrname.msg");
             if (!File.Exists(msgPath)) {
-                if (Settings.showWarnings) MessageBox.Show("Could not find file scrname.msg", "Warning");
+                if (Settings.showWarnings) ScriptEditor.ThemedMessageBox.Show("Could not find file scrname.msg", "Warning");
                 msgPath = null;
             }
             string scriptH = null;
             if (Settings.pathScriptsHFile == null) {
-                if (Settings.showWarnings) MessageBox.Show("The path to scripts.h has not been set.", "Warning");
+                if (Settings.showWarnings) ScriptEditor.ThemedMessageBox.Show("The path to scripts.h has not been set.", "Warning");
             } else {
                 scriptH = Settings.pathScriptsHFile;
                 if (!File.Exists(scriptH)) scriptH = null;
@@ -193,7 +194,7 @@ namespace ScriptEditor
         {
             if (cancel) return;
             if (NotSaved) {
-                if (MessageBox.Show("Save all changed to files?", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes) {
+                if (ScriptEditor.ThemedMessageBox.Show("Save all changed to files?", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes) {
                     Save_button_Click(null, null);
                 }
             }
@@ -230,7 +231,7 @@ namespace ScriptEditor
             NotSaved = false;
 
             if (AllowCheckBox.Checked && headerPath == null) {
-                MessageBox.Show("The definition was not added in header file.\nCould not find file scripts.h", "Script header error");
+                ScriptEditor.ThemedMessageBox.Show("The definition was not added in header file.\nCould not find file scripts.h", "Script header error");
                 return;
             }
             if (doAdd && AllowCheckBox.Checked) {
@@ -268,7 +269,7 @@ namespace ScriptEditor
             switch (e.ColumnIndex) {
                 case 2:
                     if (Path.GetFileNameWithoutExtension(val).Length > 8) {
-                        MessageBox.Show("Script file names must be 8 characters.", "Name Error");
+                        ScriptEditor.ThemedMessageBox.Show("Script file names must be 8 characters.", "Name Error");
                         returnLine = true;
                         cell.Value = entry.script;
                         break;
@@ -374,7 +375,7 @@ namespace ScriptEditor
                 var undat = new UndatFile();
                 if (!undat.UnpackFile(ref pathScript)) {
                     if (pathScript != null)
-                        MessageBox.Show("Unpack script file error.", "Open Script");
+                        ScriptEditor.ThemedMessageBox.Show("Unpack script file error.", "Open Script");
                     return;
                 }
             }

@@ -295,7 +295,7 @@ namespace ScriptEditor
         public static MessageEditor MessageEditorOpen(string msgPath, Form frm)
         {
             if (msgPath == null)
-                MessageBox.Show("No output path selected.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("No output path selected.", "Error");
 
             // Show form
             MessageEditor msgEdit = new MessageEditor(msgPath, null);
@@ -317,6 +317,7 @@ namespace ScriptEditor
         private MessageEditor(string msg, TabInfo ti)
         {
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
 
             //dgvMessage.DoubleBuffered(true);
             //dgvMessage.VirtualMode = true;
@@ -376,7 +377,7 @@ namespace ScriptEditor
                 try {
                     entry = new Entry(linesMsg[i]);
                 } catch (Exception) {
-                    MessageBox.Show("Message file is bad!\nLine Error: " + i.ToString());
+                    ScriptEditor.ThemedMessageBox.Show("Message file is bad!\nLine Error: " + i.ToString());
                     break;
                 }
                 while (Entry.IsWrap && ++i < linesMsg.Count) entry.Append(linesMsg[i]);
@@ -457,7 +458,7 @@ namespace ScriptEditor
                 case 0: // line
                     int result;
                     if (!int.TryParse(valCell, out result)) {
-                        MessageBox.Show("Line must contain only numbers.", "Line Error");
+                        ScriptEditor.ThemedMessageBox.Show("Line must contain only numbers.", "Line Error");
                         isCancelEdit = true;
                         cell.Value = entry.msgLine;
                     } else
@@ -761,7 +762,7 @@ namespace ScriptEditor
                 msgPath = rFile;
                 RowsClear();
                 ReadMsgFile();
-            } else if (MessageBox.Show("Message file not found.\n Delete this recent link?", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            } else if (ScriptEditor.ThemedMessageBox.Show("Message file not found.\n Delete this recent link?", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 delete = true; // delete from recent list
             Settings.AddMsgRecentFile(rFile, delete);
             UpdateRecentList();
@@ -815,7 +816,7 @@ namespace ScriptEditor
         private void MessageEditor_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (msgSaveButton.Enabled) {
-                var result = MessageBox.Show("Do you want to save changes to message file?", "Warning", MessageBoxButtons.YesNoCancel);
+                var result = ScriptEditor.ThemedMessageBox.Show("Do you want to save changes to message file?", "Warning", MessageBoxButtons.YesNoCancel);
                 if (result == DialogResult.Yes) {
                     msgSaveButton.PerformClick();
                 } else if (result == DialogResult.Cancel)

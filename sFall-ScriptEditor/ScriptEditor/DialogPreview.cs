@@ -49,6 +49,7 @@ namespace ScriptEditor
         public DialogPreview(TabInfo sourceTab, string initialProcedureName = null)
         {
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
             OptionsTextLabel.ForeColor = InterfaceTheme.DialogOptionTextColor;
             FormClosed += DialogPreview_FormClosed;
 

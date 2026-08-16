@@ -11,6 +11,7 @@ namespace ScriptEditor.TextEditorUI.Function {
         public FunctionsRules()
         {
             InitializeComponent();
+            ScriptEditor.InterfaceTheme.ApplyOnLoad(this);
 
             if (Settings.hintsLang != 0) label.Text = label.Tag.ToString();
 
@@ -140,7 +141,7 @@ namespace ScriptEditor.TextEditorUI.Function {
 
         private void bHelp_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(helpDesc[Settings.hintsLang], "Help");
+            ScriptEditor.ThemedMessageBox.Show(helpDesc[Settings.hintsLang], "Help");
         }
     }
 }

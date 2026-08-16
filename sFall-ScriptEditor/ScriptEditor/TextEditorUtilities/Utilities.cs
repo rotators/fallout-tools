@@ -848,7 +848,7 @@ namespace ScriptEditor.TextEditorUtilities
             }
             document.UndoStack.EndUndoGroup();
 
-            if (references.Count > 0) MessageBox.Show("Some of the references have not been renamed.", "Warning");
+            if (references.Count > 0) ScriptEditor.ThemedMessageBox.Show("Some of the references have not been renamed.", "Warning");
         }
 
         private static void ReplaceMatch(IDocument document, string newText, int replacedCount, Match m)

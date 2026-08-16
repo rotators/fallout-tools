@@ -49,7 +49,7 @@ namespace ScriptEditor
                 } else {
                     // only show message if opened normally without command line arguments
                     if (args.Length == 0) 
-                        MessageBox.Show("Another instance is already running!", "Sfall Script Editor");
+                        ScriptEditor.ThemedMessageBox.Show("Another instance is already running!", "Sfall Script Editor");
                     else {
                         printLog("   Passed command argument to main editor.");
                         // pass command line arguments via file

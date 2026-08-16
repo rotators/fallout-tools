@@ -33,6 +33,7 @@ namespace ScriptEditor
         public Headers(Point xy_pos)
         {
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
 
             if (!Settings.HeadersFormSize.IsEmpty)
                 this.Size = Settings.HeadersFormSize;

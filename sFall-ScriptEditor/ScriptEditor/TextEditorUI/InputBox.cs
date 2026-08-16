@@ -26,6 +26,7 @@ namespace ScriptEditor.TextEditorUI
             form.ShowIcon = form.ShowInTaskbar = false;
             //form.AcceptButton = buttonOk;
             form.CancelButton = buttonCancel;
+            ScriptEditor.InterfaceTheme.ApplyOnLoad(form);
 
             DialogResult dialogResult = form.ShowDialog();
             value = textBox.Text.Trim();

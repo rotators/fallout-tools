@@ -44,7 +44,7 @@ namespace ScriptEditor
                     return null;
                 //Add this file to the recent files list
                 if (addToMRU) {
-                    if (!Exists && recent && MessageBox.Show("This recent file was not found. Remove it from the recent files list?", "Open file error", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    if (!Exists && recent && ScriptEditor.ThemedMessageBox.Show("This recent file was not found. Remove it from the recent files list?", "Open file error", MessageBoxButtons.YesNo) == DialogResult.Yes)
                         recent = true;
                     else
                         recent = false; // don't delete file link from recent list
@@ -65,7 +65,7 @@ namespace ScriptEditor
 
                     string decomp = new Compiler(roundTrip).Decompile(file, this);
                     if (decomp == null) {
-                        MessageBox.Show("Decompilation of '" + file + "' was not successful", "Error");
+                        ScriptEditor.ThemedMessageBox.Show("Decompilation of '" + file + "' was not successful", "Error");
                         return null;
                     } else {
                         file = decomp;
@@ -80,7 +80,7 @@ namespace ScriptEditor
                         if (seltab)
                             tabControl1.SelectTab(tab.index);
                         ShowMe();
-                        if (!alreadyOpen || MessageBox.Show("This file is already open!\nDo you want to open another copy?", "Question",
+                        if (!alreadyOpen || ScriptEditor.ThemedMessageBox.Show("This file is already open!\nDo you want to open another copy?", "Question",
                             MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
                             return tab;
                     }
@@ -284,7 +284,7 @@ namespace ScriptEditor
         {
             if (!currentTab.CheckFileTime()) {
                 this.Activated -= TextEditor_Activated;
-                DialogResult result = MessageBox.Show(currentTab.filepath +
+                DialogResult result = ScriptEditor.ThemedMessageBox.Show(currentTab.filepath +
                                                       "\nThe script file was changed outside the editor." +
                                                       "\nDo you want to update the script file?",
                                                       "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -394,7 +394,7 @@ namespace ScriptEditor
 
             bool skip = tab.changed; // если изменен, то пропустить сохранение состояний Folds в методе KeepScriptSetting
             if (tab.changed) {
-                switch (MessageBox.Show("Save changes to " + tab.filename + "?", "Message", MessageBoxButtons.YesNoCancel)) {
+                switch (ScriptEditor.ThemedMessageBox.Show("Save changes to " + tab.filename + "?", "Message", MessageBoxButtons.YesNoCancel)) {
                     case DialogResult.Yes:
                         Save(tab, true);
                         if (tab.changed)
@@ -440,11 +440,11 @@ namespace ScriptEditor
             msg = String.Empty;
             Error.ClearBuildErrorMarkers(tab);
             if (string.Compare(Path.GetExtension(tab.filename), ".ssl", true) != 0) {
-                if (showMessages) MessageBox.Show("You cannot compile this file.", "Compile Error");
+                if (showMessages) ScriptEditor.ThemedMessageBox.Show("You cannot compile this file.", "Compile Error");
                 return false;
             }
             if (!Settings.ignoreCompPath && !preprocess && Settings.outputDir == null) {
-                if (showMessages) MessageBox.Show("No output path selected.\nPlease select your scripts directory before compiling", "Compile Error");
+                if (showMessages) ScriptEditor.ThemedMessageBox.Show("No output path selected.\nPlease select your scripts directory before compiling", "Compile Error");
                 return false;
             }
             if (tab.changed) Save(tab);
@@ -612,7 +612,7 @@ namespace ScriptEditor
             bool not_this = false;
             if (currentTab == null || file != currentTab.filepath) {
                 if (Open(file, OpenType.File, false, alreadyOpen: false) == null) {
-                    MessageBox.Show("Could not open file '" + file + "'", "Error");
+                    ScriptEditor.ThemedMessageBox.Show("Could not open file '" + file + "'", "Error");
                     return;
                 }
                 not_this = true;
@@ -1256,7 +1256,7 @@ namespace ScriptEditor
             if (currentTab == null || currentTab.parseInfo == null) return;
 
             if (!Path.GetExtension(currentTab.filename).Equals(".ssl", StringComparison.OrdinalIgnoreCase)) {
-                MessageBox.Show(MessageFile.WrongTypeFile, currentTab.filename);
+                ScriptEditor.ThemedMessageBox.Show(MessageFile.WrongTypeFile, currentTab.filename);
                 return;
             }
 
@@ -1271,7 +1271,7 @@ namespace ScriptEditor
 
             string msgPath;
             if (!MessageFile.GetAssociatePath(currentTab, false, out msgPath)) {
-                MessageBox.Show(MessageFile.MissingFile, "Nodes Flowchart Editor");
+                ScriptEditor.ThemedMessageBox.Show(MessageFile.MissingFile, "Nodes Flowchart Editor");
                 return;
             }
             ScriptEditor.TextEditorUI.Function.DialogFunctionsRules.BuildOpcodesDictionary();
@@ -1308,13 +1308,13 @@ namespace ScriptEditor
             if (currentTab == null || currentTab.parseInfo == null) return;
 
             if (!Path.GetExtension(currentTab.filename).Equals(".ssl", StringComparison.OrdinalIgnoreCase)) {
-                MessageBox.Show(MessageFile.WrongTypeFile, currentTab.filename) ;
+                ScriptEditor.ThemedMessageBox.Show(MessageFile.WrongTypeFile, currentTab.filename) ;
                 return;
             }
 
             string msgPath;
             if (!MessageFile.GetAssociatePath(currentTab, false, out msgPath)) {
-                MessageBox.Show(MessageFile.MissingFile, "Dialog Preview");
+                ScriptEditor.ThemedMessageBox.Show(MessageFile.MissingFile, "Dialog Preview");
                 return;
             }
             currentTab.msgFilePath = msgPath;
@@ -1324,7 +1324,7 @@ namespace ScriptEditor
             DialogPreview DialogView = new DialogPreview(currentTab, initialProcedureName);
             if (!DialogView.InitReady) {
                 DialogView.Dispose();
-                MessageBox.Show("This script does not contain dialog procedures.", "Dialog Preview");
+                ScriptEditor.ThemedMessageBox.Show("This script does not contain dialog procedures.", "Dialog Preview");
             }
             else
                 DialogView.Show(this);
@@ -1342,7 +1342,7 @@ namespace ScriptEditor
             if (currentTab.messages.Count == 0) {
                 string msgPath;
                 if (!MessageFile.GetAssociatePath(currentTab, false, out msgPath)) {
-                    MessageBox.Show(MessageFile.MissingFile, "Node Editor");
+                    ScriptEditor.ThemedMessageBox.Show(MessageFile.MissingFile, "Node Editor");
                     return;
                 }
                 currentTab.msgFilePath = msgPath;
@@ -1373,7 +1373,7 @@ namespace ScriptEditor
             if (e.Change) {
                 if (ownerTab.index < 0 || ownerTab.parseInfo == null ||
                     Utilities.ReplaceProcedureCode(ownerTab.textEditor.Document, ownerTab.parseInfo, e.Name, e.Code)) {
-                    MessageBox.Show("In the source script, there is no dialog node with this name.", "Apply code error");
+                    ScriptEditor.ThemedMessageBox.Show("In the source script, there is no dialog node with this name.", "Apply code error");
                     return;
                 }
                 e.Change = false;

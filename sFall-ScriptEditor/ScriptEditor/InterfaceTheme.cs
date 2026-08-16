@@ -64,12 +64,28 @@ namespace ScriptEditor
         private static readonly Dictionary<GroupBox, FlatStyle> GroupStyles = new Dictionary<GroupBox, FlatStyle>();
         private static readonly Dictionary<ListView, bool> ListGridLines = new Dictionary<ListView, bool>();
         private static readonly Dictionary<DataGridView, DataGridViewHeaderBorderStyle> GridHeaderBorders = new Dictionary<DataGridView, DataGridViewHeaderBorderStyle>();
+        private static readonly HashSet<DataGridView> ThemedGrids = new HashSet<DataGridView>();
+        private static readonly Dictionary<DataGridViewColumn, GridColumnSelectionStyle> GridColumnSelectionStyles = new Dictionary<DataGridViewColumn, GridColumnSelectionStyle>();
+        private static readonly Dictionary<DataGridViewComboBoxColumn, GridComboBoxColumnStyle> GridComboBoxColumnStyles = new Dictionary<DataGridViewComboBoxColumn, GridComboBoxColumnStyle>();
         private static readonly Dictionary<ListView, ListViewGridWindow> ListGridWindows = new Dictionary<ListView, ListViewGridWindow>();
         private static readonly HashSet<Control> DynamicControls = new HashSet<Control>();
         private static readonly HashSet<ContextMenuStrip> ThemedContextMenus = new HashSet<ContextMenuStrip>();
         private static readonly ToolStripProfessionalRenderer DarkToolStripRenderer = new DarkRenderer();
         private static readonly Image DarkHelpIcon = CreateHelpIcon(true);
         private static readonly Image LightHelpIcon = CreateHelpIcon(false);
+
+        private sealed class GridColumnSelectionStyle
+        {
+            internal Color BackColor;
+            internal Color ForeColor;
+        }
+
+        private sealed class GridComboBoxColumnStyle
+        {
+            internal Color BackColor;
+            internal Color ForeColor;
+            internal FlatStyle FlatStyle;
+        }
 
         internal static void Start()
         {
@@ -100,6 +116,33 @@ namespace ScriptEditor
             SetTitleBarTheme(form, dark);
             AppliedForms[form] = dark;
             form.Invalidate(true);
+        }
+
+        internal static void ApplyOnLoad(Form form)
+        {
+            bool deferFirstPaint = IsDark && form.Opacity > 0D;
+            double originalOpacity = form.Opacity;
+            if (deferFirstPaint)
+                form.Opacity = 0D;
+
+            Apply(form);
+            form.HandleCreated += delegate { Apply(form); };
+            form.Load += delegate { Apply(form); };
+            form.Shown += delegate {
+                Apply(form);
+                form.PerformLayout();
+                form.Update();
+                if (!deferFirstPaint)
+                    return;
+                form.BeginInvoke((MethodInvoker)delegate {
+                    if (form.IsDisposed || !form.IsHandleCreated)
+                        return;
+                    Apply(form);
+                    form.PerformLayout();
+                    form.Update();
+                    form.Opacity = originalOpacity;
+                });
+            };
         }
 
         internal static void ApplyToOpenForms()
@@ -214,8 +257,18 @@ namespace ScriptEditor
                 grid.DefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.WindowText;
                 grid.DefaultCellStyle.SelectionBackColor = dark ? DarkSelection : SystemColors.Highlight;
                 grid.DefaultCellStyle.SelectionForeColor = dark ? Color.White : SystemColors.HighlightText;
+                grid.RowsDefaultCellStyle.BackColor = dark ? DarkBack : SystemColors.Window;
+                grid.RowsDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.WindowText;
+                grid.RowsDefaultCellStyle.SelectionBackColor = dark ? DarkSelection : SystemColors.Highlight;
+                grid.RowsDefaultCellStyle.SelectionForeColor = dark ? Color.White : SystemColors.HighlightText;
+                grid.AlternatingRowsDefaultCellStyle.BackColor = dark ? DarkBack : SystemColors.Window;
+                grid.AlternatingRowsDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.WindowText;
+                grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = dark ? DarkSelection : SystemColors.Highlight;
+                grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = dark ? Color.White : SystemColors.HighlightText;
                 grid.ColumnHeadersDefaultCellStyle.BackColor = dark ? Color.FromArgb(62, 62, 66) : SystemColors.Control;
                 grid.ColumnHeadersDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.ControlText;
+                grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = dark ? Color.FromArgb(62, 62, 66) : SystemColors.Highlight;
+                grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = dark ? DarkText : SystemColors.HighlightText;
                 grid.RowHeadersDefaultCellStyle.BackColor = dark ? DarkControl : SystemColors.Control;
                 grid.RowHeadersDefaultCellStyle.ForeColor = dark ? DarkText : SystemColors.ControlText;
                 DataGridViewHeaderBorderStyle originalHeaderBorder;
@@ -224,6 +277,12 @@ namespace ScriptEditor
                     GridHeaderBorders.Add(grid, originalHeaderBorder);
                 }
                 grid.ColumnHeadersBorderStyle = dark ? DataGridViewHeaderBorderStyle.None : originalHeaderBorder;
+                if (ThemedGrids.Add(grid)) {
+                    grid.EditingControlShowing += GridEditingControlShowing;
+                    grid.CellPainting += GridCellPainting;
+                }
+                foreach (DataGridViewColumn column in grid.Columns)
+                    ApplyGridColumnSelectionStyle(column, dark);
                 foreach (DataGridViewRow row in grid.Rows) {
                     if (object.ReferenceEquals(row.Tag, GridSectionRowTag))
                         ApplyGridSectionRow(row, dark);
@@ -356,6 +415,78 @@ namespace ScriptEditor
             }
 
             foreach (Control child in control.Controls) ApplyControl(child, dark);
+        }
+
+        private static void GridEditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            ApplyControl(e.Control, IsDark);
+        }
+
+        private static void GridCellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            if (!IsDark || e.RowIndex < 0 || e.ColumnIndex < 0)
+                return;
+
+            DataGridView grid = (DataGridView)sender;
+            if (!(grid.Columns[e.ColumnIndex] is DataGridViewComboBoxColumn) ||
+                (grid.IsCurrentCellInEditMode && grid.CurrentCell != null &&
+                 grid.CurrentCell.RowIndex == e.RowIndex && grid.CurrentCell.ColumnIndex == e.ColumnIndex))
+                return;
+
+            bool selected = (e.State & DataGridViewElementStates.Selected) != 0;
+            Color background = selected ? DarkSelection : DarkBack;
+            Rectangle bounds = e.CellBounds;
+            using (SolidBrush backgroundBrush = new SolidBrush(background))
+            using (Pen borderPen = new Pen(DarkBorder))
+            using (Pen arrowPen = new Pen(DarkText)) {
+                e.Graphics.FillRectangle(backgroundBrush, bounds);
+                e.Graphics.DrawRectangle(borderPen, bounds.X, bounds.Y, bounds.Width - 1, bounds.Height - 1);
+
+                Rectangle arrowBounds = new Rectangle(bounds.Right - 18, bounds.Top + 1, 17, bounds.Height - 2);
+                e.Graphics.DrawLine(borderPen, arrowBounds.Left, arrowBounds.Top, arrowBounds.Left, arrowBounds.Bottom);
+                int centerX = arrowBounds.Left + arrowBounds.Width / 2;
+                int centerY = arrowBounds.Top + arrowBounds.Height / 2;
+                e.Graphics.DrawLine(arrowPen, centerX - 3, centerY - 1, centerX, centerY + 2);
+                e.Graphics.DrawLine(arrowPen, centerX, centerY + 2, centerX + 3, centerY - 1);
+
+                Rectangle textBounds = new Rectangle(bounds.Left + 4, bounds.Top + 1, arrowBounds.Left - bounds.Left - 6, bounds.Height - 2);
+                TextRenderer.DrawText(e.Graphics, e.FormattedValue == null ? string.Empty : e.FormattedValue.ToString(), e.CellStyle.Font,
+                    textBounds, DarkText, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+            }
+            e.Handled = true;
+        }
+
+        private static void ApplyGridColumnSelectionStyle(DataGridViewColumn column, bool dark)
+        {
+            GridColumnSelectionStyle original;
+            if (!GridColumnSelectionStyles.TryGetValue(column, out original)) {
+                original = new GridColumnSelectionStyle {
+                    BackColor = column.DefaultCellStyle.SelectionBackColor,
+                    ForeColor = column.DefaultCellStyle.SelectionForeColor
+                };
+                GridColumnSelectionStyles.Add(column, original);
+            }
+
+            column.DefaultCellStyle.SelectionBackColor = dark ? DarkSelection : original.BackColor;
+            column.DefaultCellStyle.SelectionForeColor = dark ? Color.White : original.ForeColor;
+
+            DataGridViewComboBoxColumn comboBoxColumn = column as DataGridViewComboBoxColumn;
+            if (comboBoxColumn == null)
+                return;
+
+            GridComboBoxColumnStyle comboBoxOriginal;
+            if (!GridComboBoxColumnStyles.TryGetValue(comboBoxColumn, out comboBoxOriginal)) {
+                comboBoxOriginal = new GridComboBoxColumnStyle {
+                    BackColor = comboBoxColumn.DefaultCellStyle.BackColor,
+                    ForeColor = comboBoxColumn.DefaultCellStyle.ForeColor,
+                    FlatStyle = comboBoxColumn.FlatStyle
+                };
+                GridComboBoxColumnStyles.Add(comboBoxColumn, comboBoxOriginal);
+            }
+
+            comboBoxColumn.DefaultCellStyle.BackColor = dark ? DarkBack : comboBoxOriginal.BackColor;
+            comboBoxColumn.DefaultCellStyle.ForeColor = dark ? DarkText : comboBoxOriginal.ForeColor;
+            comboBoxColumn.FlatStyle = dark ? FlatStyle.Flat : comboBoxOriginal.FlatStyle;
         }
 
         private static void ApplyTypography(Control control)
@@ -961,8 +1092,11 @@ namespace ScriptEditor
                 // Windows hot-state flashes. RichTextBox retains Explorer styling
                 // so its native scrollbar uses the dark Windows presentation.
                 bool themedTabSizeSpinner = control is NumericUpDown && control.Name == "tbTabSize";
+                TextBox standardTextBox = control as TextBox;
+                bool hasNativeScrollbar = control is RichTextBox ||
+                    (standardTextBox != null && standardTextBox.Multiline && standardTextBox.ScrollBars != ScrollBars.None);
                 bool darkInput = dark && !themedTabSizeSpinner && (control is ComboBox || control is NumericUpDown ||
-                    (control is TextBoxBase && !(control is RichTextBox)));
+                    (control is TextBoxBase && !hasNativeScrollbar));
                 string theme = darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer");
                 string themeParts = darkInput ? "" : null;
                 SetWindowTheme(control.Handle, theme, themeParts);

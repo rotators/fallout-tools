@@ -141,6 +141,7 @@
     <Compile Include="TextEditorUI\CompilerDiagnosticLineResolver.cs" />
     <Compile Include="TextEditorUI\DiagnosticSuppressionRules.cs" />
     <Compile Include="InterfaceTheme.cs" />
+    <Compile Include="ThemedMessageBox.cs" />
     <Compile Include="TextEditorUI\CompiledStatus.cs">
       <SubType>Form</SubType>
     </Compile>

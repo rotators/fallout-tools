@@ -50,6 +50,7 @@ namespace ScriptEditor
         public ProcForm(string name, bool readOnly = false, bool proc = false)
         {
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
 
             this.isCreateProcedure = proc;
 
@@ -151,7 +152,7 @@ namespace ScriptEditor
             }
 
             if (e.Cancel)
-                MessageBox.Show("Was used incorrect name.\nThe name can only contain alphanumeric characters and the underscore character.", "Incorrect name");
+                ScriptEditor.ThemedMessageBox.Show("Was used incorrect name.\nThe name can only contain alphanumeric characters and the underscore character.", "Incorrect name");
             else {
                 // вставляем ключевые слова 'variable' для аргументов процедуры
                 if (z != -1) {

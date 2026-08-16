@@ -213,7 +213,7 @@ namespace ScriptEditor.CodeTranslation
                 _pi.procs[i].name = procNameList[i];
                 int n = procedureNames.FindIndex(name => name == procNameList[i].ToLowerInvariant());
                 if (n == -1 || n >= listBlock.Count) {
-                    MessageBox.Show(String.Format("Error: The procedure '{0}' was not found in the checklist.", procNameList[i]), "Internal Parser");
+                    ScriptEditor.ThemedMessageBox.Show(String.Format("Error: The procedure '{0}' was not found in the checklist.", procNameList[i]), "Internal Parser");
                     continue;
                 }
                 _pi.procs[i].d.declared = listBlock[n].declar + 1;

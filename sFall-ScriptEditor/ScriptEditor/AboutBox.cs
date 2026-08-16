@@ -22,9 +22,9 @@ namespace ScriptEditor
             InitializeComponent();
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
                 return;
+            InterfaceTheme.ApplyOnLoad(this);
             this.labelVersion.Text = String.Format("Version {0}   Build {1}", appVersion,
                 File.GetLastWriteTime(Application.ExecutablePath).ToString("yyyy-MM-dd HH:mm"));
-            InterfaceTheme.Apply(this);
             FormatDescription();
         }
 
@@ -57,7 +57,7 @@ namespace ScriptEditor
         {
             string documentationPath = Path.Combine(Application.StartupPath, "docs");
             if (!Directory.Exists(documentationPath)) {
-                MessageBox.Show(owner, "The local documentation folder could not be found:\n" + documentationPath,
+                ScriptEditor.ThemedMessageBox.Show(owner, "The local documentation folder could not be found:\n" + documentationPath,
                     "Open documentation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -65,7 +65,7 @@ namespace ScriptEditor
             try {
                 Process.Start(new ProcessStartInfo(documentationPath) { UseShellExecute = true });
             } catch (Exception ex) {
-                MessageBox.Show(owner, "Could not open the documentation folder.\n" + ex.Message,
+                ScriptEditor.ThemedMessageBox.Show(owner, "Could not open the documentation folder.\n" + ex.Message,
                     "Open documentation", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -102,7 +102,7 @@ namespace ScriptEditor
         {
             string licensePath = Path.Combine(Application.StartupPath, "licences.txt");
             if (!File.Exists(licensePath)) {
-                MessageBox.Show("The license file could not be found:\n" + licensePath,
+                ScriptEditor.ThemedMessageBox.Show("The license file could not be found:\n" + licensePath,
                     "Open licenses", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -119,7 +119,7 @@ namespace ScriptEditor
             try {
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             } catch (Exception ex) {
-                MessageBox.Show(owner, "Could not open the " + description + ".\n" + ex.Message,
+                ScriptEditor.ThemedMessageBox.Show(owner, "Could not open the " + description + ".\n" + ex.Message,
                     "Open link", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

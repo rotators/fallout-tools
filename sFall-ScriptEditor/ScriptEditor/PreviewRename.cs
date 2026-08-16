@@ -12,6 +12,7 @@ namespace ScriptEditor
         public PreviewRename(string oldName, string newName)
         {
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
 
             this.Text += String.Format(" {0} to {1}", oldName, newName);
 

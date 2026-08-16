@@ -51,7 +51,7 @@ namespace ScriptEditor.TextEditorUtilities
         public static void ShowMissingFiles()
         {
             foreach (string file in missingFile)
-                MessageBox.Show("The message file for the dialog was not found.\n" + file, "File Missing");
+                ScriptEditor.ThemedMessageBox.Show("The message file for the dialog was not found.\n" + file, "File Missing");
             missingFile.Clear();
         }
 
@@ -69,14 +69,14 @@ namespace ScriptEditor.TextEditorUtilities
                     switch (error)
                     {
                         case -1:
-                            MessageBox.Show("Scripts.lst does not exist in scripts output directory.", "Error");
+                            ScriptEditor.ThemedMessageBox.Show("Scripts.lst does not exist in scripts output directory.", "Error");
                             break;
                         case 1:
-                            MessageBox.Show("Failed to get the associated name from Scripts.lst.", "Scripts.lst error");
+                            ScriptEditor.ThemedMessageBox.Show("Failed to get the associated name from Scripts.lst.", "Scripts.lst error");
                             return false;
                     }
                 } else
-                    MessageBox.Show("The macro NAME was not found in this script or does not contain the script number.\n" +
+                    ScriptEditor.ThemedMessageBox.Show("The macro NAME was not found in this script or does not contain the script number.\n" +
                                     "If necessary, association with the message file will be carried out by name of script.",
                                     "Warning: Define NAME", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
@@ -87,7 +87,7 @@ namespace ScriptEditor.TextEditorUtilities
             bool found = CheckPath(tab.filepath, fileName, out path, out defaultDir);
 
             if (!found && create) {
-                found = MessageBox.Show(String.Format("The message file {0} associated with this script could not be found." +
+                found = ScriptEditor.ThemedMessageBox.Show(String.Format("The message file {0} associated with this script could not be found." +
                                                       "\nDo you want to create a new file in {1} directory?", fileName, defaultDir),
                                                       "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes;
                 if (found) {
@@ -277,7 +277,7 @@ namespace ScriptEditor.TextEditorUtilities
             if (outputDir == null) {
                 outputDir = Path.GetDirectoryName(tab.filepath);
                 if (!onlyOnce)
-                    MessageBox.Show("The output script path for the required Scripts.lst file is not specified,\n" +
+                    ScriptEditor.ThemedMessageBox.Show("The output script path for the required Scripts.lst file is not specified,\n" +
                                     "so by default the current script folder is used.", "Path missing", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 onlyOnce = true;
             }
@@ -598,7 +598,7 @@ namespace ScriptEditor.TextEditorUtilities
             if (result)
                 File.WriteAllLines(msgFilePath, MessagesData, Settings.EncCodePage);
             else
-                MessageBox.Show("Can't change this text in the message file.", "Put message error");
+                ScriptEditor.ThemedMessageBox.Show("Can't change this text in the message file.", "Put message error");
 
             return result;
         }

@@ -128,7 +128,7 @@ namespace ScriptEditor.TextEditorUI
             }
 
             if (!AddFuncToFile(targetName, name, desc, code, fnUserFile)) {
-                MessageBox.Show("Could not add function.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("Could not add function.", "Error");
                 return;
             }
 
@@ -157,7 +157,7 @@ namespace ScriptEditor.TextEditorUI
                 return;
 
             if (!IsUserFunction(node)) {
-                if (MessageBox.Show("This function is not user-defined.\nDo you really want to change this function?",
+                if (ScriptEditor.ThemedMessageBox.Show("This function is not user-defined.\nDo you really want to change this function?",
                     "Warning", MessageBoxButtons.YesNo) == DialogResult.No) { 
                     return;
                 }
@@ -165,7 +165,7 @@ namespace ScriptEditor.TextEditorUI
                 EditFuncToFile(node.Text, name, desc, code, file);
             } else {
                 if (!EditFuncToFile(node.Text, name, desc, code, fnUserFile)) {
-                    MessageBox.Show("Could not change this function.", "Error");
+                    ScriptEditor.ThemedMessageBox.Show("Could not change this function.", "Error");
                     return;
                 }
             }
@@ -194,7 +194,7 @@ namespace ScriptEditor.TextEditorUI
             }
 
             if (!AddNodeToFile(targetName, inNode, name, fnUserFile)) {
-                MessageBox.Show("Could not add node.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("Could not add node.", "Error");
                 return;
             }
 
@@ -212,7 +212,7 @@ namespace ScriptEditor.TextEditorUI
             string type = (node.Level == 0) ? "<m>" : "<m+>";
 
             if (!RenNodeToFile(type, node.Text, name, fnUserFile)) {
-                 MessageBox.Show("It was not possible to rename this node.", "Error");
+                 ScriptEditor.ThemedMessageBox.Show("It was not possible to rename this node.", "Error");
                  return;
             }
             node.Text = name;
@@ -220,13 +220,13 @@ namespace ScriptEditor.TextEditorUI
 
         internal static void DeleteNode(TreeNode node)
         {
-            if (MessageBox.Show("Do you want to delete this item?", "Delete", MessageBoxButtons.YesNo) == DialogResult.No)
+            if (ScriptEditor.ThemedMessageBox.Show("Do you want to delete this item?", "Delete", MessageBoxButtons.YesNo) == DialogResult.No)
                 return;
 
             bool IsNode = (node.Tag == null);
 
             if (!DeleteNodeToFile(IsNode, node.Text, fnUserFile)) {
-                 MessageBox.Show("It was not possible to delete this item.", "Error");
+                 ScriptEditor.ThemedMessageBox.Show("It was not possible to delete this item.", "Error");
                  return;
             }
             if (!IsNode)

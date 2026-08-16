@@ -182,7 +182,7 @@ namespace ScriptEditor.TextEditorUI.Nodes
             if (forceClose)
                 buttons = MessageBoxButtons.YesNo;
 
-            DialogResult result = MessageBox.Show("Do you want to apply the changes to the code for this node?", "Apply change", buttons);
+            DialogResult result = ScriptEditor.ThemedMessageBox.Show("Do you want to apply the changes to the code for this node?", "Apply change", buttons);
             switch (result)
             {
                 case DialogResult.Yes:
@@ -420,7 +420,7 @@ namespace ScriptEditor.TextEditorUI.Nodes
                 if (File.Exists(path))
                     OpenMessageFile(path, (int)dgvMessages.Rows[e.RowIndex].Cells[0].Value, sourceTab);
                 else
-                    MessageBox.Show("The requested message file: " + path + "\ncould not be found.", "Missing messages file");
+                    ScriptEditor.ThemedMessageBox.Show("The requested message file: " + path + "\ncould not be found.", "Missing messages file");
             }
         }
 

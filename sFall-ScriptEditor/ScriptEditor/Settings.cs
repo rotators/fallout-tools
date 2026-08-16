@@ -343,7 +343,7 @@ namespace ScriptEditor
                     if (br.BaseStream.Position < br.BaseStream.Length)
                         procedureTreeExpandedDefaultApplied = br.ReadBoolean();
                 } catch {
-                    MessageBox.Show("An error occurred while reading configuration file.\n"
+                    ScriptEditor.ThemedMessageBox.Show("An error occurred while reading configuration file.\n"
                                     + "File setting.dat may be in wrong format.", "Setting read error");
                 }
                 br.Close();

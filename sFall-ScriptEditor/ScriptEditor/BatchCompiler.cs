@@ -29,6 +29,9 @@ namespace ScriptEditor
         private BatchCompiler(string[] files)
         {
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
+            textBox.ScrollBars = ScrollBars.None;
+            Load += delegate { UpdateOutputScrollbar(); };
 
             found = files.Length;
             progressBar1.Maximum = found;
@@ -93,12 +96,12 @@ namespace ScriptEditor
         void BatchCompiler_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (e.Error != null)
-                textBox.AppendText("Compiler worker error: " + e.Error.Message + "\r\n");
+                AppendOutput("Compiler worker error: " + e.Error.Message + "\r\n");
             if (++completed == workers.Length) {
                 int skipped = Math.Max(0, found - (failed + compiled));
                 bCancel.Visible = false;
                 bClose.Visible = true;
-                textBox.AppendText(String.Format("--------------------\r\n{0} successfully compiled.\r\n{1} failed to compile.\r\n{2} skipped.", compiled, failed, skipped));
+                AppendOutput(String.Format("--------------------\r\n{0} successfully compiled.\r\n{1} failed to compile.\r\n{2} skipped.", compiled, failed, skipped));
             }
         }
 
@@ -112,12 +115,34 @@ namespace ScriptEditor
             if (e.ProgressPercentage == 1) {
                 failed++;
                 label1.Text = "Failed count: " + failed;
-                textBox.AppendText("Failed: " + System.IO.Path.GetFileName(result.File));
+                AppendOutput("Failed: " + System.IO.Path.GetFileName(result.File));
                 if (!String.IsNullOrEmpty(result.Error))
-                    textBox.AppendText(" (" + result.Error + ")");
-                textBox.AppendText("\r\n");
+                    AppendOutput(" (" + result.Error + ")");
+                AppendOutput("\r\n");
             } else
                 compiled++;
+        }
+
+        private void AppendOutput(string value)
+        {
+            textBox.AppendText(value);
+            UpdateOutputScrollbar();
+        }
+
+        private void UpdateOutputScrollbar()
+        {
+            if (!textBox.IsHandleCreated)
+                return;
+
+            System.Drawing.Size measured = TextRenderer.MeasureText(textBox.Text + " ", textBox.Font,
+                new System.Drawing.Size(Math.Max(1, textBox.ClientSize.Width), Int32.MaxValue),
+                TextFormatFlags.TextBoxControl | TextFormatFlags.WordBreak);
+            ScrollBars target = measured.Height > textBox.ClientSize.Height ? ScrollBars.Vertical : ScrollBars.None;
+            if (textBox.ScrollBars == target)
+                return;
+
+            textBox.ScrollBars = target;
+            InterfaceTheme.Apply(textBox);
         }
 
         public static void CompileFolder(string path)

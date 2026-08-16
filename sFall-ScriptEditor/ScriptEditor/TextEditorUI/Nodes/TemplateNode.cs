@@ -61,7 +61,7 @@ namespace ScriptEditor.TextEditorUI.Nodes
             buttonOk.Click += delegate(object sender, EventArgs e)
                                 {
                                     if (tbName.Text.IndexOf('#') != -1) {
-                                        MessageBox.Show("Invalid node name.");
+                                        ScriptEditor.ThemedMessageBox.Show("Invalid node name.");
                                         return;
                                     }
                                     if (CreateClick(this, tbName.Text, tbNodeCode.Text))
@@ -83,6 +83,7 @@ namespace ScriptEditor.TextEditorUI.Nodes
             form.MaximizeBox = false;
             form.AcceptButton = buttonOk;
             form.CancelButton = buttonCancel;
+            ScriptEditor.InterfaceTheme.ApplyOnLoad(form);
         }
 
         void tbNodeCode_Enter(object sender, EventArgs e)

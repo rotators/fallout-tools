@@ -553,13 +553,13 @@ namespace ScriptEditor
                 return;
 
             if (!Settings.searchIncludePath && currentTab.filepath == null && !Path.IsPathRooted(line[1])) {
-                MessageBox.Show("Cannot open includes given via a relative path for an unsaved script", "Error");
+                ScriptEditor.ThemedMessageBox.Show("Cannot open includes given via a relative path for an unsaved script", "Error");
                 return;
             }
             if (line[1].IndexOfAny(Path.GetInvalidPathChars()) != -1) return;
             ParserInternal.GetIncludePath(ref line[1], Path.GetDirectoryName(currentTab.filepath));
             if (Open(line[1], OpenType.File, false) == null)
-                MessageBox.Show("Header file not found!\n" + line[1], null, MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                ScriptEditor.ThemedMessageBox.Show("Header file not found!\n" + line[1], null, MessageBoxButtons.OK, MessageBoxIcon.Stop);
         }
 
         private void renameToolStripMenuItem_Click(object sender, EventArgs e)
@@ -876,7 +876,7 @@ namespace ScriptEditor
         public void CreateProcBlock(string name)
         {
             if (currentTab.parseInfo.CheckExistsName(name, false)) {
-                MessageBox.Show("A procedure with this name has already been declared.", "Info");
+                ScriptEditor.ThemedMessageBox.Show("A procedure with this name has already been declared.", "Info");
                 return;
             }
             byte line = (name == "look_at_p_proc" || name == "description_p_proc") ? (byte)1 : (byte)0;
@@ -943,7 +943,7 @@ namespace ScriptEditor
             string name = CreateProcFrm.CheckName;
             if (name == null) return;
             if (currentTab.parseInfo.CheckExistsName(name, NameType.Proc)) {
-                MessageBox.Show("A procedure with this name has already been declared.", "Info");
+                ScriptEditor.ThemedMessageBox.Show("A procedure with this name has already been declared.", "Info");
                 return;
             }
 
@@ -1077,11 +1077,11 @@ namespace ScriptEditor
             if (proc == null) return;
 
             //if (proc.IsImported) {
-            //    MessageBox.Show("You can't delete the imported procedure.");
+            //    ScriptEditor.ThemedMessageBox.Show("You can't delete the imported procedure.");
             //    return;
             //}
 
-            if (MessageBox.Show("Are you sure you want to delete \"" + proc.name + "\" procedure?",
+            if (ScriptEditor.ThemedMessageBox.Show("Are you sure you want to delete \"" + proc.name + "\" procedure?",
                                 "Warning", MessageBoxButtons.YesNo) == DialogResult.No) {
                 return;
             }

@@ -23,6 +23,7 @@ namespace ScriptEditor
             // The InitializeComponent() call is required for Windows Forms designer support.
             //
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
         }
 
         void GoToLineKeyUp(object sender, KeyEventArgs e)

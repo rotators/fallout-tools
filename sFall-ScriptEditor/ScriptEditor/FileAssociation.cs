@@ -32,7 +32,7 @@ namespace ScriptEditor
             ext = Path.GetExtension(ext).ToLowerInvariant();
             bool result = (Array.IndexOf(extAllowed, ext) > -1);
             if (!result)
-                MessageBox.Show("You cannot open this file type in the editor.", "Error - File type not allowed");
+                ScriptEditor.ThemedMessageBox.Show("You cannot open this file type in the editor.", "Error - File type not allowed");
             return result;
         }
 
@@ -113,7 +113,7 @@ namespace ScriptEditor
 
         private static void ShowAssociationError(Exception ex)
         {
-            MessageBox.Show("Windows could not register the editor for file associations.\n\n" +
+            ScriptEditor.ThemedMessageBox.Show("Windows could not register the editor for file associations.\n\n" +
                 ex.Message, "File association error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
@@ -142,7 +142,7 @@ namespace ScriptEditor
                     file = null;
             }
             if (file == null)
-                MessageBox.Show("The script file for this flowchart was not found.", "Missing script file");
+                ScriptEditor.ThemedMessageBox.Show("The script file for this flowchart was not found.", "Missing script file");
 
             return false;
         }

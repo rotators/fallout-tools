@@ -76,6 +76,7 @@ namespace ScriptEditor
         public NodeDiagram(TabInfo tabInfo)
         {
             InitializeComponent();
+            InterfaceTheme.ApplyOnLoad(this);
 
             if (Settings.hintsLang != 0) HelptoolStripButton.ToolTipText = help;
 
@@ -727,7 +728,7 @@ namespace ScriptEditor
 
             if (msgFileNum != -1) {
                 if (!MessageFile.GetPath(sourceTab, msgFileNum, out msgfile)) {
-                    MessageBox.Show("The requested message file: " + msgfile + "\ncould not be found.", "Missing messages file");
+                    ScriptEditor.ThemedMessageBox.Show("The requested message file: " + msgfile + "\ncould not be found.", "Missing messages file");
                     return;
                 }
             } else
@@ -741,7 +742,7 @@ namespace ScriptEditor
                 message = sourceTab.messages[msgNum];
 
             if (message == null) {
-                MessageBox.Show("The requested message line number in: " + msgfile + "\nfile, could not be found.", "Message missing");
+                ScriptEditor.ThemedMessageBox.Show("The requested message line number in: " + msgfile + "\nfile, could not be found.", "Message missing");
                 return;
             }
 
@@ -824,7 +825,7 @@ namespace ScriptEditor
         private void CreatetoolStripButton_Click(object sender, EventArgs e)
         {
             if (nodesCanvas.NodesTotalCount > 0)
-                if (MessageBox.Show("Do you want to clean up the existing flowchart and create a new one?", "Create New",
+                if (ScriptEditor.ThemedMessageBox.Show("Do you want to clean up the existing flowchart and create a new one?", "Create New",
                     MessageBoxButtons.YesNo) == DialogResult.No)
                     return;
 
@@ -848,7 +849,7 @@ namespace ScriptEditor
             nName = Refactor.RenameProcedure(nName, scriptText, sourceTab);
             if (nName != null) {
                 if (nName.IndexOf("node", StringComparison.OrdinalIgnoreCase) == -1) {
-                    MessageBox.Show("The name of the procedure must contain the word 'Node'");
+                    ScriptEditor.ThemedMessageBox.Show("The name of the procedure must contain the word 'Node'");
                     scriptText.UndoStack.Undo();
                     scriptText.UndoStack.ClearRedoStack();
                     return;
@@ -872,7 +873,7 @@ namespace ScriptEditor
                 }
                 return;
             }
-            if (MessageBox.Show("Are you sure you want to delete the all selected nodes/notes?\n(When delete a node, the corresponding procedure in the script will be deleted).", "Deleting",
+            if (ScriptEditor.ThemedMessageBox.Show("Are you sure you want to delete the all selected nodes/notes?\n(When delete a node, the corresponding procedure in the script will be deleted).", "Deleting",
                 MessageBoxButtons.YesNo) == DialogResult.No)
                 return;
 
@@ -890,12 +891,12 @@ namespace ScriptEditor
 
                 string name = ((NodeCanvasItem)item).GetNodeData.Name;
                 if (name.Equals("talk_p_proc", StringComparison.OrdinalIgnoreCase)) {
-                    MessageBox.Show("You cannot delete the procedural handler 'talk_p_proc' from the flowchart editor.");
+                    ScriptEditor.ThemedMessageBox.Show("You cannot delete the procedural handler 'talk_p_proc' from the flowchart editor.");
                     break; //don't delete talk_p_proc
                 }
 
                 if (NodeIsEditing((NodeCanvasItem)item)) {
-                    MessageBox.Show("You cannot delete a node procedure: " + name + " that is edited at the current time.");
+                    ScriptEditor.ThemedMessageBox.Show("You cannot delete a node procedure: " + name + " that is edited at the current time.");
                     break;
                 }
 
@@ -935,7 +936,7 @@ namespace ScriptEditor
                 nodeName = defName + nodeName;
 
             if (sourceTab.parseInfo.CheckExistsName(nodeName, NameType.Proc)) {
-                MessageBox.Show("The procedure/variable or declared macro with this name already exists.", "Unable to rename");
+                ScriptEditor.ThemedMessageBox.Show("The procedure/variable or declared macro with this name already exists.", "Unable to rename");
                 return false;
             }
 
@@ -1059,7 +1060,7 @@ namespace ScriptEditor
         {
             if (e.Change) {
                 if (Utilities.ReplaceProcedureCode(scriptText, sourceTab.parseInfo, e.Name, e.Code)) {
-                    MessageBox.Show("In the source script, there is no dialog node with this name.", "Apply error");
+                    ScriptEditor.ThemedMessageBox.Show("In the source script, there is no dialog node with this name.", "Apply error");
                     return;
                 }
 
@@ -1389,7 +1390,7 @@ namespace ScriptEditor
             ni.MoveNext();
             string nameScript = ni.Current.GetAttribute("ScriptName", "");
             if (!scriptName.Equals(nameScript, StringComparison.OrdinalIgnoreCase)) {
-                MessageBox.Show("This flowchart file was saved for another script file.", "Wrong Flowchart: " + nameScript);
+                ScriptEditor.ThemedMessageBox.Show("This flowchart file was saved for another script file.", "Wrong Flowchart: " + nameScript);
                 return;
             }
 

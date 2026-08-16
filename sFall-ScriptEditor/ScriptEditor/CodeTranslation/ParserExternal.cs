@@ -77,7 +77,7 @@ namespace ScriptEditor.CodeTranslation
                                            (Settings.IsSearchIncludes) ? Settings.pathHeadersFiles : null, Settings.compileBackwardMode);
                 } catch {
                     lastStatus = 3;
-                    MessageBox.Show("An unexpected error occurred while parsing text of the script.\n" +
+                    ScriptEditor.ThemedMessageBox.Show("An unexpected error occurred while parsing text of the script.\n" +
                                     "It is recommended that you save all unsaved documents and restart application,\n" +
                                     "in order to avoid further incorrect operation of the application.", "Error: Parser.dll");
                 };

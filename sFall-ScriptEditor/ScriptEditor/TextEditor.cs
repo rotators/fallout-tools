@@ -665,7 +665,7 @@ namespace ScriptEditor
             for (int i = 0; i < tabs.Count; i++) {
                 bool skip = tabs[i].changed;
                 if (tabs[i].changed) {
-                    switch (MessageBox.Show("Save changes to " + tabs[i].filename + "?", "Message", MessageBoxButtons.YesNoCancel)) {
+                    switch (ScriptEditor.ThemedMessageBox.Show("Save changes to " + tabs[i].filename + "?", "Message", MessageBoxButtons.YesNoCancel)) {
                         case DialogResult.Yes:
                             Save(tabs[i], true);
                             if (tabs[i].changed) {
@@ -1061,7 +1061,7 @@ namespace ScriptEditor
         private void recentToolStripMenuItem_Click(object sender, EventArgs e)
         {
             int count = Open_toolStripSplitButton.DropDownItems.Count;
-            if (count < 4 || MessageBox.Show("Do you want to clear the list of recent files ?",
+            if (count < 4 || ScriptEditor.ThemedMessageBox.Show("Do you want to clear the list of recent files ?",
                                              "Recent files", MessageBoxButtons.YesNo) == DialogResult.No)
                 return;
 
@@ -1293,7 +1293,7 @@ namespace ScriptEditor
         private void massCompileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (Settings.outputDir == null) {
-                MessageBox.Show("No output path selected.\nPlease select your scripts directory before compiling", "Error");
+                ScriptEditor.ThemedMessageBox.Show("No output path selected.\nPlease select your scripts directory before compiling", "Error");
                 return;
             }
             bool option = Settings.ignoreCompPath;
@@ -1391,28 +1391,28 @@ namespace ScriptEditor
                 return;
 
             if (currentTab.filepath == null) {
-                MessageBox.Show("You cannot register an unsaved script.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("You cannot register an unsaved script.", "Error");
                 return;
             }
             string fName = Path.GetExtension(currentTab.filename).ToLowerInvariant();
             if (fName != ".ssl" && fName != ".int") {
-                MessageBox.Show("You cannot register this file.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("You cannot register this file.", "Error");
                 return;
             }
             fName = Path.ChangeExtension(currentTab.filename, "int");
             if (fName.Length > 12) {
-                MessageBox.Show("Script file names must be 8 characters or under to be registered.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("Script file names must be 8 characters or under to be registered.", "Error");
                 return;
             }
             if (currentTab.filename.Length >= 2 && string.Compare(currentTab.filename.Substring(0, 2), "gl", true) == 0) {
-                if (MessageBox.Show("This script starts with 'gl', and will be treated by sfall as a global script and loaded automatically.\n" +
+                if (ScriptEditor.ThemedMessageBox.Show("This script starts with 'gl', and will be treated by sfall as a global script and loaded automatically.\n" +
                                     "If it's being used as a global script, it does not need to be registered.\n" +
                                     "If it isn't, the script should be renamed before registering it.\n" +
                                     "Are you sure you wish to continue?", "Error") != DialogResult.Yes)
                     return;
             }
             if (fName.IndexOf(' ') != -1) {
-                MessageBox.Show("Cannot register a script name that contains a space.", "Error");
+                ScriptEditor.ThemedMessageBox.Show("Cannot register a script name that contains a space.", "Error");
                 return;
             }
             RegisterScript.Registration(fName);
@@ -1445,7 +1445,7 @@ namespace ScriptEditor
             bool result = Compile(currentTab, out msg, true, true);
             tbOutput.Text = currentTab.buildLog = msg;
             if (!result) {
-                MessageBox.Show("Preprocessing failed. See the Build log.");
+                ScriptEditor.ThemedMessageBox.Show("Preprocessing failed. See the Build log.");
                 return;
             }
 
@@ -1453,7 +1453,7 @@ namespace ScriptEditor
             if (file != null)
                 Open(file, OpenType.File, false);
             else
-                MessageBox.Show("Failed to fetch preprocessed file");
+                ScriptEditor.ThemedMessageBox.Show("Failed to fetch preprocessed file");
         }
 
         private void roundtripToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1461,7 +1461,7 @@ namespace ScriptEditor
             if (currentTab == null) return;
 
             if (Settings.userCmdCompile) {
-                MessageBox.Show("It is required to turn off the compilation option via a user cmd file.");
+                ScriptEditor.ThemedMessageBox.Show("It is required to turn off the compilation option via a user cmd file.");
                 return;
             }
             dgvErrors.Rows.Clear();
@@ -1498,7 +1498,7 @@ namespace ScriptEditor
             if (currentTab == null) return;
 
             if (!Path.GetExtension(currentTab.filename).Equals(".ssl", StringComparison.OrdinalIgnoreCase)) {
-                MessageBox.Show(MessageFile.WrongTypeFile, currentTab.filename) ;
+                ScriptEditor.ThemedMessageBox.Show(MessageFile.WrongTypeFile, currentTab.filename) ;
                 return;
             }
 
@@ -1653,7 +1653,7 @@ namespace ScriptEditor
         private void Headers_toolStripSplitButton_ButtonClick(object sender, EventArgs e)
         {
             if (Settings.pathHeadersFiles == null || !Directory.Exists(Settings.pathHeadersFiles)) {
-                MessageBox.Show("The headers directory does not exist. Check the correctness of the path setting.");
+                ScriptEditor.ThemedMessageBox.Show("The headers directory does not exist. Check the correctness of the path setting.");
                 return;
             }
 
@@ -2112,7 +2112,7 @@ namespace ScriptEditor
         private void includeFileToCodeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (Settings.pathHeadersFiles == null || !Directory.Exists(Settings.pathHeadersFiles)) {
-                MessageBox.Show("The headers directory does not exist. Check the correctness of the path setting.");
+                ScriptEditor.ThemedMessageBox.Show("The headers directory does not exist. Check the correctness of the path setting.");
                 return;
             }
 

@@ -27,7 +27,7 @@ namespace ScriptEditor.TextEditorUtilities
                     if (!ProcForm.CreateRenameForm(ref newName, "Local Variable") || newName == lvar.name)
                         return;
                     if (cTab.parseInfo.CheckExistsName(newName, NameType.LVar, lvar.fdeclared, lvar.d.declared)) {
-                        MessageBox.Show("A local variable with this name already exists.", "Unable to rename");
+                        ScriptEditor.ThemedMessageBox.Show("A local variable with this name already exists.", "Unable to rename");
                         return;
                     }
                     RenameVariable(lvar, newName, RegexOptions.IgnoreCase, document); // rename only via references
@@ -39,7 +39,7 @@ namespace ScriptEditor.TextEditorUtilities
                     if (!ProcForm.CreateRenameForm(ref newName, "Script Variable") || newName == gvar.name)
                         return;
                     if (cTab.parseInfo.CheckExistsName(newName, NameType.GVar)) {
-                        MessageBox.Show("A variable, procedure, or declared macro with this name already exists.", "Unable to rename");
+                        ScriptEditor.ThemedMessageBox.Show("A variable, procedure, or declared macro with this name already exists.", "Unable to rename");
                         return;
                     }
                     RenameVariable(gvar, newName, RegexOptions.IgnoreCase, document); // rename only via references
@@ -59,7 +59,7 @@ namespace ScriptEditor.TextEditorUtilities
                         return;
 
                     if (cTab.parseInfo.CheckExistsName(newName, NameType.Macro)) {
-                        MessageBox.Show("A variable, procedure, or declared macro with this name already exists.", "Unable to rename");
+                        ScriptEditor.ThemedMessageBox.Show("A variable, procedure, or declared macro with this name already exists.", "Unable to rename");
                         return;
                     }
                     int diff = newName.Length - macros.token.Length;
@@ -171,7 +171,7 @@ namespace ScriptEditor.TextEditorUtilities
         private static void RenameGlobalMacros(Macro macros, string newName, TabInfo cTab, List<TabInfo> tabs, int diff)
         {
             if (String.IsNullOrEmpty(Settings.solutionProjectFolder) || !Directory.Exists(Settings.solutionProjectFolder)) {
-                MessageBox.Show("Select a valid project folder before renaming a global macro.", "Rename global macro");
+                ScriptEditor.ThemedMessageBox.Show("Select a valid project folder before renaming a global macro.", "Rename global macro");
                 return;
             }
 
@@ -267,7 +267,7 @@ namespace ScriptEditor.TextEditorUtilities
                 }
                 if (pf != null) pf.IncProgress();
             }
-            //MessageBox.Show(String.Format("Произведено переименование {0} макросов, в {1} файлах.", total, previewFiles.Count));
+            //ScriptEditor.ThemedMessageBox.Show(String.Format("Произведено переименование {0} макросов, в {1} файлах.", total, previewFiles.Count));
             } catch (Exception ex) {
                 foreach (var original in originalFiles) {
                     try { TabInfo.WriteAllBytesAtomic(original.Key, original.Value); }
@@ -278,7 +278,7 @@ namespace ScriptEditor.TextEditorUtilities
                     if (document.TextContent != original.Value)
                         document.Replace(0, document.TextLength, original.Value);
                 }
-                MessageBox.Show("The rename could not be completed. All modified files were restored.\n\n" + ex.Message,
+                ScriptEditor.ThemedMessageBox.Show("The rename could not be completed. All modified files were restored.\n\n" + ex.Message,
                                 "Rename global macro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             } finally {
                 if (pf != null) pf.Dispose();
@@ -363,13 +363,13 @@ namespace ScriptEditor.TextEditorUtilities
                 return null;
 
             if (cTab.parseInfo.CheckExistsName(newName, NameType.Proc)) {
-                MessageBox.Show("The procedure/variable or declared macro with this name already exists.", "Unable to rename");
+                ScriptEditor.ThemedMessageBox.Show("The procedure/variable or declared macro with this name already exists.", "Unable to rename");
                 return null;
             }
 
             bool extFile = false;
             if (tabs != null && proc.filename != cTab.filename.ToLowerInvariant()) { // не совсем понятно, при каких условиях это верно
-                switch (MessageBox.Show("Also renaming the procedure in a file: " + proc.filename.ToUpper() + " ?", "Procedure rename", MessageBoxButtons.YesNoCancel)) {
+                switch (ScriptEditor.ThemedMessageBox.Show("Also renaming the procedure in a file: " + proc.filename.ToUpper() + " ?", "Procedure rename", MessageBoxButtons.YesNoCancel)) {
                     case DialogResult.Cancel :
                         return null;
                     case DialogResult.Yes :

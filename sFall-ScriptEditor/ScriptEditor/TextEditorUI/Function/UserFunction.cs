@@ -18,6 +18,7 @@ namespace ScriptEditor.TextEditorUI
         public UserFunction(bool add)
         {
             InitializeComponent();
+            ScriptEditor.InterfaceTheme.ApplyOnLoad(this);
 
             cbHighlight.Enabled = add;
             cbHighlight.Checked = highlight;
