@@ -21,9 +21,26 @@ namespace ScriptEditor
             return logicalPixels * dpi / LogicalDpi;
         }
 
+        internal static int GetDpi(Graphics graphics)
+        {
+            if (graphics == null) return LogicalDpi;
+            return (int)Math.Round(graphics.DpiX, MidpointRounding.AwayFromZero);
+        }
+
+        internal static int GetDpi(Control control)
+        {
+            if (control == null || control.IsDisposed) return LogicalDpi;
+            try {
+                using (Graphics graphics = control.CreateGraphics())
+                    return GetDpi(graphics);
+            } catch (InvalidOperationException) {
+                return LogicalDpi;
+            }
+        }
+
         internal static int Scale(Control control, int logicalPixels)
         {
-            return Scale(logicalPixels, control == null ? LogicalDpi : control.DeviceDpi);
+            return Scale(logicalPixels, GetDpi(control));
         }
 
         internal static Size Scale(Control control, Size logicalSize)

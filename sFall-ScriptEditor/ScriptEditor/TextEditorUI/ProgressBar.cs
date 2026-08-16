@@ -19,7 +19,7 @@ namespace ScriptEditor.TextEditorUI
                 StartPosition = (owner.Location.IsEmpty) ? FormStartPosition.CenterScreen : FormStartPosition.Manual,
                 FormBorderStyle = FormBorderStyle.FixedSingle
             };
-            int dpi = owner.DeviceDpi;
+            int dpi = DpiHelper.GetDpi(owner);
             bar = new ProgressBar() {
                 Width = DpiHelper.Scale(305, dpi), Height = DpiHelper.Scale(15, dpi),
                 Top = DpiHelper.Scale(14, dpi), Maximum = max

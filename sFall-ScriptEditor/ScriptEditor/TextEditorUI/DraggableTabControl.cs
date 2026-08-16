@@ -340,7 +340,7 @@ public class DraggableTabControl : TabControl
         int inset = Math.Max(3, ScriptEditor.DpiHelper.Scale(this, 4));
         Color closeColor = dark ? Color.Gainsboro : Color.FromArgb(92, 92, 96);
         using (Pen pen = new Pen(closeColor,
-            Math.Max(1F, ScriptEditor.DpiHelper.Scale(1.25F, DeviceDpi))))
+            Math.Max(1F, ScriptEditor.DpiHelper.Scale(1.25F, ScriptEditor.DpiHelper.GetDpi(graphics)))))
         {
             graphics.DrawLine(pen, bounds.Left + inset, bounds.Top + inset,
                 bounds.Right - inset - 1, bounds.Bottom - inset - 1);

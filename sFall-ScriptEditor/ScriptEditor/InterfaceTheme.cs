@@ -654,7 +654,7 @@ namespace ScriptEditor
             if (active) {
                 Color markColor = checkBox.Enabled ? Color.White : Color.FromArgb(205, 205, 210);
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using (Pen markPen = new Pen(markColor, DpiHelper.Scale(2F, checkBox.DeviceDpi))) {
+                using (Pen markPen = new Pen(markColor, DpiHelper.Scale(2F, DpiHelper.GetDpi(e.Graphics)))) {
                     markPen.StartCap = LineCap.Square;
                     markPen.EndCap = LineCap.Square;
                     if (checkBox.CheckState == CheckState.Indeterminate) {
@@ -1426,7 +1426,7 @@ namespace ScriptEditor
 
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 using (Pen mark = new Pen(markColor,
-                    System.Math.Max(1.5F, DpiHelper.Scale(1.8F, e.ToolStrip.DeviceDpi)))) {
+                    System.Math.Max(1.5F, DpiHelper.Scale(1.8F, DpiHelper.GetDpi(e.Graphics))))) {
                     mark.StartCap = LineCap.Square;
                     mark.EndCap = LineCap.Square;
                     if (menuItem.CheckState == CheckState.Indeterminate) {
