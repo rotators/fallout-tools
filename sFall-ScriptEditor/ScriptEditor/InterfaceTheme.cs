@@ -55,6 +55,7 @@ namespace ScriptEditor
         private static readonly HashSet<RadioButton> DrawnRadioButtons = new HashSet<RadioButton>();
         private static readonly Dictionary<TextBoxBase, BorderStyle> TextBoxBorders = new Dictionary<TextBoxBase, BorderStyle>();
         private static readonly Dictionary<NumericUpDown, BorderStyle> NumericUpDownBorders = new Dictionary<NumericUpDown, BorderStyle>();
+        private static readonly Dictionary<NumericUpDown, int> NumericUpDownHeights = new Dictionary<NumericUpDown, int>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
         private static readonly Dictionary<ComboBox, int> ComboItemHeights = new Dictionary<ComboBox, int>();
         private static readonly Dictionary<ComboBox, DrawMode> ComboDrawModes = new Dictionary<ComboBox, DrawMode>();
@@ -164,7 +165,13 @@ namespace ScriptEditor
             if (numericUpDown != null) {
                 BorderStyle original;
                 if (!NumericUpDownBorders.TryGetValue(numericUpDown, out original)) { original = numericUpDown.BorderStyle; NumericUpDownBorders.Add(numericUpDown, original); }
-                numericUpDown.BorderStyle = dark ? BorderStyle.None : original;
+                int originalHeight;
+                if (!NumericUpDownHeights.TryGetValue(numericUpDown, out originalHeight)) { originalHeight = numericUpDown.Height; NumericUpDownHeights.Add(numericUpDown, originalHeight); }
+                numericUpDown.BorderStyle = dark
+                    ? (numericUpDown.Name == "tbTabSize" ? BorderStyle.FixedSingle : BorderStyle.None)
+                    : original;
+                if (numericUpDown.Name == "tbTabSize")
+                    numericUpDown.Height = dark ? originalHeight + 1 : originalHeight;
             }
 
             ComboBox comboBox = control as ComboBox;
@@ -953,7 +960,8 @@ namespace ScriptEditor
                 // Editable text/combo controls use classic drawing to avoid light
                 // Windows hot-state flashes. RichTextBox retains Explorer styling
                 // so its native scrollbar uses the dark Windows presentation.
-                bool darkInput = dark && (control is ComboBox || control is NumericUpDown ||
+                bool themedTabSizeSpinner = control is NumericUpDown && control.Name == "tbTabSize";
+                bool darkInput = dark && !themedTabSizeSpinner && (control is ComboBox || control is NumericUpDown ||
                     (control is TextBoxBase && !(control is RichTextBox)));
                 string theme = darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer");
                 string themeParts = darkInput ? "" : null;

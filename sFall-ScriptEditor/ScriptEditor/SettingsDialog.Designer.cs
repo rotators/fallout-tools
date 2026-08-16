@@ -837,7 +837,7 @@ namespace ScriptEditor {
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(436, 53);
+            this.label7.Location = new System.Drawing.Point(436, 54);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(90, 15);
             this.label7.TabIndex = 42;
