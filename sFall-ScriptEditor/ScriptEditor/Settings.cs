@@ -409,6 +409,8 @@ namespace ScriptEditor
 
             if (!File.Exists(SearchHistoryPath))
                 File.Create(SearchHistoryPath).Close();
+            if (!File.Exists(SearchFoldersPath))
+                File.Create(SearchFoldersPath).Close();
             if (!File.Exists(PreprocDefPath))
                 File.Create(PreprocDefPath).Close();
 
