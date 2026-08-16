@@ -42,6 +42,7 @@ namespace SfallScriptEditor.Tests
             Run("message_str resolves explicit message file", MessageStrResolvesExplicitMessageFile);
             Run("message wrapper macro resolves explicit message file", MessageWrapperMacroResolvesExplicitMessageFile);
             Run("random message range populates tooltip text", RandomMessageRangePopulatesTooltipText);
+            Run("random message range resolves explicit message file", RandomMessageRangeResolvesExplicitMessageFile);
             Run("message navigation resolves file and physical line", MessageNavigationResolvesFileAndPhysicalLine);
 
             Console.WriteLine();
@@ -375,6 +376,84 @@ namespace SfallScriptEditor.Tests
                         "The tooltip should include message 310.");
                     True(tooltip.Contains("313:") && tooltip.Contains("Oh, excuse me."),
                         "The tooltip should include message 313.");
+                } finally {
+                    Settings.outputDir = oldOutputDir;
+                    Settings.EncCodePage = oldEncoding;
+                }
+            });
+        }
+
+        private static void RandomMessageRangeResolvesExplicitMessageFile()
+        {
+            const string code = "message_str(SCRIPT_GENRAIDR, random(102, 106))";
+            int firstMessage;
+            int lastMessage;
+            int hoverOffset = code.IndexOf("102", StringComparison.Ordinal) + 1;
+            True(ToolTipRequest.TryGetRandomMessageRange(code, hoverOffset, out firstMessage, out lastMessage),
+                "Hovering the random range should identify its endpoints.");
+
+            string scriptToken;
+            True(ToolTipRequest.TryGetMessageStrRandomScriptToken(code, hoverOffset,
+                    firstMessage, lastMessage, out scriptToken),
+                "The random range should identify its enclosing message_str script token.");
+            Equal("SCRIPT_GENRAIDR", scriptToken);
+            True(ToolTipRequest.TryGetMessageScriptToken(null, code, hoverOffset, firstMessage, out scriptToken),
+                "Message navigation should resolve the first random endpoint through the enclosing message_str.");
+            Equal("SCRIPT_GENRAIDR", scriptToken);
+            int lastHoverOffset = code.IndexOf("106", StringComparison.Ordinal) + 1;
+            True(ToolTipRequest.TryGetMessageScriptToken(null, code, lastHoverOffset, lastMessage, out scriptToken),
+                "Message navigation should resolve the last random endpoint through the enclosing message_str.");
+            Equal("SCRIPT_GENRAIDR", scriptToken);
+
+            WithTempDirectory(directory => {
+                string scriptsDirectory = Path.Combine(directory, "scripts");
+                string dialogDirectory = Path.Combine(directory, "text", Settings.language, "dialog");
+                Directory.CreateDirectory(scriptsDirectory);
+                Directory.CreateDirectory(dialogDirectory);
+                File.WriteAllLines(Path.Combine(scriptsDirectory, "scripts.lst"),
+                    Enumerable.Repeat("unused.int", 99).Concat(new[] { "Diana.int", "GenRaidr.int" }));
+                File.WriteAllText(Path.Combine(dialogDirectory, "diana.msg"),
+                    "{102}{}{Wrong active-script message.}\n");
+                string genRaidrPath = Path.Combine(dialogDirectory, "genraidr.msg");
+                File.WriteAllText(genRaidrPath,
+                    "{102}{}{Correct shared raider message.}\n"
+                    + "{106}{}{Correct final raider message.}\n");
+
+                string oldOutputDir = Settings.outputDir;
+                Encoding oldEncoding = Settings.EncCodePage;
+                try {
+                    Settings.outputDir = scriptsDirectory;
+                    Settings.EncCodePage = Encoding.UTF8;
+                    var info = new ProgramInfo(0, 0);
+                    info.macros.Add("NAME", new Macro("NAME", "NAME", "SCRIPT_DIANA", "diana.ssl", 1, null));
+                    info.macros.Add("SCRIPT_DIANA", new Macro("SCRIPT_DIANA", "SCRIPT_DIANA", "(100)", "scripts.h", 1, null));
+                    info.macros.Add("SCRIPT_GENRAIDR", new Macro("SCRIPT_GENRAIDR", "SCRIPT_GENRAIDR", "(101)", "scripts.h", 1, null));
+                    var tab = new TabInfo {
+                        filepath = Path.Combine(directory, "diana.ssl"),
+                        filename = "diana.ssl",
+                        parseInfo = info
+                    };
+
+                    True(MessageFile.TryLoadMessagesForScriptIdentity(tab),
+                        "The active Diana message file should be available for the regression case.");
+                    string tooltip;
+                    True(ToolTipRequest.TryGetMessageRangeText(tab, scriptToken,
+                            firstMessage, lastMessage, out tooltip),
+                        "The explicit random range should load the shared raider message file.");
+                    True(tooltip.Contains("Correct shared raider message."),
+                        "The tooltip should contain the explicit message file text.");
+                    True(tooltip.Contains("Correct final raider message."),
+                        "The tooltip should include the final range entry.");
+                    True(!tooltip.Contains("Wrong active-script message."),
+                        "The tooltip must not fall back to the active script's message text.");
+
+                    string path;
+                    int line;
+                    True(MessageFile.TryGetMessageLocation(tab, scriptToken, firstMessage, out path, out line),
+                        "Message navigation should find the first random endpoint in the explicit message file.");
+                    True(String.Equals(genRaidrPath, path, StringComparison.OrdinalIgnoreCase),
+                        "Message navigation should open GenRaidr.msg rather than Diana.msg.");
+                    Equal(1, line);
                 } finally {
                     Settings.outputDir = oldOutputDir;
                     Settings.EncCodePage = oldEncoding;

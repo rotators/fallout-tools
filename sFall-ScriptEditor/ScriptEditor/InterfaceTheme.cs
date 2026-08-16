@@ -154,14 +154,18 @@ namespace ScriptEditor
                     originalDrawMode = comboBox.DrawMode;
                     ComboDrawModes.Add(comboBox, originalDrawMode);
                 }
-                comboBox.DrawMode = dark ? DrawMode.OwnerDrawFixed : originalDrawMode;
+                DrawMode targetDrawMode = dark ? DrawMode.OwnerDrawFixed : originalDrawMode;
+                if (comboBox.DrawMode != targetDrawMode)
+                    comboBox.DrawMode = targetDrawMode;
                 if (comboBox.Name == "cbFonts") {
                     int originalItemHeight;
                     if (!ComboItemHeights.TryGetValue(comboBox, out originalItemHeight)) {
                         originalItemHeight = comboBox.ItemHeight;
                         ComboItemHeights.Add(comboBox, originalItemHeight);
                     }
-                    comboBox.ItemHeight = originalItemHeight + (dark ? 3 : 0);
+                    int targetItemHeight = originalItemHeight + (dark ? 3 : 0);
+                    if (comboBox.ItemHeight != targetItemHeight)
+                        comboBox.ItemHeight = targetItemHeight;
                 }
                 if (DrawnCombos.Add(comboBox)) comboBox.DrawItem += DrawComboBoxItem;
                 ComboBoxWindow comboWindow;
@@ -251,7 +255,9 @@ namespace ScriptEditor
             if (themedCombo != null) {
                 FlatStyle original;
                 if (!ComboStyles.TryGetValue(themedCombo, out original)) { original = themedCombo.FlatStyle; ComboStyles.Add(themedCombo, original); }
-                themedCombo.FlatStyle = dark ? FlatStyle.Flat : original;
+                FlatStyle targetFlatStyle = dark ? FlatStyle.Flat : original;
+                if (themedCombo.FlatStyle != targetFlatStyle)
+                    themedCombo.FlatStyle = targetFlatStyle;
             }
 
             GroupBox group = control as GroupBox;
@@ -677,6 +683,7 @@ namespace ScriptEditor
                 comboBox.HandleCreated += delegate { AssignHandle(comboBox.Handle); RequestPaint(); };
                 comboBox.HandleDestroyed += delegate { paintPending = false; ReleaseHandle(); };
                 comboBox.EnabledChanged += delegate { comboBox.Invalidate(); RequestPaint(); };
+                comboBox.DropDown += delegate { ApplyPopupTheme(); };
             }
 
             internal void RequestPaint()
@@ -691,6 +698,7 @@ namespace ScriptEditor
                 if (!IsDark || !comboBox.IsHandleCreated)
                     return;
                 paintPending = false;
+                ApplyPopupTheme();
                 if (comboBox.Enabled)
                     DrawArrowButton();
                 else
@@ -735,6 +743,26 @@ namespace ScriptEditor
                 }
             }
 
+            private void ApplyPopupTheme()
+            {
+                if (!comboBox.IsHandleCreated) return;
+
+                ComboBoxInfo info = new ComboBoxInfo();
+                info.cbSize = Marshal.SizeOf(typeof(ComboBoxInfo));
+                if (!GetComboBoxInfo(comboBox.Handle, ref info) || info.hwndList == System.IntPtr.Zero)
+                    return;
+
+                bool dark = IsDark;
+                string theme = dark ? "DarkMode_Explorer" : "Explorer";
+                AllowDarkModeForWindow(info.hwndList, dark);
+                SetWindowTheme(info.hwndList, theme, null);
+                EnumChildWindows(info.hwndList, delegate(System.IntPtr hwnd, System.IntPtr param) {
+                    AllowDarkModeForWindow(hwnd, dark);
+                    SetWindowTheme(hwnd, theme, null);
+                    return true;
+                }, System.IntPtr.Zero);
+                InvalidateRect(info.hwndList, System.IntPtr.Zero, true);
+            }
             private void DrawArrowButton()
             {
                 DrawComboBoxSurface(DarkText);
@@ -923,6 +951,8 @@ namespace ScriptEditor
         private static extern System.IntPtr SendMessage(System.IntPtr hwnd, int message, System.IntPtr wParam, System.IntPtr lParam);
         [DllImport("user32.dll")]
         private static extern bool EnumChildWindows(System.IntPtr parent, EnumChildProc callback, System.IntPtr lParam);
+        [DllImport("user32.dll")]
+        private static extern bool InvalidateRect(System.IntPtr hWnd, System.IntPtr rect, bool erase);
         [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
         private static extern int SetWindowTheme(System.IntPtr hwnd, string subAppName, string subIdList);
 

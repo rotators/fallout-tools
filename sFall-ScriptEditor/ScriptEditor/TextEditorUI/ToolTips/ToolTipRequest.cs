@@ -35,6 +35,10 @@ namespace ScriptEditor.TextEditorUI.ToolTips
             @"\brandom\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+        private static readonly Regex MessageStrRandomCall = new Regex(
+            @"\bmessage_str\s*\(\s*([A-Za-z_][A-Za-z0-9_]*|\d+)\s*,\s*random\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*\)",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         private const int MaxMessageRangeEntries = 100;
 
         public static void Show(TabInfo ti, IDocument document, ToolTipRequestEventArgs args)
@@ -54,11 +58,17 @@ namespace ScriptEditor.TextEditorUI.ToolTips
                 int firstMessage;
                 int lastMessage;
                 string rangeText;
-                if (TryGetRandomMessageRange(document.TextContent, hoverOffset, out firstMessage, out lastMessage)
-                    && TryGetMessageRangeText(ti, firstMessage, lastMessage, out rangeText)) {
-                    document.TextEditorProperties.BoldFontTipsTile = true;
-                    args.ShowToolTip(rangeText);
-                    return;
+                if (TryGetRandomMessageRange(document.TextContent, hoverOffset, out firstMessage, out lastMessage)) {
+                    scriptToken = null;
+                    bool hasExplicitScript = TryGetMessageStrRandomScriptToken(document.TextContent, hoverOffset,
+                        firstMessage, lastMessage, out scriptToken);
+                    if (TryGetMessageRangeText(ti, scriptToken, firstMessage, lastMessage, out rangeText)) {
+                        document.TextEditorProperties.BoldFontTipsTile = true;
+                        args.ShowToolTip(rangeText);
+                        return;
+                    }
+                    if (hasExplicitScript)
+                        return;
                 }
                 if (TryGetMessageScriptToken(ti, document.TextContent, hoverOffset, msg, out scriptToken)
                     && MessageFile.TryGetMessageText(ti, scriptToken, msg, out explicitMessage)) {
@@ -140,14 +150,50 @@ namespace ScriptEditor.TextEditorUI.ToolTips
             return false;
         }
 
+        internal static bool TryGetMessageStrRandomScriptToken(string source, int hoverOffset,
+            int firstMessage, int lastMessage, out string scriptToken)
+        {
+            scriptToken = null;
+            if (String.IsNullOrEmpty(source) || hoverOffset < 0 || hoverOffset > source.Length)
+                return false;
+
+            int start = Math.Max(0, hoverOffset - 256);
+            int length = Math.Min(source.Length - start, 512);
+            string window = source.Substring(start, length);
+            foreach (Match match in MessageStrRandomCall.Matches(window)) {
+                Group first = match.Groups[2];
+                Group last = match.Groups[3];
+                int firstStart = start + first.Index;
+                int firstEnd = firstStart + first.Length;
+                int lastStart = start + last.Index;
+                int lastEnd = lastStart + last.Length;
+                int parsedFirst;
+                int parsedLast;
+                if (((hoverOffset >= firstStart && hoverOffset <= firstEnd)
+                        || (hoverOffset >= lastStart && hoverOffset <= lastEnd))
+                    && int.TryParse(first.Value, out parsedFirst) && parsedFirst == firstMessage
+                    && int.TryParse(last.Value, out parsedLast) && parsedLast == lastMessage) {
+                    scriptToken = match.Groups[1].Value;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         internal static bool TryGetMessageRangeText(TabInfo tab, int firstMessage, int lastMessage, out string text)
+        {
+            return TryGetMessageRangeText(tab, null, firstMessage, lastMessage, out text);
+        }
+
+        internal static bool TryGetMessageRangeText(TabInfo tab, string scriptToken,
+            int firstMessage, int lastMessage, out string text)
         {
             text = null;
             if (tab == null || firstMessage < 0 || lastMessage < firstMessage
                 || (long)lastMessage - firstMessage + 1 > MaxMessageRangeEntries)
                 return false;
 
-            if (tab.messages.Count == 0)
+            if (scriptToken == null && tab.messages.Count == 0)
                 MessageFile.TryLoadMessagesForScriptIdentity(tab);
 
             var result = new StringBuilder();
@@ -155,7 +201,10 @@ namespace ScriptEditor.TextEditorUI.ToolTips
             int found = 0;
             for (int message = firstMessage; message <= lastMessage; message++) {
                 string messageText;
-                if (!tab.messages.TryGetValue(message, out messageText))
+                bool hasMessage = scriptToken == null
+                    ? tab.messages.TryGetValue(message, out messageText)
+                    : MessageFile.TryGetMessageText(tab, scriptToken, message, out messageText);
+                if (!hasMessage)
                     continue;
                 result.Append(Environment.NewLine).Append(message).Append(": ")
                     .Append((char)34).Append(messageText).Append((char)34);
@@ -170,6 +219,12 @@ namespace ScriptEditor.TextEditorUI.ToolTips
 
         internal static bool TryGetMessageScriptToken(TabInfo tab, string source, int hoverOffset, int messageNumber, out string scriptToken)
         {
+            int firstMessage;
+            int lastMessage;
+            if (TryGetRandomMessageRange(source, hoverOffset, out firstMessage, out lastMessage)
+                && TryGetMessageStrRandomScriptToken(source, hoverOffset, firstMessage, lastMessage, out scriptToken))
+                return true;
+
             if (TryGetMessageStrScriptToken(source, hoverOffset, messageNumber, out scriptToken))
                 return true;
 
