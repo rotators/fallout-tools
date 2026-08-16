@@ -1170,6 +1170,7 @@ namespace ScriptEditor
             collapseAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, false);
             expandAllProceduresMenuItem.Enabled = CodeFolder.HasProcedure(currentDocument, true);
             collapseOtherProceduresMenuItem.Enabled = CodeFolder.HasProcedureAtLine(currentDocument, EditorContextLine);
+            UpdateActiveProcedureFoldingMenu(EditorContextLine);
         }
 
         private void editorMenuStrip_Closed(object sender, ToolStripDropDownClosedEventArgs e)

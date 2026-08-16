@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -42,6 +42,8 @@ namespace ScriptEditor
         private ToolStripMenuItem collapseAllProceduresMenuItem;
         private ToolStripMenuItem expandAllProceduresMenuItem;
         private ToolStripMenuItem collapseOtherProceduresMenuItem;
+        private ToolStripMenuItem toggleActiveProcedureMenuItem;
+        private ToolStripMenuItem toolbarToggleActiveProcedureMenuItem;
         private ToolStripMenuItem goToMessageMenuItem;
         private ToolStripMenuItem previewDialogContextMenuItem;
         private ContextMenuStrip fontSizeStatusMenu;
@@ -50,8 +52,6 @@ namespace ScriptEditor
         private ToolStripMenuItem resetZoomMenuItem;
         private readonly Dictionary<int, ToolStripMenuItem> zoomMenuItems = new Dictionary<int, ToolStripMenuItem>();
         private Procedure previewDialogContextProcedure;
-        private Image collapseProceduresImage;
-        private Image expandProceduresImage;
         private int editorContextLine = -1;
         private TextLocation editorContextPosition = TextLocation.Empty;
 
@@ -118,9 +118,9 @@ namespace ScriptEditor
             Opacity = 0D;
             ConfigureHelpMenu();
             ConfigureEditorFoldingMenu();
+            ConfigureToolbarFoldingMenu();
             ConfigureMessageNavigationMenu();
             ConfigureDialogPreviewContextMenu();
-            ConfigureOutlineButton();
             ConfigureMainToolbar();
             ConfigureStatusNotifications();
             ConfigureStatusZoomMenu();
@@ -220,19 +220,62 @@ namespace ScriptEditor
             collapseAllProceduresMenuItem = new ToolStripMenuItem("Collapse all procedures");
             expandAllProceduresMenuItem = new ToolStripMenuItem("Expand all procedures");
             collapseOtherProceduresMenuItem = new ToolStripMenuItem("Collapse all except active procedure");
+            toggleActiveProcedureMenuItem = new ToolStripMenuItem("Collapse active procedure");
 
             collapseAllProceduresMenuItem.Click += CollapseAllProcedures_Click;
             expandAllProceduresMenuItem.Click += ExpandAllProcedures_Click;
             collapseOtherProceduresMenuItem.Click += CollapseOtherProcedures_Click;
+            toggleActiveProcedureMenuItem.Click += ToggleActiveProcedure_Click;
 
             foldingMenu.DropDownItems.Add(collapseAllProceduresMenuItem);
             foldingMenu.DropDownItems.Add(expandAllProceduresMenuItem);
             foldingMenu.DropDownItems.Add(new ToolStripSeparator());
             foldingMenu.DropDownItems.Add(collapseOtherProceduresMenuItem);
+            foldingMenu.DropDownItems.Add(toggleActiveProcedureMenuItem);
             editorMenuStrip.Items.Add(new ToolStripSeparator());
             editorMenuStrip.Items.Add(foldingMenu);
         }
 
+        private void ToggleActiveProcedure_Click(object sender, EventArgs e)
+        {
+            if (currentTab == null) return;
+            bool folded;
+            int line = object.ReferenceEquals(sender, toolbarToggleActiveProcedureMenuItem)
+                ? currentActiveTextAreaCtrl.Caret.Line : EditorContextLine;
+            CodeFolder.TryToggleProcedureAtLine(currentDocument, line, out folded);
+        }
+
+        private void UpdateActiveProcedureFoldingMenu(int line)
+        {
+            bool folded = false;
+            bool hasProcedure = currentTab != null && CodeFolder.TryGetProcedureFoldedAtLine(currentDocument, line, out folded);
+            string text = hasProcedure && folded ? "Expand active procedure" : "Collapse active procedure";
+            if (toggleActiveProcedureMenuItem != null) {
+                toggleActiveProcedureMenuItem.Enabled = hasProcedure;
+                toggleActiveProcedureMenuItem.Text = text;
+            }
+            if (toolbarToggleActiveProcedureMenuItem != null) {
+                toolbarToggleActiveProcedureMenuItem.Enabled = hasProcedure;
+                toolbarToggleActiveProcedureMenuItem.Text = text;
+            }
+        }
+        private void ConfigureToolbarFoldingMenu()
+        {
+            ToolStripMenuItem collapseAll = new ToolStripMenuItem("Collapse all procedures");
+            ToolStripMenuItem expandAll = new ToolStripMenuItem("Expand all procedures");
+            ToolStripMenuItem collapseOthers = new ToolStripMenuItem("Collapse all except active procedure");
+            toolbarToggleActiveProcedureMenuItem = new ToolStripMenuItem("Collapse active procedure");
+            collapseAll.Click += CollapseAllProcedures_Click;
+            expandAll.Click += ExpandAllProcedures_Click;
+            collapseOthers.Click += CollapseOtherProcedures_Click;
+            toolbarToggleActiveProcedureMenuItem.Click += ToggleActiveProcedure_Click;
+            Outline_toolStripButton.DropDownItems.Add(collapseAll);
+            Outline_toolStripButton.DropDownItems.Add(expandAll);
+            Outline_toolStripButton.DropDownItems.Add(new ToolStripSeparator());
+            Outline_toolStripButton.DropDownItems.Add(collapseOthers);
+            Outline_toolStripButton.DropDownItems.Add(toolbarToggleActiveProcedureMenuItem);
+            Outline_toolStripButton.DropDownOpening += delegate { UpdateActiveProcedureFoldingMenu(currentActiveTextAreaCtrl.Caret.Line); };
+        }
         private void ConfigureMessageNavigationMenu()
         {
             goToMessageMenuItem = new ToolStripMenuItem("Go to message");
@@ -279,14 +322,6 @@ namespace ScriptEditor
                 ShowDialogPreview(previewDialogContextProcedure.name);
         }
 
-        private void ConfigureOutlineButton()
-        {
-            collapseProceduresImage = new Bitmap(Outline_toolStripButton.Image);
-            expandProceduresImage = new Bitmap(collapseProceduresImage);
-            expandProceduresImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
-            Outline_toolStripButton.Image = collapseProceduresImage;
-        }
-
         private void UpdateOutlineButtonState()
         {
             if (currentTab == null || currentTab.parseInfo == null) {
@@ -304,7 +339,6 @@ namespace ScriptEditor
             }
 
             bool collapse = CodeFolder.HasUnfoldedProcedureOutsideLine(currentDocument, line);
-            Outline_toolStripButton.Image = collapse ? collapseProceduresImage : expandProceduresImage;
             Outline_toolStripButton.ToolTipText = collapse
                 ? "Collapse other procedures"
                 : "Expand other procedures";
@@ -663,15 +697,6 @@ namespace ScriptEditor
 
         private void ConfigureStatusNotifications()
         {
-            EmptyStripStatusLabel.AutoSize = false;
-            EmptyStripStatusLabel.Spring = true;
-            EmptyStripStatusLabel.TextAlign = ContentAlignment.MiddleLeft;
-            EmptyStripStatusLabel.Padding = new Padding(DpiHelper.Scale(this, 6), 0, 0, 0);
-            LineStripStatusLabel.Spring = false;
-            LineStripStatusLabel.Width = DpiHelper.Scale(this, 100);
-            ColStripStatusLabel.Spring = false;
-            ColStripStatusLabel.Width = DpiHelper.Scale(this, 100);
-
             statusMessageTimer = new Timer(components);
             statusMessageTimer.Interval = 5000;
             statusMessageTimer.Tick += delegate {

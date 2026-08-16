@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -104,6 +104,25 @@ namespace ScriptEditor.CodeTranslation
             return FindProcedureAtLine(document, line) != null;
         }
 
+        internal static bool TryToggleProcedureAtLine(IDocument document, int line, out bool folded)
+        {
+            FoldMarker procedure = FindProcedureAtLine(document, line);
+            if (procedure == null) {
+                folded = false;
+                return false;
+            }
+            procedure.IsFolded = !procedure.IsFolded;
+            folded = procedure.IsFolded;
+            document.FoldingManager.NotifyFoldingsChanged(null);
+            return true;
+        }
+
+        internal static bool TryGetProcedureFoldedAtLine(IDocument document, int line, out bool folded)
+        {
+            FoldMarker procedure = FindProcedureAtLine(document, line);
+            folded = procedure != null && procedure.IsFolded;
+            return procedure != null;
+        }
         internal static void SetAllProceduresFolded(IDocument document, bool folded)
         {
             bool changed = false;

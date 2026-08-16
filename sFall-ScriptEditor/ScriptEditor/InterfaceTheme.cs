@@ -26,8 +26,30 @@ namespace ScriptEditor
         private static readonly Dictionary<TabControl, TabAppearance> TabAppearances = new Dictionary<TabControl, TabAppearance>();
         private static readonly Dictionary<TabControl, bool> TabMultiline = new Dictionary<TabControl, bool>();
         private static readonly Dictionary<ToolStripStatusLabel, ToolStripStatusLabelBorderSides> StatusBorders = new Dictionary<ToolStripStatusLabel, ToolStripStatusLabelBorderSides>();
+        private static readonly Dictionary<ToolStripItem, Image> LightToolStripImages = new Dictionary<ToolStripItem, Image>();
+        private static readonly Dictionary<string, string> DarkToolbarIconKeys = new Dictionary<string, string> {
+            { "FunctionButton", "DarkToolbar_Outline" }, { "New_toolStripDropDownButton", "DarkToolbar_New" },
+            { "Open_toolStripSplitButton", "DarkToolbar_Open" }, { "Save_toolStripSplitButton", "DarkToolbar_Save" },
+            { "tsbSaveAll", "DarkToolbar_SaveAll" }, { "Outline_toolStripButton", "DarkToolbar_FoldUnfold" },
+            { "Undo_toolStripButton", "DarkToolbar_Undo" }, { "Redo_ToolStripButton", "DarkToolbar_Redo" },
+            { "DecIndentStripButton", "DarkToolbar_Indent" }, { "CommentStripButton", "DarkToolbar_Comment" },
+            { "Search_toolStripButton", "DarkToolbar_Find" }, { "Back_toolStripButton", "DarkToolbar_Back" },
+            { "Forward_toolStripButton", "DarkToolbar_Forward" }, { "GotoProc_StripButton", "DarkToolbar_Goto" },
+            { "Edit_toolStripButton", "DarkToolbar_Code" }, { "Script_toolStripSplitButton", "DarkToolbar_List" },
+            { "Headers_toolStripSplitButton", "DarkToolbar_Include" }, { "MSG_toolStripButton", "DarkToolbar_Dialog" },
+            { "qCompile_toolStripSplitButton", "DarkToolbar_Compile" }, { "toolStripDropDownButton2", "DarkToolbar_Options" },
+            { "GoBeginStripButton", "DarkToolbar_GoDefinitions" }, { "OnlyProcStripButton", "DarkToolbar_CollapseFolders" },
+            { "NewProcStripButton", "DarkToolbar_CreateProcedure" }, { "tsbUpdateParserData", "DarkToolbar_RefreshParser" },
+            { "Help_toolStripButton", "DarkToolbar_Help" }, { "ViewArgsStripButton", "DarkToolbar_QuickTips" }
+        };
+        private static readonly HashSet<StatusStrip> PaintedStatusStrips = new HashSet<StatusStrip>();
         private static readonly Dictionary<Control, ControlBorderWindow> ControlBorders = new Dictionary<Control, ControlBorderWindow>();
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
+        private static readonly Dictionary<Button, Image> LightButtonImages = new Dictionary<Button, Image>();
+        private static readonly Dictionary<string, string> DarkButtonIconKeys = new Dictionary<string, string> {
+            { "minimizelog_button", "DarkToolbar_OutputPane" },
+            { "Split_button", "DarkToolbar_SplitDocument" }
+        };
         private static readonly HashSet<CheckBox> DrawnCheckBoxes = new HashSet<CheckBox>();
         private static readonly Dictionary<CheckBox, Padding> CheckBoxPaddings = new Dictionary<CheckBox, Padding>();
         private static readonly HashSet<RadioButton> DrawnRadioButtons = new HashSet<RadioButton>();
@@ -212,6 +234,9 @@ namespace ScriptEditor
                     button.FlatAppearance.MouseDownBackColor = DarkBack;
                 }
             }
+
+            Button imageButton = control as Button;
+            if (imageButton != null) ApplyButtonImage(imageButton, dark);
 
             CheckBox checkBox = control as CheckBox;
             if (checkBox != null && checkBox.Appearance == Appearance.Normal) {
@@ -554,6 +579,9 @@ namespace ScriptEditor
             toolStrip.RenderMode = dark ? ToolStripRenderMode.Professional : ToolStripRenderMode.System;
             if (dark) toolStrip.Renderer = DarkToolStripRenderer;
             ApplyToolStripItems(toolStrip.Items, dark);
+            StatusStrip statusStrip = toolStrip as StatusStrip;
+            if (statusStrip != null && PaintedStatusStrips.Add(statusStrip))
+                statusStrip.Paint += DrawStatusStripBorders;
         }
 
         private static void ApplyToolStripItems(ToolStripItemCollection items, bool dark)
@@ -561,8 +589,7 @@ namespace ScriptEditor
             foreach (ToolStripItem item in items) {
                 item.BackColor = dark ? DarkControl : SystemColors.Control;
                 item.ForeColor = dark ? DarkText : SystemColors.ControlText;
-                if (item.Name == "Help_toolStripButton")
-                    item.Image = dark ? DarkHelpIcon : LightHelpIcon;
+                ApplyToolStripImage(item, dark);
                 ToolStripLabel linkLabel = item as ToolStripLabel;
                 if (linkLabel != null && linkLabel.IsLink) {
                     linkLabel.LinkColor = dark ? Color.FromArgb(86, 156, 214) : Color.MediumBlue;
@@ -585,6 +612,68 @@ namespace ScriptEditor
             }
         }
 
+        private static void ApplyButtonImage(Button button, bool dark)
+        {
+            Image lightImage;
+            if (!LightButtonImages.TryGetValue(button, out lightImage)) {
+                lightImage = button.Image;
+                LightButtonImages.Add(button, lightImage);
+            }
+
+            string resourceKey;
+            if (dark && DarkButtonIconKeys.TryGetValue(button.Name, out resourceKey)) {
+                Image darkImage = Properties.Resources.ResourceManager.GetObject(resourceKey) as Image;
+                if (darkImage != null) {
+                    button.Image = darkImage;
+                    return;
+                }
+            }
+            button.Image = lightImage;
+        }
+        private static void ApplyToolStripImage(ToolStripItem item, bool dark)
+        {
+            Image lightImage;
+            if (!LightToolStripImages.TryGetValue(item, out lightImage)) {
+                lightImage = item.Image;
+                LightToolStripImages.Add(item, lightImage);
+            }
+
+            string resourceKey;
+            if (dark && DarkToolbarIconKeys.TryGetValue(item.Name, out resourceKey)) {
+                Image darkImage = Properties.Resources.ResourceManager.GetObject(resourceKey) as Image;
+                if (darkImage != null) {
+                    item.Image = darkImage;
+                    return;
+                }
+            }
+            item.Image = lightImage;
+        }
+        private static void DrawStatusStripBorders(object sender, PaintEventArgs e)
+        {
+            if (!IsDark) return;
+
+            StatusStrip statusStrip = sender as StatusStrip;
+            if (statusStrip == null) return;
+            using (Pen pen = new Pen(DarkBorder)) {
+                foreach (ToolStripItem item in statusStrip.Items) {
+                    ToolStripStatusLabel statusLabel = item as ToolStripStatusLabel;
+                    ToolStripStatusLabelBorderSides sides;
+                    if (statusLabel == null || !StatusBorders.TryGetValue(statusLabel, out sides) ||
+                        sides == ToolStripStatusLabelBorderSides.None) continue;
+
+                    Rectangle bounds = item.Bounds;
+                    if (bounds.Width < 1 || bounds.Height < 1) continue;
+                    if ((sides & ToolStripStatusLabelBorderSides.Left) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Top, bounds.Left, bounds.Bottom - 1);
+                    if ((sides & ToolStripStatusLabelBorderSides.Top) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Top, bounds.Right - 1, bounds.Top);
+                    if ((sides & ToolStripStatusLabelBorderSides.Right) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Right - 1, bounds.Top, bounds.Right - 1, bounds.Bottom - 1);
+                    if ((sides & ToolStripStatusLabelBorderSides.Bottom) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Bottom - 1, bounds.Right - 1, bounds.Bottom - 1);
+                }
+            }
+        }
         private static void RegisterDynamicTheming(Control control)
         {
             if (!DynamicControls.Add(control)) return;
@@ -862,9 +951,8 @@ namespace ScriptEditor
             try {
                 AllowDarkModeForWindow(control.Handle, dark);
                 // Editable text/combo controls use classic drawing to avoid light
-                // Windows hot-state flashes. RichTextBox is the exception: its vertical
-                // scrollbar is part of the native window and needs the Explorer dark
-                // theme in order to render a dark track, thumb, and arrow buttons.
+                // Windows hot-state flashes. RichTextBox retains Explorer styling
+                // so its native scrollbar uses the dark Windows presentation.
                 bool darkInput = dark && (control is ComboBox || control is NumericUpDown ||
                     (control is TextBoxBase && !(control is RichTextBox)));
                 string theme = darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer");
@@ -875,7 +963,6 @@ namespace ScriptEditor
                     SetWindowTheme(hwnd, theme, themeParts);
                     return true;
                 }, System.IntPtr.Zero);
-
                 // Native TreeView scrolling can leave stale one-pixel row fragments,
                 // especially with a custom background colour. Its extended double-
                 // buffer style must be applied after the handle exists and reapplied
@@ -990,6 +1077,29 @@ namespace ScriptEditor
                 base.OnRenderToolStripBorder(e);
             }
 
+            protected override void OnRenderItemBackground(ToolStripItemRenderEventArgs e)
+            {
+                base.OnRenderItemBackground(e);
+                if (!IsDark) return;
+
+                ToolStripStatusLabel statusLabel = e.Item as ToolStripStatusLabel;
+                ToolStripStatusLabelBorderSides sides;
+                if (statusLabel == null || !StatusBorders.TryGetValue(statusLabel, out sides) ||
+                    sides == ToolStripStatusLabelBorderSides.None) return;
+
+                Rectangle bounds = e.Item.Bounds;
+                if (bounds.Width < 1 || bounds.Height < 1) return;
+                using (Pen pen = new Pen(DarkBorder)) {
+                    if ((sides & ToolStripStatusLabelBorderSides.Left) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Top, bounds.Left, bounds.Bottom - 1);
+                    if ((sides & ToolStripStatusLabelBorderSides.Top) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Top, bounds.Right - 1, bounds.Top);
+                    if ((sides & ToolStripStatusLabelBorderSides.Right) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Right - 1, bounds.Top, bounds.Right - 1, bounds.Bottom - 1);
+                    if ((sides & ToolStripStatusLabelBorderSides.Bottom) != 0)
+                        e.Graphics.DrawLine(pen, bounds.Left, bounds.Bottom - 1, bounds.Right - 1, bounds.Bottom - 1);
+                }
+            }
             protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
             {
                 if (IsDark)

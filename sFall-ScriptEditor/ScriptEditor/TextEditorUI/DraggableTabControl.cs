@@ -45,6 +45,7 @@ public class DraggableTabControl : TabControl
         MouseMove += OnMouseMove;
         MouseUp += OnMouseUp;
         MouseLeave += OnMouseLeave;
+        SelectedIndexChanged += delegate { Invalidate(); };
     }
 
     public void SetDocumentModified(TabPage page, bool modified)
@@ -255,7 +256,7 @@ public class DraggableTabControl : TabControl
                     }
                 }
 
-                if (ShowCloseButtons)
+                if (ShouldShowCloseButton(i))
                     DrawCloseButton(graphics, i, dark);
             }
 
@@ -317,10 +318,14 @@ public class DraggableTabControl : TabControl
             tab.Top + Math.Max(0, (tab.Height - size) / 2), size, size);
     }
 
+    private bool ShouldShowCloseButton(int index)
+    {
+        return ShowCloseButtons && (index == SelectedIndex || index == m_HotTabIndex);
+    }
     private void DrawCloseButton(Graphics graphics, int index, bool dark)
     {
         Rectangle bounds = GetCloseButtonRectangle(index);
-        if (bounds.IsEmpty)
+        if (bounds.IsEmpty || !ShouldShowCloseButton(index))
             return;
         bool hovered = m_HotCloseIndex == index;
         bool pressed = hovered && m_ClosePressedIndex == index;
@@ -411,7 +416,7 @@ public class DraggableTabControl : TabControl
         }
         int closeIndex = TabAtIndex(e.Location);
         if (e.Button == MouseButtons.Left && closeIndex >= 0 &&
-            GetCloseButtonRectangle(closeIndex).Contains(e.Location))
+            ShouldShowCloseButton(closeIndex) && GetCloseButtonRectangle(closeIndex).Contains(e.Location))
         {
             m_ClosePressedIndex = closeIndex;
             m_DraggedTab = null;
@@ -434,7 +439,7 @@ public class DraggableTabControl : TabControl
             InvalidateTabHeader(m_HotTabIndex);
         }
 
-        int hotCloseIndex = hotIndex >= 0 && GetCloseButtonRectangle(hotIndex).Contains(e.Location)
+        int hotCloseIndex = hotIndex >= 0 && ShouldShowCloseButton(hotIndex) && GetCloseButtonRectangle(hotIndex).Contains(e.Location)
             ? hotIndex : -1;
         if (hotCloseIndex != m_HotCloseIndex) {
             InvalidateCloseButton(m_HotCloseIndex);
@@ -480,7 +485,7 @@ public class DraggableTabControl : TabControl
         int closeIndex = m_ClosePressedIndex;
         m_ClosePressedIndex = -1;
         if (e.Button == MouseButtons.Left && closeIndex >= 0 && closeIndex < TabCount &&
-            GetCloseButtonRectangle(closeIndex).Contains(e.Location))
+            ShouldShowCloseButton(closeIndex) && GetCloseButtonRectangle(closeIndex).Contains(e.Location))
         {
             EventHandler<TabCloseRequestedEventArgs> handler = TabCloseRequested;
             if (handler != null)
