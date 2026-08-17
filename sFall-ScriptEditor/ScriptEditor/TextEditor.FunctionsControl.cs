@@ -839,6 +839,9 @@ namespace ScriptEditor
             }
             if (proc != null && proc != currentHighlightProc) {
                 if (currentHighlightProc != null && currentHighlightProc.name.Equals(proc.name, StringComparison.OrdinalIgnoreCase)) return;
+                if (ProcTree.Nodes.Count == 0)
+                    return;
+
                 TreeNodeCollection nodes;
                 if (ProcTree.Nodes.Count > 1)
                     nodes = ProcTree.Nodes[1].Nodes;
@@ -977,7 +980,7 @@ namespace ScriptEditor
             foreach (TreeNode node in ProcTree.Nodes)
                 SetNodeCollapseStatus(node);
 
-            if (ProcTree.Nodes[0].Nodes.Count == 0) ProcTree.Nodes[0].ForeColor = Color.Gray;
+            if (ProcTree.Nodes.Count > 0 && ProcTree.Nodes[0].Nodes.Count == 0) ProcTree.Nodes[0].ForeColor = Color.Gray;
             if (ProcTree.Nodes.Count > 1) {
                 if (ProcTree.Nodes[1].Nodes.Count == 0)
                     ProcTree.Nodes[1].ForeColor = Color.Gray;
@@ -1101,6 +1104,9 @@ namespace ScriptEditor
                 return;
             }
 
+            if (currentTab == null)
+                return;
+
             string nodeKey = GetCorrectNodeKeyName(tn);
             if (!currentTab.treeExpand.ContainsKey(nodeKey))
                 currentTab.treeExpand.Add(nodeKey, collapsed);
@@ -1159,7 +1165,7 @@ namespace ScriptEditor
 
         void Tree_AfterExpandCollapse(object sender, TreeViewEventArgs e)
         {
-            if ((TreeStatus)ProcTree.Tag == TreeStatus.idle)
+            if (ProcTree.Tag is TreeStatus && (TreeStatus)ProcTree.Tag == TreeStatus.idle)
                 TreeExpandCollapse(e);
         }
 

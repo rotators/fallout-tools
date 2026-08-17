@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -371,7 +371,7 @@ namespace ScriptEditor
                 if (tsmShowBuildLog.Checked && tab.buildErrors.Count > 0) {
                     dgvErrors.Rows.Add("Build Log");
                     InterfaceTheme.ApplyGridSectionRow(dgvErrors.Rows[dgvErrors.Rows.Count - 1]);
-                    foreach (Error err in tab.buildErrors)
+                    foreach (Error err in tab.buildErrors.OrderBy(err => err.type == ErrorType.Error ? 0 : err.type == ErrorType.Warning ? 1 : 2))
                         AddDiagnosticRow(err);
                 }
             }

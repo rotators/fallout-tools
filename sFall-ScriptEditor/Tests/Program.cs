@@ -22,6 +22,7 @@ namespace SfallScriptEditor.Tests
         private static int Main()
         {
             Run("compiler diagnostic lookahead", CompilerDiagnosticLookahead);
+            Run("colon-form compiler errors are retained", ColonFormCompilerErrorsAreRetained);
             Run("diagnostic suppressions are configurable", DiagnosticSuppressionsAreConfigurable);
             Run("document revision rejects stale parser result", DocumentRevisionRejectsStaleResult);
             Run("UTF-8 BOM encoding is preserved", Utf8BomEncodingIsPreserved);
@@ -100,6 +101,20 @@ namespace SfallScriptEditor.Tests
             });
         }
 
+        private static void ColonFormCompilerErrorsAreRetained()
+        {
+            const string output = "TREAD.ssl:74: error: Procedure 'combat_p_procd' was not declared.\r\n";
+            var errors = new List<Error>();
+
+            Error.BuildLog(errors, output, @"C:\scripts\TREAD.ssl", Path.Combine(Path.GetTempPath(), "missing-diagnostic-suppressions.ini"));
+
+            Equal(1, errors.Count);
+            Equal(ErrorType.Error, errors[0].type);
+            Equal(74, errors[0].line);
+            Equal("TREAD.ssl", Path.GetFileName(errors[0].fileName));
+            True(errors[0].message.IndexOf("combat_p_procd", StringComparison.OrdinalIgnoreCase) >= 0,
+                "The compiler's colon-form error message should remain visible.");
+        }
         private static void CompilerDiagnosticLookahead()
         {
             const string assignmentError = "Assignment operator expected.";

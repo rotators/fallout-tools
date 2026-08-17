@@ -821,7 +821,12 @@ namespace ScriptEditor
                 }
                 startupRestorationInProgress = false;
                 tabControl1.Visible = tabControl1.TabPages.Count > 0;
-                PositionEditorCornerButtons();
+                BeginInvoke(new MethodInvoker(delegate {
+                    if (IsDisposed || tabControl1.TabPages.Count == 0)
+                        return;
+                    Split_button.Visible = !startupRestorationInProgress;
+                    PositionEditorCornerButtons();
+                }));
             });
         }
         private void TextEditor_Resize(object sender, EventArgs e)
@@ -1296,7 +1301,7 @@ namespace ScriptEditor
 
         private void EnableFormControls()
         {
-            Split_button.Visible = true;
+            Split_button.Visible = !startupRestorationInProgress;
             splitDocumentToolStripMenuItem.Enabled = true;
             openAllIncludesScriptToolStripMenuItem.Enabled = true;
             GotoProc_StripButton.Enabled = true;

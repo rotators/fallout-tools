@@ -79,12 +79,13 @@ namespace ScriptEditor.TextEditorUI
             string[] log = output.Split(new string[] {"\r\n"}, StringSplitOptions.RemoveEmptyEntries);
             for (int s = 0; s < log.Length; s++)
             {
-                bool warning = (log[s].IndexOf(": warning:") > 0);
-                if (log[s].StartsWith("[Error]") || log[s].StartsWith("[Warning]") || log[s].StartsWith("[Message]") || warning) {
+                bool warning = log[s].IndexOf(": warning:", StringComparison.OrdinalIgnoreCase) > 0;
+                bool compilerError = log[s].IndexOf(": error:", StringComparison.OrdinalIgnoreCase) > 0;
+                if (log[s].StartsWith("[Error]") || log[s].StartsWith("[Warning]") || log[s].StartsWith("[Message]") || warning || compilerError) {
                     var error = new Error(ErrorType.Message);
                     if (warning || log[s][1] == 'W')
                         error.type = ErrorType.Warning;
-                    else if (log[s][1] == 'E')
+                    else if (compilerError || log[s][1] == 'E')
                         error.type = ErrorType.Error;
 
                     GetLogText(log, s, error);
