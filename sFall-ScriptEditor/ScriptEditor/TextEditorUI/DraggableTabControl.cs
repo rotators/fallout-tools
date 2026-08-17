@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.ComponentModel;
@@ -12,6 +12,7 @@ public delegate void SwapEventHandler(object sender, TabsSwappedEventArgs e);
 public class DraggableTabControl : TabControl
 {
     private TabPage m_DraggedTab;
+    private TabPage m_SwapLockTarget;
     private int m_X;
     private int m_HotTabIndex = -1;
     private int m_HotCloseIndex = -1;
@@ -448,6 +449,7 @@ public class DraggableTabControl : TabControl
             return;
         }
         m_DraggedTab = TabAt(e.Location);
+        m_SwapLockTarget = null;
         m_X = e.X;
     }
 
@@ -483,17 +485,25 @@ public class DraggableTabControl : TabControl
 
         if (e.Button != MouseButtons.Left || m_ClosePressedIndex >= 0 || m_DraggedTab == null || e.X == m_X)
             return;
-
         m_X = e.X;
+        if (m_SwapLockTarget != null) {
+            if (hoveredTab == m_SwapLockTarget)
+                return;
+            m_SwapLockTarget = null;
+        }
+
         if (hoveredTab == null || hoveredTab == m_DraggedTab)
             return;
 
+        // Keep the original tab as the sole drag source. After it swaps visually with a
+        // target, that displaced target must be left before it may trigger another swap.
         Swap(m_DraggedTab, hoveredTab);
+        m_SwapLockTarget = hoveredTab;
     }
-
     private void OnMouseUp(object sender, MouseEventArgs e)
     {
         m_DraggedTab = null;
+        m_SwapLockTarget = null;
         Rectangle overflow = GetOverflowButtonRectangle();
         if (e.Button == MouseButtons.Left && !overflow.IsEmpty && overflow.Contains(e.Location))
         {
