@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 using System.ComponentModel;
@@ -17,6 +17,8 @@ public class DraggableTabControl : TabControl
     private int m_HotCloseIndex = -1;
     private bool m_OverflowHot;
     private int m_ClosePressedIndex = -1;
+    private bool m_IsSwapping;
+    public bool IsReordering { get { return m_IsSwapping; } }
     private ContextMenuStrip m_OverflowMenu;
     private readonly HashSet<TabPage> m_ModifiedTabs = new HashSet<TabPage>();
     private readonly HashSet<TabPage> m_UntitledTabs = new HashSet<TabPage>();
@@ -463,7 +465,8 @@ public class DraggableTabControl : TabControl
 
         int hotCloseIndex = hotIndex >= 0 && ShouldShowCloseButton(hotIndex) && GetCloseButtonRectangle(hotIndex).Contains(e.Location)
             ? hotIndex : -1;
-        if (hotCloseIndex != m_HotCloseIndex) {
+        if (hotCloseIndex != m_HotCloseIndex)
+        {
             InvalidateCloseButton(m_HotCloseIndex);
             m_HotCloseIndex = hotCloseIndex;
             InvalidateCloseButton(m_HotCloseIndex);
@@ -471,26 +474,21 @@ public class DraggableTabControl : TabControl
 
         Rectangle overflow = GetOverflowButtonRectangle();
         bool overflowHot = !overflow.IsEmpty && overflow.Contains(e.Location);
-        if (overflowHot != m_OverflowHot) {
+        if (overflowHot != m_OverflowHot)
+        {
             m_OverflowHot = overflowHot;
             if (!overflow.IsEmpty)
                 Invalidate(overflow, false);
         }
 
         if (e.Button != MouseButtons.Left || m_ClosePressedIndex >= 0 || m_DraggedTab == null || e.X == m_X)
-        {
             return;
-        }
+
         m_X = e.X;
-
-        TabPage tab = TabAt(e.Location);
-
-        if (tab == null || tab == m_DraggedTab)
-        {
+        if (hoveredTab == null || hoveredTab == m_DraggedTab)
             return;
-        }
 
-        Swap(m_DraggedTab, tab);
+        Swap(m_DraggedTab, hoveredTab);
     }
 
     private void OnMouseUp(object sender, MouseEventArgs e)
@@ -511,11 +509,10 @@ public class DraggableTabControl : TabControl
         {
             EventHandler<TabCloseRequestedEventArgs> handler = TabCloseRequested;
             if (handler != null)
-                handler(this, new TabCloseRequestedEventArgs(closeIndex));
+                handler(this, new TabCloseRequestedEventArgs(closeIndex, TabPages[closeIndex]));
         }
         InvalidateCloseButton(closeIndex);
     }
-
     private void OnMouseLeave(object sender, EventArgs e)
     {
         int previousHotIndex = m_HotTabIndex;
@@ -545,11 +542,6 @@ public class DraggableTabControl : TabControl
         if (!bounds.IsEmpty)
             Invalidate(bounds, false);
     }
-
-   /* private void OnMouseUp(object sender, MouseEventArgs e)
-    {
-        m_DraggedTab = TabAt(e.Location);
-    }*/
 
     private TabPage TabAt(Point position)
     {
@@ -581,34 +573,62 @@ public class DraggableTabControl : TabControl
         base.Dispose(disposing);
     }
 
-    private void Swap(TabPage a, TabPage b)
+    private void Swap(TabPage dragged, TabPage target)
     {
-        int iA = TabPages.IndexOf(a);
-        int iB = TabPages.IndexOf(b);
+        if (m_IsSwapping || dragged == null || target == null)
+            return;
 
-        int d = GetTabRect(iA).Width - GetTabRect(iB).Width;
+        int draggedIndex = TabPages.IndexOf(dragged);
+        int targetIndex = TabPages.IndexOf(target);
+        if (draggedIndex < 0 || targetIndex < 0 || draggedIndex == targetIndex ||
+            draggedIndex >= TabCount || targetIndex >= TabCount)
+            return;
 
-        bool bModified = m_ModifiedTabs.Contains(b);
-        bool bUntitled = m_UntitledTabs.Contains(b);
-        if (tabsSwapped != null) {
-        	 tabsSwapped(this, new TabsSwappedEventArgs(iA, iB));
+        TabPage selectedBeforeSwap = SelectedTab;
+        bool targetModified = m_ModifiedTabs.Contains(target);
+        bool targetUntitled = m_UntitledTabs.Contains(target);
+        m_IsSwapping = true;
+        try
+        {
+            if (tabsSwapped != null)
+                tabsSwapped(this, new TabsSwappedEventArgs(draggedIndex, targetIndex));
+
+            // The source and target objects are checked again after callbacks: closing a tab
+            // during a mouse message may otherwise leave a stale collection index behind.
+            draggedIndex = TabPages.IndexOf(dragged);
+            targetIndex = TabPages.IndexOf(target);
+            if (draggedIndex < 0 || targetIndex < 0 || draggedIndex == targetIndex)
+                return;
+
+            TabPages.Remove(target);
+            TabPages.Insert(draggedIndex, target);
+            SetDocumentModified(target, targetModified);
+            SetDocumentUntitled(target, targetUntitled);
+
+            if (selectedBeforeSwap != null && TabPages.IndexOf(selectedBeforeSwap) >= 0)
+                SelectedTab = selectedBeforeSwap;
         }
-        TabPages.RemoveAt(iB);
-        TabPages.Insert(iA, b);
-        SetDocumentModified(b, bModified);
-        SetDocumentUntitled(b, bUntitled);
-
-        if (d < -1) Cursor.Position = new Point((iA > iB) ? Cursor.Position.X + d : Cursor.Position.X - d, Cursor.Position.Y);
+        catch (ArgumentOutOfRangeException)
+        {
+            // A tab was changed while Windows was dispatching the drag message. Ignore this
+            // individual movement; the next pointer movement will use the current collection.
+        }
+        finally
+        {
+            m_IsSwapping = false;
+        }
     }
 }
 
 public sealed class TabCloseRequestedEventArgs : EventArgs
 {
     public int TabIndex { get; private set; }
+    public TabPage TabPage { get; private set; }
 
-    public TabCloseRequestedEventArgs(int tabIndex)
+    public TabCloseRequestedEventArgs(int tabIndex, TabPage tabPage)
     {
         TabIndex = tabIndex;
+        TabPage = tabPage;
     }
 }
 
@@ -622,4 +642,5 @@ public class TabsSwappedEventArgs : EventArgs
     	aIndex = _a;
     	bIndex = _b;
     }
+
 }

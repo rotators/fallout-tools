@@ -434,11 +434,11 @@ namespace ScriptEditor
             }
         }
 
-        private void Close(TabInfo tab)
+        private void Close(TabInfo tab, TabPage requestedPage = null)
         {
             SynchronizeDocumentTabOrder();
-            TabPage page = FindDocumentTabPage(tab);
-            if (page == null)
+            TabPage page = requestedPage ?? FindDocumentTabPage(tab);
+            if (page == null || tabControl1.TabPages.IndexOf(page) < 0)
                 return;
 
             int i = tabControl1.TabPages.IndexOf(page);
@@ -482,11 +482,12 @@ namespace ScriptEditor
             }
             documentTabs.Remove(page);
             tabControl1.TabPages.RemoveAt(i);
-            tabs.RemoveAt(i);
+            int tabListIndex = tabs.IndexOf(tab);
+            if (tabListIndex >= 0)
+                tabs.RemoveAt(tabListIndex);
+            SynchronizeDocumentTabOrder();
             SaveUnsavedDocumentRecovery();
             if (tabControl1.TabPages.Count == 0) tabControl1.Visible = false;
-
-            for (int j = i; j < tabs.Count; j++) tabs[j].index--;
 
             for (int j = 0; j < tabs.Count; j++)
             {
@@ -656,6 +657,8 @@ namespace ScriptEditor
         // Called when creating a new document and when switching tabs
         private void tabControl1_Selected(object sender, TabControlEventArgs e)
         {
+            if (tabControl1.IsReordering)
+                return;
             // останавливаем таймеры парсеров
             intParserTimer.Stop();
             extParserTimer.Stop();

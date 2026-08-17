@@ -1174,20 +1174,25 @@ namespace ScriptEditor
             // Tabs Swapped
             tabControl1.ShowCloseButtons = true;
             tabControl1.TabCloseRequested += delegate(object sender, TabCloseRequestedEventArgs e) {
-                if (e.TabIndex < 0 || e.TabIndex >= tabControl1.TabPages.Count)
+                TabPage page = e.TabPage;
+                if (page == null && e.TabIndex >= 0 && e.TabIndex < tabControl1.TabPages.Count)
+                    page = tabControl1.TabPages[e.TabIndex];
+                if (page == null)
                     return;
 
                 TabInfo tab;
-                if (documentTabs.TryGetValue(tabControl1.TabPages[e.TabIndex], out tab))
-                    Close(tab);
+                if (documentTabs.TryGetValue(page, out tab))
+                    Close(tab, page);
             };
             tabControl1.tabsSwapped += delegate(object sender, TabsSwappedEventArgs e) {
                 if (e.aIndex < 0 || e.aIndex >= tabs.Count || e.bIndex < 0 || e.bIndex >= tabs.Count)
                     return;
 
-                TabInfo movedTab = tabs[e.bIndex];
-                tabs.RemoveAt(e.bIndex);
-                tabs.Insert(e.aIndex, movedTab);
+                TabInfo movedTab = tabs[e.aIndex];
+                tabs.RemoveAt(e.aIndex);
+                int insertIndex = e.bIndex;
+                insertIndex = Math.Max(0, Math.Min(insertIndex, tabs.Count));
+                tabs.Insert(insertIndex, movedTab);
                 for (int index = 0; index < tabs.Count; index++)
                     tabs[index].index = index;
             };
@@ -2353,10 +2358,15 @@ namespace ScriptEditor
 
         void TextArea_SetFocus(object sender, EventArgs e)
         {
-            if (!this.ContainsFocus || SearchTextComboBox.Focused || ReplaceTextBox.Focused)
+            if (!this.ContainsFocus || SearchTextComboBox.Focused || ReplaceTextBox.Focused || currentTab == null)
                 return;
 
-            if (autoComplete.ShiftCaret) {
+            TextArea senderTextArea = sender as TextArea;
+            if (sender != null && (senderTextArea == null || currentActiveTextAreaCtrl == null ||
+                currentActiveTextAreaCtrl.TextArea != senderTextArea))
+                return;
+
+            if (autoComplete != null && autoComplete.ShiftCaret) {
                 autoComplete.ShiftCaret = false;
                 currentActiveTextAreaCtrl.Caret.Position = currentDocument.OffsetToPosition(autoComplete.WordPosition.Key);
                 currentActiveTextAreaCtrl.Caret.UpdateCaretPosition();
