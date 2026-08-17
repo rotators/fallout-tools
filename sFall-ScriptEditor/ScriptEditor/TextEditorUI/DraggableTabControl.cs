@@ -588,11 +588,15 @@ public class DraggableTabControl : TabControl
 
         int d = GetTabRect(iA).Width - GetTabRect(iB).Width;
 
+        bool bModified = m_ModifiedTabs.Contains(b);
+        bool bUntitled = m_UntitledTabs.Contains(b);
         if (tabsSwapped != null) {
-        	tabsSwapped(this, new TabsSwappedEventArgs(iA, iB));
+        	 tabsSwapped(this, new TabsSwappedEventArgs(iA, iB));
         }
         TabPages.RemoveAt(iB);
         TabPages.Insert(iA, b);
+        SetDocumentModified(b, bModified);
+        SetDocumentUntitled(b, bUntitled);
 
         if (d < -1) Cursor.Position = new Point((iA > iB) ? Cursor.Position.X + d : Cursor.Position.X - d, Cursor.Position.Y);
     }

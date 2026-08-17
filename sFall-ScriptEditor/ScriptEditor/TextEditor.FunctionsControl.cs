@@ -186,7 +186,7 @@ namespace ScriptEditor
             tabControl1.SetDocumentUntitled(tp, String.IsNullOrWhiteSpace(ti.filepath));
             InterfaceTheme.Apply(tp);
             tp.ResumeLayout(false);
-            tabControl1.Visible = true;
+            tabControl1.Visible = !startupRestorationInProgress;
             tabControl1.ResumeLayout(true);
             if (tabControl1.TabPages.Count == 1)
                 EnableFormControls();

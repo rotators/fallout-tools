@@ -117,6 +117,7 @@ namespace ScriptEditor
         public static bool searchFindAllMatches;
         public static bool reopenLastTabs = true;
         public static bool restoreUnsavedChangesOnExit = true;
+        public static bool showProcedureArguments;
         private static bool procedureTreeExpandedDefaultApplied;
 
         // for Flowchart
@@ -354,6 +355,8 @@ namespace ScriptEditor
                         logPanelCollapsed = br.ReadBoolean();
                     if (br.BaseStream.Position < br.BaseStream.Length)
                         restoreUnsavedChangesOnExit = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        showProcedureArguments = br.ReadBoolean();
                 } catch {
                     ScriptEditor.ThemedMessageBox.Show("An error occurred while reading configuration file.\n"
                                     + "File setting.dat may be in wrong format.", "Setting read error");
@@ -560,6 +563,7 @@ namespace ScriptEditor
             bw.Write(procedureTreeExpandedDefaultApplied);
             bw.Write(logPanelCollapsed);
             bw.Write(restoreUnsavedChangesOnExit);
+            bw.Write(showProcedureArguments);
             bw.Close();
 
             // Recent files
@@ -650,6 +654,7 @@ namespace ScriptEditor
             public string FilePath;
             public string Text;
             public int CaretLine;
+            public int TabIndex = -1;
         }
 
         public static void SaveUnsavedSession(IEnumerable<UnsavedSessionDocument> documents, int selectedIndex)
@@ -661,7 +666,7 @@ namespace ScriptEditor
             string temporaryPath = UnsavedSessionPath + ".tmp";
             try {
                 using (BinaryWriter writer = new BinaryWriter(File.Create(temporaryPath), Encoding.UTF8)) {
-                    writer.Write((byte)2);
+                    writer.Write((byte)3);
                     writer.Write(selectedIndex >= 0 && selectedIndex < saved.Count ? selectedIndex : -1);
                     writer.Write(saved.Count);
                     foreach (UnsavedSessionDocument document in saved) {
@@ -669,6 +674,7 @@ namespace ScriptEditor
                         writer.Write(document.FilePath ?? String.Empty);
                         writer.Write(document.Text ?? String.Empty);
                         writer.Write(Math.Max(0, document.CaretLine));
+                        writer.Write(document.TabIndex);
                     }
                 }
                 if (File.Exists(UnsavedSessionPath))
@@ -689,7 +695,7 @@ namespace ScriptEditor
             try {
                 using (BinaryReader reader = new BinaryReader(File.OpenRead(UnsavedSessionPath), Encoding.UTF8)) {
                     byte version = reader.ReadByte();
-                    if (version < 1 || version > 2)
+                    if (version < 1 || version > 3)
                         throw new InvalidDataException("Unsupported unsaved session-file version.");
                     selectedIndex = reader.ReadInt32();
                     int count = reader.ReadInt32();
@@ -702,7 +708,7 @@ namespace ScriptEditor
                         string text = reader.ReadString();
                         if (text.Length > 16 * 1024 * 1024)
                             throw new InvalidDataException("Unsaved document is too large.");
-                        documents[i] = new UnsavedSessionDocument { Name = name, FilePath = filePath, Text = text, CaretLine = reader.ReadInt32() };
+                        documents[i] = new UnsavedSessionDocument { Name = name, FilePath = filePath, Text = text, CaretLine = reader.ReadInt32(), TabIndex = version >= 3 ? reader.ReadInt32() : -1 };
                     }
                     if (selectedIndex < 0 || selectedIndex >= count)
                         selectedIndex = -1;

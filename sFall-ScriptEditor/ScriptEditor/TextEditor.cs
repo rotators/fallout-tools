@@ -136,6 +136,7 @@ namespace ScriptEditor
         private bool roundTrip = false;
         private bool savingRunning = false;
         private bool isClosing = false;
+        private bool startupRestorationInProgress = true;
         private Timer statusMessageTimer;
         private Timer unsavedRecoveryTimer;
         private int unsavedRecoveryLastChangeTick = -1;
@@ -225,6 +226,7 @@ namespace ScriptEditor
             saveUTF8ToolStripMenuItem.Checked = Settings.saveScriptUTF8;
             win32RenderTextToolStripMenuItem.Checked = Settings.winAPITextRender;
             oldDecompileToolStripMenuItem.Checked = Settings.oldDecompile;
+            ViewArgsStripButton.Checked = Settings.showProcedureArguments;
             SizeFontToString();
 
             if (Directory.Exists(Settings.lastOpenScriptsFolder))
@@ -749,7 +751,7 @@ namespace ScriptEditor
             splitContainer3.Panel1Collapsed = true;
             splitContainer2.Panel2Collapsed = true;
             splitContainer1.Panel2Collapsed = true;
-            tabControl1.Visible = tabControl1.TabPages.Count > 0;
+            tabControl1.Visible = false;
             splitContainer2.Panel1MinSize = 300;
             splitContainer2.Panel2MinSize = 260;
             splitContainer1.SplitterDistance = Size.Height;
@@ -817,6 +819,9 @@ namespace ScriptEditor
                     if (file != null)
                         Open(file, TextEditor.OpenType.File, commandline: true, fcdOpen: fcd);
                 }
+                startupRestorationInProgress = false;
+                tabControl1.Visible = tabControl1.TabPages.Count > 0;
+                PositionEditorCornerButtons();
             });
         }
         private void TextEditor_Resize(object sender, EventArgs e)
@@ -971,7 +976,8 @@ namespace ScriptEditor
                     Name = tab.filename,
                     FilePath = savedDocument ? tab.filepath : null,
                     Text = tab.textEditor.Text,
-                    CaretLine = tab.textEditor.ActiveTextAreaControl.Caret.Line
+                    CaretLine = tab.textEditor.ActiveTextAreaControl.Caret.Line,
+                    TabIndex = tab.index
                 });
             }
 
@@ -1055,6 +1061,29 @@ namespace ScriptEditor
             restoreTimer.Start();
         }
 
+        private void MoveTabToIndex(TabInfo tab, int targetIndex)
+        {
+            if (tab == null || targetIndex < 0)
+                return;
+
+            TabPage page = FindDocumentTabPage(tab);
+            if (page == null)
+                return;
+
+            int currentIndex = tabControl1.TabPages.IndexOf(page);
+            if (currentIndex < 0)
+                return;
+
+            targetIndex = Math.Min(targetIndex, tabControl1.TabPages.Count - 1);
+            if (currentIndex == targetIndex)
+                return;
+
+            tabControl1.TabPages.RemoveAt(currentIndex);
+            tabControl1.TabPages.Insert(targetIndex, page);
+            SynchronizeDocumentTabOrder();
+            UpdateDocumentTab(tab.index);
+        }
+
         private bool RestoreUnsavedSession()
         {
             int selectedIndex;
@@ -1085,6 +1114,7 @@ namespace ScriptEditor
                 // not represent work that needs a save confirmation when it is closed.
                 restored.changed = !String.IsNullOrWhiteSpace(document.FilePath) || !String.IsNullOrEmpty(document.Text);
                 restored.textEditor.ActiveTextAreaControl.Caret.Line = Math.Min(Math.Max(0, document.CaretLine), Math.Max(0, restored.textEditor.Document.TotalNumberOfLines - 1));
+                MoveTabToIndex(restored, document.TabIndex);
                 UpdateDocumentTab(restored.index);
                 restoredAny = true;
                 if (i == selectedIndex)
@@ -1276,6 +1306,11 @@ namespace ScriptEditor
             if (setOnlyOnce) return;
             setOnlyOnce = true;
 
+            PositionEditorCornerButtons();
+        }
+
+        private void PositionEditorCornerButtons()
+        {
             int xLocation = tabControl1.DisplayRectangle.Right;
             Split_button.Left = xLocation - Split_button.Width;
             Split_button.Top = tabControl1.DisplayRectangle.Bottom - Split_button.Height;
@@ -2332,6 +2367,7 @@ namespace ScriptEditor
 
         private void ViewArgsStripButton_CheckedChanged(object sender, EventArgs e)
         {
+            Settings.showProcedureArguments = ViewArgsStripButton.Checked;
             UpdateNames();
         }
 
