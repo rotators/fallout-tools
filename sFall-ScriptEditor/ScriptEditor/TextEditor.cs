@@ -817,8 +817,6 @@ namespace ScriptEditor
                     if (file != null)
                         Open(file, TextEditor.OpenType.File, commandline: true, fcdOpen: fcd);
                 }
-                if (restoredPreviousSession || restoredUnsavedSession)
-                    BeginInvoke((MethodInvoker)ExpandRestoredProcedureGroups);
             });
         }
         private void TextEditor_Resize(object sender, EventArgs e)
@@ -1014,10 +1012,6 @@ namespace ScriptEditor
 
             int selectedIndex;
             string[] paths = Settings.LoadLastSession(out selectedIndex);
-            if (paths.Length > 0) {
-                Settings.globalProceduresCollapsed = false;
-                Settings.localProceduresCollapsed = false;
-            }
             TabInfo selectedTab = null;
             bool restoredAny = false;
             int pathIndex = 0;
@@ -1099,15 +1093,6 @@ namespace ScriptEditor
             if (selectedTab != null)
                 tabControl1.SelectTab(selectedTab.index);
             return restoredAny;
-        }
-        private void ExpandRestoredProcedureGroups()
-        {
-            Settings.globalProceduresCollapsed = false;
-            Settings.localProceduresCollapsed = false;
-            if (ProcTree.Nodes.Count > 0)
-                ProcTree.Nodes[0].Expand();
-            if (ProcTree.Nodes.Count > 1)
-                ProcTree.Nodes[1].Expand();
         }
 
         private void SaveOpenTabSession()
