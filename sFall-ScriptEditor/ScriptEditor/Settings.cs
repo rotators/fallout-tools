@@ -64,6 +64,7 @@ namespace ScriptEditor
         public static string lastOpenScriptsFolder;
         public static int editorSplitterPosition = -1;
         public static int editorSplitterPosition2 = -1;
+        public static bool logPanelCollapsed = false;
         public static string language = "english";
         public static bool tabsToSpaces = true;
         public static int tabSize = 3;
@@ -347,6 +348,8 @@ namespace ScriptEditor
                         reopenLastTabs = br.ReadBoolean();
                     if (br.BaseStream.Position < br.BaseStream.Length)
                         procedureTreeExpandedDefaultApplied = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        logPanelCollapsed = br.ReadBoolean();
                 } catch {
                     ScriptEditor.ThemedMessageBox.Show("An error occurred while reading configuration file.\n"
                                     + "File setting.dat may be in wrong format.", "Setting read error");
@@ -551,6 +554,7 @@ namespace ScriptEditor
             bw.Write(searchFindAllMatches);
             bw.Write(reopenLastTabs);
             bw.Write(procedureTreeExpandedDefaultApplied);
+            bw.Write(logPanelCollapsed);
             bw.Close();
 
             // Recent files

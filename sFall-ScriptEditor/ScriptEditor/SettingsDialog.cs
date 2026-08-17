@@ -137,6 +137,10 @@ namespace ScriptEditor
             if (cancelRequested || DialogResult != DialogResult.OK)
                 return;
 
+            byte previousHintsLanguage = Settings.hintsLang;
+            bool previousShowTips = Settings.showTips;
+            bool previousShortDescription = Settings.shortDesc;
+
             Settings.useMcpp = false;
             Settings.useWatcom = false;
             switch (cmbPreprocessor.SelectedIndex) {
@@ -185,6 +189,21 @@ namespace ScriptEditor
             foreach (ListViewItem item in msgPathlistView.Items)
                 Settings.msgListPath.Add(item.Text);
             Settings.Save();
+
+            if (Settings.hintsLang != previousHintsLanguage) {
+                foreach (Form form in Application.OpenForms) {
+                    TextEditor editor = form as TextEditor;
+                    if (editor != null)
+                        editor.RefreshDescriptionLanguage();
+                }
+            }
+            if (Settings.showTips != previousShowTips || Settings.shortDesc != previousShortDescription) {
+                foreach (Form form in Application.OpenForms) {
+                    TextEditor editor = form as TextEditor;
+                    if (editor != null)
+                        editor.RefreshDescriptionOptions();
+                }
+            }
         }
 
         private void bChange_Click(object sender, EventArgs e)

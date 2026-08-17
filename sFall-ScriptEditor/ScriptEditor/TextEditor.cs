@@ -221,6 +221,30 @@ namespace ScriptEditor
             ColorTheme.ApplyRightPanelTheme();
         }
 
+        internal void RefreshDescriptionLanguage()
+        {
+            const int builtInProcedureMenuItemCount = 7;
+            while (ProcMnContext.Items.Count > builtInProcedureMenuItemCount)
+                ProcMnContext.Items.RemoveAt(ProcMnContext.Items.Count - 1);
+            HandlerProcedure.CreateProcHandlers(ProcMnContext, this);
+
+            FunctionsTree.Nodes.Clear();
+            Functions.CreateTree(FunctionsTree);
+            if (fuctionPanel != -1) {
+                FunctionTreeLeft.Nodes.Clear();
+                Functions.CreateTree(FunctionTreeLeft);
+            }
+
+            ProgramInfo.LoadOpcodes();
+        }
+
+        internal void RefreshDescriptionOptions()
+        {
+            if (!Settings.showTips)
+                ToolTipsHide();
+            ProgramInfo.LoadOpcodes();
+        }
+
         private void ConfigureHelpMenu()
         {
             ToolStripMenuItem repositoryItem = new ToolStripMenuItem("Rotators Tools Repository");
@@ -676,10 +700,7 @@ namespace ScriptEditor
             splitContainer2.Panel2MinSize = 260;
             splitContainer1.SplitterDistance = Size.Height;
 
-            if (Settings.editorSplitterPosition == -1)
-                minimizeLogSize = Size.Height - (Size.Height / 5);
-            else
-                minimizeLogSize = Settings.editorSplitterPosition;
+            minimizeLogSize = Settings.logPanelCollapsed ? Settings.editorSplitterPosition : 0;
 
             if (Settings.editorSplitterPosition2 != -1)
                 splitContainer2.SplitterDistance = Settings.editorSplitterPosition2;
@@ -815,8 +836,8 @@ namespace ScriptEditor
             if (bwSyntaxParser.IsBusy)
                 bwSyntaxParser.CancelAsync();
             splitContainer3.Panel1Collapsed = true;
-            int dist = this.Height - (this.Height / 4) + 100;
-            Settings.editorSplitterPosition = (splitContainer1.SplitterDistance < dist) ? splitContainer1.SplitterDistance : -1;
+            if (!splitContainer1.Panel2Collapsed && !Settings.logPanelCollapsed)
+                Settings.editorSplitterPosition = splitContainer1.SplitterDistance;
             Settings.editorSplitterPosition2 = splitContainer2.SplitterDistance;
             Settings.SaveSettingData(this);
             SyntaxFile.DeleteSyntaxFile();
@@ -1094,6 +1115,7 @@ namespace ScriptEditor
             CommentStripButton.Enabled = true;
             if (Settings.showLog)
                 splitContainer1.Panel2Collapsed = false;
+            RestoreLogSplitterPosition();
             includeFileToCodeToolStripMenuItem.Enabled = true;
 
             // set buttons position
@@ -1764,28 +1786,53 @@ namespace ScriptEditor
                 e.Effect = DragDropEffects.Link;
         }
 
+        private bool IsLogPanelCollapsed()
+        {
+            int maximumDistance = splitContainer1.Height - splitContainer1.Panel2MinSize - splitContainer1.SplitterWidth;
+            return splitContainer1.Height > 0 && splitContainer1.SplitterDistance >= maximumDistance;
+        }
+
         private void minimize_log_button_Click(object sender, EventArgs e)
         {
-            if (minimizeLogSize == 0) {
-                minimizeLogSize = splitContainer1.SplitterDistance;
-                splitContainer1.SplitterDistance = Size.Height;
-                Settings.editorSplitterPosition = minimizeLogSize;
+            if (!IsLogPanelCollapsed()) {
+                Settings.editorSplitterPosition = splitContainer1.SplitterDistance;
+                Settings.logPanelCollapsed = true;
+                minimizeLogSize = Settings.editorSplitterPosition;
+                splitContainer1.SplitterDistance = splitContainer1.Height - splitContainer1.SplitterWidth;
             } else {
-                int hs = Size.Height - (Size.Height / 4);
-                if (Settings.editorSplitterPosition == -1)
-                    Settings.editorSplitterPosition = hs;
-                if (minimizeLogSize > (hs + 100))
-                    splitContainer1.SplitterDistance = hs;
-                else
-                    splitContainer1.SplitterDistance = Settings.editorSplitterPosition;
+                Settings.logPanelCollapsed = false;
+                if (Settings.editorSplitterPosition < splitContainer1.Panel1MinSize)
+                    Settings.editorSplitterPosition = splitContainer1.Height - (splitContainer1.Height / 4);
+                RestoreLogSplitterPosition();
                 minimizeLogSize = 0;
             }
+        }
+
+        private void RestoreLogSplitterPosition()
+        {
+            if (splitContainer1.Height <= 0)
+                return;
+            if (Settings.logPanelCollapsed) {
+                splitContainer1.SplitterDistance = splitContainer1.Height - splitContainer1.SplitterWidth;
+                return;
+            }
+            if (Settings.editorSplitterPosition < 0)
+                return;
+
+            int maximumDistance = splitContainer1.Height - splitContainer1.Panel2MinSize - splitContainer1.SplitterWidth;
+            int distance = Math.Max(splitContainer1.Panel1MinSize,
+                Math.Min(Settings.editorSplitterPosition, maximumDistance));
+            if (distance <= maximumDistance)
+                splitContainer1.SplitterDistance = distance;
         }
 
         private void showLogWindowToolStripMenuItem_Click(object sender, EventArgs e)
         {
             splitContainer1.Panel2Collapsed = !(Settings.showLog = showLogWindowToolStripMenuItem.Checked);
-            if (!splitContainer1.Panel2Collapsed) InterfaceTheme.Apply(splitContainer1.Panel2);
+            if (!splitContainer1.Panel2Collapsed) {
+                RestoreLogSplitterPosition();
+                InterfaceTheme.Apply(splitContainer1.Panel2);
+            }
         }
 
         private void Headers_toolStripSplitButton_ButtonClick(object sender, EventArgs e)

@@ -616,8 +616,7 @@ namespace ScriptEditor {
             this.cbShowTips.Size = new System.Drawing.Size(77, 19);
             this.cbShowTips.TabIndex = 39;
             this.cbShowTips.Text = "Show tips";
-            this.toolTip.SetToolTip(this.cbShowTips, "Popup tips for code or functions when entering an opening parenthesis.\r\n(required" +
-        " program restart)");
+            this.toolTip.SetToolTip(this.cbShowTips, "Popup tips for code or functions when entering an opening parenthesis.");
             this.cbShowTips.UseVisualStyleBackColor = true;
             // 
             // cbShortDesc
@@ -628,7 +627,7 @@ namespace ScriptEditor {
             this.cbShortDesc.Size = new System.Drawing.Size(121, 19);
             this.cbShortDesc.TabIndex = 40;
             this.cbShortDesc.Text = "Short descriptions";
-            this.toolTip.SetToolTip(this.cbShortDesc, "Show short pop-up descriptions for opcodes.\r\n(Program restart required.)");
+            this.toolTip.SetToolTip(this.cbShortDesc, "Show short pop-up descriptions for opcodes.");
             this.cbShortDesc.UseVisualStyleBackColor = true;
             // 
             // cbFonts
