@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -115,13 +116,16 @@ namespace ScriptEditor
                 te.TextEditorProperties.Font = new Font("Verdana", 10 + Settings.sizeFont, FontStyle.Regular, GraphicsUnit.Point);
             } else {
                 te.SetHighlighting(ColorTheme.HighlightingScheme); // Activate the highlighting, use the name from the SyntaxDefinition node.
+                te.Document.ExtraWordList = new HighlightExtraWord();
                 te.Document.FoldingManager.FoldingStrategy = new CodeFolder();
                 te.TextEditorProperties.ConvertTabsToSpaces = Settings.tabsToSpaces;
                 te.TextEditorProperties.ShowSpaces = Settings.showTabsChar;
                 te.TextEditorProperties.IndentStyle = IndentStyle.Smart;
                 te.TextEditorProperties.ShowVerticalRuler = Settings.showVRuler;
                 te.TextEditorProperties.VerticalRulerRow = Settings.tabSize;
-                te.TextEditorProperties.AllowCaretBeyondEOL = true;
+                // Keep mouse clicks and caret placement within the actual line length.
+                // Desired-column navigation remains available for Up/Down movement.
+                te.TextEditorProperties.AllowCaretBeyondEOL = false;
                 //te.TextEditorProperties.CaretLine = true;
                 Settings.SetTextAreaFont(te);
             }
@@ -162,7 +166,7 @@ namespace ScriptEditor
                 ti.filename = Path.GetFileName(file);
             } else {
                 ti.filepath = null;
-                ti.filename = unsaved;
+                ti.filename = GetUnsavedDocumentName();
             }
 
             tabs.Add(ti);
@@ -564,6 +568,8 @@ namespace ScriptEditor
             return CheckTabs(tabs, filepath) != null;
         }
 
+        private string GetUnsavedDocumentName() { string candidate = unsaved; int suffix = 2; while (tabs.Any(tab => tab.filepath == null && String.Equals(tab.filename, candidate, StringComparison.OrdinalIgnoreCase))) candidate = "unsaved" + suffix++ + ".ssl"; return candidate; }
+
         private static string GetDocumentTabText(TabInfo tab)
         {
             if (tab == null)
@@ -813,6 +819,9 @@ namespace ScriptEditor
         // подсветить процедуру в дереве
         private void HighlightCurrentPocedure(int curLine)
         {
+            if (curLine != -2 && (currentTab == null || currentTab.parseInfo == null))
+                return;
+
             Procedure proc;
             if (curLine == -2) {
                 proc = currentHighlightProc;
@@ -890,9 +899,9 @@ namespace ScriptEditor
                 rootNode = ProcTree.Nodes.Add(s, s);
                 rootNode.ForeColor = ColorTheme.IsDarkTheme || InterfaceTheme.IsDark ? Color.FromArgb(86, 156, 214) : Color.DodgerBlue;
             }
-            ProcTree.Nodes[0].ToolTipText = "Procedures declared and located in headers files." + treeTipProcedure;
+            ProcTree.Nodes[0].ToolTipText = "Procedures declared in header files." + treeTipProcedure;
             ProcTree.Nodes[0].Tag = 0; // global tag
-            ProcTree.Nodes[1].ToolTipText = "Procedures declared and located in this script." + treeTipProcedure;
+            ProcTree.Nodes[1].ToolTipText = "Procedures declared in this script." + treeTipProcedure;
             ProcTree.Nodes[1].Tag = 1; // local tag
 
             foreach (Procedure p in currentTab.parseInfo.procs) {
@@ -910,7 +919,7 @@ namespace ScriptEditor
                     tn.Nodes.Add(tn2);
                 }
                 if (p.filename.Equals(currentTab.filename, StringComparison.OrdinalIgnoreCase) == false || p.IsImported) {
-                    tn.ToolTipText = p.ToString() + "\ndeclarate file: " + p.filename;
+                    tn.ToolTipText = p.ToString() + "\nDeclared in: " + p.filename;
                     ProcTree.Nodes[0].Nodes.Add(tn);
                     ProcTree.Nodes[0].Expand();
                 } else {
@@ -932,16 +941,16 @@ namespace ScriptEditor
                     rootNode = VarTree.Nodes.Add(s);
                     rootNode.ForeColor = ColorTheme.IsDarkTheme || InterfaceTheme.IsDark ? Color.FromArgb(86, 156, 214) : Color.DodgerBlue;
                     }
-                VarTree.Nodes[0].ToolTipText = "Variables declared and located in headers files." + treeTipVariable;
+                VarTree.Nodes[0].ToolTipText = "Variables declared in header files." + treeTipVariable;
                 VarTree.Nodes[0].Tag = 0;
-                VarTree.Nodes[1].ToolTipText = "Variables declared and located in this script." + treeTipVariable;
+                VarTree.Nodes[1].ToolTipText = "Variables declared in this script." + treeTipVariable;
                 VarTree.Nodes[1].Tag = 1;
 
                 foreach (Variable var in currentTab.parseInfo.vars) {
                     TreeNode tn = new TreeNode(var.name);
                     tn.Tag = var;
                     if (var.filename.Equals(currentTab.filename, StringComparison.OrdinalIgnoreCase) == false) {
-                        tn.ToolTipText = var.ToString() + "\ndeclarate file: " + var.filename;
+                        tn.ToolTipText = var.ToString() + "\nDeclared in: " + var.filename;
                         VarTree.Nodes[0].Nodes.Add(tn);
                         VarTree.Nodes[0].Expand();
                     } else {
@@ -1193,7 +1202,7 @@ namespace ScriptEditor
             //Refactor name
             if (!Settings.enableParser) {
                 renameToolStripMenuItem.Text += ": Disabled";
-                renameToolStripMenuItem.ToolTipText = "It is required to enable the parser in the settings.";
+                renameToolStripMenuItem.ToolTipText = "Enable the parser in Settings to use this feature.";
                 return;
             }
 
@@ -1254,7 +1263,7 @@ namespace ScriptEditor
                 }
                 if (item != null && item.IsImported) {
                     renameToolStripMenuItem.Enabled = !item.IsImported;
-                    renameToolStripMenuItem.ToolTipText = "The feature is disabled, will be available in future versions.";
+                    renameToolStripMenuItem.ToolTipText = "This feature is not yet available.";
                 }
             } else {
                 renameToolStripMenuItem.Text += ": Out of data";
@@ -1277,7 +1286,7 @@ namespace ScriptEditor
                 renameToolStripMenuItem.Visible = true;
                 renameToolStripMenuItem.Text = "Rename";
                 renameToolStripMenuItem.Enabled = false;
-                renameToolStripMenuItem.ToolTipText = (currentTab.needsParse) ? "Waiting get parsing data..." : "";
+                renameToolStripMenuItem.ToolTipText = (currentTab.needsParse) ? "Waiting for parser data..." : "";
             }
             //openIncludeToolStripMenuItem.Enabled = false;
             findReferencesToolStripMenuItem.Enabled = false;
@@ -1364,7 +1373,7 @@ namespace ScriptEditor
                 CodeFolder.SetProceduresCollapsed(tab.textEditor.Document, tab.filename);
             }
             // store last script position
-            if (Path.GetExtension(tab.filepath).ToLowerInvariant() == ".ssl" && tab.filename != unsaved)
+            if (tab.filepath != null && Path.GetExtension(tab.filepath).ToLowerInvariant() == ".ssl")
                 Settings.SetLastScriptPosition(tab.filename.ToLowerInvariant(), tab.textEditor.ActiveTextAreaControl.Caret.Line);
         }
 

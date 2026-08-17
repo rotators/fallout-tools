@@ -23,8 +23,7 @@ namespace ScriptEditor
             if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
                 return;
             InterfaceTheme.ApplyOnLoad(this);
-            this.labelVersion.Text = String.Format("Version {0}   Build {1}", appVersion,
-                File.GetLastWriteTime(Application.ExecutablePath).ToString("yyyy-MM-dd HH:mm"));
+            this.labelVersion.Text = String.Format("Version {0}   Built {1}", appVersion, BuildInfo.Timestamp);
             FormatDescription();
         }
 

@@ -27,6 +27,7 @@ namespace ScriptEditor
         private static readonly string RecentPath = Path.Combine(SettingsFolder, "recent.dat");
         private static readonly string SettingsPath = Path.Combine(SettingsFolder, "settings.dat");
         private static readonly string LastSessionPath = Path.Combine(SettingsFolder, "last-session.dat");
+        private static readonly string UnsavedSessionPath = Path.Combine(SettingsFolder, "unsaved-session.dat");
 
         public static readonly string SearchHistoryPath = Path.Combine(SettingsFolder, "SearchHistory.ini");
         public static readonly string SearchFoldersPath = Path.Combine(SettingsFolder, "SearchPaths.ini");
@@ -115,6 +116,7 @@ namespace ScriptEditor
         public static bool searchRegularExpression;
         public static bool searchFindAllMatches;
         public static bool reopenLastTabs = true;
+        public static bool restoreUnsavedChangesOnExit = true;
         private static bool procedureTreeExpandedDefaultApplied;
 
         // for Flowchart
@@ -350,6 +352,8 @@ namespace ScriptEditor
                         procedureTreeExpandedDefaultApplied = br.ReadBoolean();
                     if (br.BaseStream.Position < br.BaseStream.Length)
                         logPanelCollapsed = br.ReadBoolean();
+                    if (br.BaseStream.Position < br.BaseStream.Length)
+                        restoreUnsavedChangesOnExit = br.ReadBoolean();
                 } catch {
                     ScriptEditor.ThemedMessageBox.Show("An error occurred while reading configuration file.\n"
                                     + "File setting.dat may be in wrong format.", "Setting read error");
@@ -555,6 +559,7 @@ namespace ScriptEditor
             bw.Write(reopenLastTabs);
             bw.Write(procedureTreeExpandedDefaultApplied);
             bw.Write(logPanelCollapsed);
+            bw.Write(restoreUnsavedChangesOnExit);
             bw.Close();
 
             // Recent files
@@ -639,10 +644,91 @@ namespace ScriptEditor
             }
         }
 
-        public static void ClearLastSession()
+        public sealed class UnsavedSessionDocument
+        {
+            public string Name;
+            public string FilePath;
+            public string Text;
+            public int CaretLine;
+        }
+
+        public static void SaveUnsavedSession(IEnumerable<UnsavedSessionDocument> documents, int selectedIndex)
+        {
+            if (!Directory.Exists(SettingsFolder))
+                Directory.CreateDirectory(SettingsFolder);
+
+            List<UnsavedSessionDocument> saved = new List<UnsavedSessionDocument>(documents ?? new UnsavedSessionDocument[0]);
+            string temporaryPath = UnsavedSessionPath + ".tmp";
+            try {
+                using (BinaryWriter writer = new BinaryWriter(File.Create(temporaryPath), Encoding.UTF8)) {
+                    writer.Write((byte)2);
+                    writer.Write(selectedIndex >= 0 && selectedIndex < saved.Count ? selectedIndex : -1);
+                    writer.Write(saved.Count);
+                    foreach (UnsavedSessionDocument document in saved) {
+                        writer.Write(document.Name ?? "unsaved.ssl");
+                        writer.Write(document.FilePath ?? String.Empty);
+                        writer.Write(document.Text ?? String.Empty);
+                        writer.Write(Math.Max(0, document.CaretLine));
+                    }
+                }
+                TryDeleteFile(UnsavedSessionPath);
+                File.Move(temporaryPath, UnsavedSessionPath);
+            } catch (Exception ex) {
+                TryDeleteFile(temporaryPath);
+                Program.printLog("   Could not save unsaved document recovery data: " + ex.Message);
+            }
+        }
+
+        public static UnsavedSessionDocument[] LoadUnsavedSession(out int selectedIndex)
+        {
+            selectedIndex = -1;
+            if (!File.Exists(UnsavedSessionPath))
+                return new UnsavedSessionDocument[0];
+            try {
+                using (BinaryReader reader = new BinaryReader(File.OpenRead(UnsavedSessionPath), Encoding.UTF8)) {
+                    byte version = reader.ReadByte();
+                    if (version < 1 || version > 2)
+                        throw new InvalidDataException("Unsupported unsaved session-file version.");
+                    selectedIndex = reader.ReadInt32();
+                    int count = reader.ReadInt32();
+                    if (count < 0 || count > 64)
+                        throw new InvalidDataException("Invalid number of unsaved documents.");
+                    UnsavedSessionDocument[] documents = new UnsavedSessionDocument[count];
+                    for (int i = 0; i < count; i++) {
+                        string name = reader.ReadString();
+                        string filePath = version >= 2 ? reader.ReadString() : null;
+                        string text = reader.ReadString();
+                        if (text.Length > 16 * 1024 * 1024)
+                            throw new InvalidDataException("Unsaved document is too large.");
+                        documents[i] = new UnsavedSessionDocument { Name = name, FilePath = filePath, Text = text, CaretLine = reader.ReadInt32() };
+                    }
+                    if (selectedIndex < 0 || selectedIndex >= count)
+                        selectedIndex = -1;
+                    return documents;
+                }
+            } catch (Exception ex) {
+                selectedIndex = -1;
+                Program.printLog("   Ignored invalid unsaved document recovery data: " + ex.Message);
+                return new UnsavedSessionDocument[0];
+            }
+        }
+
+        public static void ClearPreviousTabSession()
         {
             TryDeleteFile(LastSessionPath);
             TryDeleteFile(LastSessionPath + ".tmp");
+        }
+
+        public static void ClearUnsavedSession()
+        {
+            TryDeleteFile(UnsavedSessionPath);
+            TryDeleteFile(UnsavedSessionPath + ".tmp");
+        }
+
+        public static void ClearLastSession()
+        {
+            ClearPreviousTabSession();
+            ClearUnsavedSession();
         }
 
         internal static void CleanupScriptTempDirectory(bool removeDirectory)

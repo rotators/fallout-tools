@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -165,7 +165,7 @@ namespace ScriptEditor.TextEditorUtilities
                 TAC.Caret.Position = tLoc;
                 LineSegment ls = TAC.Document.GetLineSegment(tLoc.Line);
                 TextMarker tm = new TextMarker(ls.Offset, ls.Length, TextMarkerType.WaveLine, Color.Red);
-                tm.ToolTip = "Wrong structure of the paired curves brackets.";
+                tm.ToolTip = "Mismatched parentheses.";
                 TAC.Document.MarkerStrategy.AddMarker(tm);
 
                 report.Add(new Error(ErrorType.Error, tm.ToolTip, file, tLoc.Line + 1, 0));
@@ -188,7 +188,7 @@ namespace ScriptEditor.TextEditorUtilities
                 int length = offset - ls.Offset;
                 length = ls.Length - length;
                 TextMarker tm = new TextMarker(offset, length, TextMarkerType.Underlined, Color.ForestGreen);
-                tm.ToolTip = "Missing '#' character of comment?";
+                tm.ToolTip = "Missing '#' comment marker?";
                 TAC.Document.MarkerStrategy.AddMarker(tm);
 
                 report.Add(new Error(ErrorType.None, tm.ToolTip, file, tLoc.Line + 1, tLoc.Column));

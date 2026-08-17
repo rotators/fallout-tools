@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -164,25 +164,13 @@
     <value>186, 17</value>
   </metadata>
   <data name="cbOptimize.ToolTip" xml:space="preserve">
-    <value>None - nothing is optimized
-Basic - only unreferenced procedures and variables will be removed
-Full - more optimization like constant folding, dead code removal, variable combine
-Experimental - even more optimization (variable reuse, constant propagation) - breaks code
-in some cases, use Full instead</value>
+    <value>None: no optimization.&#xA;Basic: removes unreferenced procedures and variables.&#xA;Full: also applies constant folding, dead-code removal, and variable combining.&#xA;Experimental: adds variable reuse and constant propagation; may break code. Use Full when possible.</value>
   </data>
   <data name="cbShortCircuit.ToolTip" xml:space="preserve">
-    <value>When script is compiled with this option enabled, 
-right-side of all AND, OR expressions will not be evaluated
-in case result is already known. Examples:
-
-(X and Y) - if X is false, Y will not be evaluated (result is false)
-(X or Y) - if X is true, likewise Y will be skipped (result is true)</value>
+    <value>With short-circuit evaluation, the right side of AND or OR is skipped once the result is known.&#xA;Example: in X AND Y, Y is skipped when X is false. In X OR Y, Y is skipped when X is true.</value>
   </data>
   <data name="cbAutocomplete.ToolTip" xml:space="preserve">
-    <value>Enable displaying box with a list of suggested procedure names, 
-variables, constants and macros as you type.
-Showing the autocompletion box is performed by keyboard shortcut [Ctrl + Space]
-(required program restart)</value>
+    <value>Show procedure, variable, constant, and macro suggestions as you type.&#xA;Press Ctrl+Space to open the suggestion list.</value>
   </data>
   <metadata name="MsgcontextMenu.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>404, 17</value>

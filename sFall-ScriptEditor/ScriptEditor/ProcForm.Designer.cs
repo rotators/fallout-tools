@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor
+namespace ScriptEditor
 {
     partial class ProcForm
     {
@@ -60,8 +60,7 @@
             this.rbAfterSelProcedure.Size = new System.Drawing.Size(129, 17);
             this.rbAfterSelProcedure.TabIndex = 2;
             this.rbAfterSelProcedure.Text = "Insert at caret position";
-            this.toolTip.SetToolTip(this.rbAfterSelProcedure, "Inserts the created procedure to the current position of the carriage cursor or t" +
-        "o the position after the selected procedure.");
+            this.toolTip.SetToolTip(this.rbAfterSelProcedure, "Insert the new procedure at the caret, or after the selected procedure.");
             this.rbAfterSelProcedure.UseVisualStyleBackColor = true;
             // 
             // rbPasteAtEnd
@@ -84,8 +83,7 @@
             this.cbCopyBodyProc.Size = new System.Drawing.Size(203, 17);
             this.cbCopyBodyProc.TabIndex = 0;
             this.cbCopyBodyProc.Text = "Copy from current selected procedure";
-            this.toolTip.SetToolTip(this.cbCopyBodyProc, "Copies the code of the currently selected procedure to the newly created procedur" +
-        "e.");
+            this.toolTip.SetToolTip(this.cbCopyBodyProc, "Copy the selected procedure's code into the new procedure.");
             this.cbCopyBodyProc.UseVisualStyleBackColor = true;
             // 
             // tbName

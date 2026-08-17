@@ -59,6 +59,49 @@ namespace ScriptEditor
         private SearchForm sf;
         private GoToLine goToLine;
 
+        private sealed class EmptyTabStripMessageFilter : IMessageFilter
+        {
+            private readonly Func<Point, bool> isEmptyTabStrip;
+            private readonly Action createEmptyTab;
+            private int lastClickTick = -1;
+            private Point lastClickPosition;
+
+            public EmptyTabStripMessageFilter(Func<Point, bool> isEmptyTabStrip, Action createEmptyTab)
+            {
+                this.isEmptyTabStrip = isEmptyTabStrip;
+                this.createEmptyTab = createEmptyTab;
+            }
+
+            public bool PreFilterMessage(ref Message message)
+            {
+                if (message.Msg != 0x0201 && message.Msg != 0x0203)
+                    return false;
+
+                Point screenPoint = Cursor.Position;
+                if (!isEmptyTabStrip(screenPoint))
+                {
+                    lastClickTick = -1;
+                    return false;
+                }
+
+                int tick = Environment.TickCount;
+                bool isDoubleClick = message.Msg == 0x0203 || (lastClickTick >= 0
+                    && unchecked(tick - lastClickTick) <= SystemInformation.DoubleClickTime
+                    && Math.Abs(screenPoint.X - lastClickPosition.X) <= SystemInformation.DoubleClickSize.Width
+                    && Math.Abs(screenPoint.Y - lastClickPosition.Y) <= SystemInformation.DoubleClickSize.Height);
+                if (isDoubleClick)
+                {
+                    lastClickTick = -1;
+                    createEmptyTab();
+                }
+                else
+                {
+                    lastClickTick = tick;
+                    lastClickPosition = screenPoint;
+                }
+                return false;
+            }
+        }
         private sealed class NavigationLocation
         {
             public string FilePath;
@@ -94,6 +137,7 @@ namespace ScriptEditor
         private bool savingRunning = false;
         private bool isClosing = false;
         private Timer statusMessageTimer;
+        private EmptyTabStripMessageFilter emptyTabStripMessageFilter;
 
         internal TreeView VarTree = new TreeView();
         private TabPage VarTab = new TabPage("Variables");
@@ -132,6 +176,9 @@ namespace ScriptEditor
         public TextEditor(string[] args)
         {
             InitializeComponent();
+            emptyTabStripMessageFilter = new EmptyTabStripMessageFilter(IsEmptyDocumentTabStrip, CreateEmptyDocumentFromTabStrip);
+            Application.AddMessageFilter(emptyTabStripMessageFilter);
+            FormClosed += delegate { Application.RemoveMessageFilter(emptyTabStripMessageFilter); };
             // The form is created by Application.Run immediately after this constructor.
             // Keep its partially initialized controls out of the first visible frame.
             Opacity = 0D;
@@ -482,8 +529,8 @@ namespace ScriptEditor
             toolStripSeparator4.Visible = false;
             toolStripSeparator14.Visible = false;
 
-            tsbSaveAll.ToolTipText = "Save all scripts [Ctrl+Shift+S]";
-            GotoProc_StripButton.ToolTipText = "Go to the procedure under the cursor [Alt+P]";
+            tsbSaveAll.ToolTipText = "Save all scripts (Ctrl+Shift+S).";
+            GotoProc_StripButton.ToolTipText = "Go to the procedure under the cursor (Alt+P).";
         }
 
         private void ApplyDpiMetrics()
@@ -755,7 +802,7 @@ namespace ScriptEditor
         private void RestoreStartupDocuments()
         {
             RestorePreviousSession(delegate(bool restoredPreviousSession) {
-                // Open documents passed from the command line after session restoration.
+                bool restoredUnsavedSession = Settings.restoreUnsavedChangesOnExit && RestoreUnsavedSession();
                 foreach (string fArg in commandsArgs)
                 {
                     string file = fArg;
@@ -763,12 +810,10 @@ namespace ScriptEditor
                     if (file != null)
                         Open(file, TextEditor.OpenType.File, commandline: true, fcdOpen: fcd);
                 }
-
-                if (restoredPreviousSession)
+                if (restoredPreviousSession || restoredUnsavedSession)
                     BeginInvoke((MethodInvoker)ExpandRestoredProcedureGroups);
             });
         }
-
         private void TextEditor_Resize(object sender, EventArgs e)
         {
             if (WindowState != FormWindowState.Minimized)
@@ -812,7 +857,7 @@ namespace ScriptEditor
         {
             for (int i = 0; i < tabs.Count; i++) {
                 bool skip = tabs[i].changed;
-                if (tabs[i].changed) {
+                if (tabs[i].changed && !Settings.restoreUnsavedChangesOnExit) {
                     switch (ScriptEditor.ThemedMessageBox.Show("Save changes to " + tabs[i].filename + "?", "Message", MessageBoxButtons.YesNoCancel)) {
                         case DialogResult.Yes:
                             Save(tabs[i], true);
@@ -935,6 +980,43 @@ namespace ScriptEditor
             restoreTimer.Start();
         }
 
+        private bool RestoreUnsavedSession()
+        {
+            int selectedIndex;
+            Settings.UnsavedSessionDocument[] documents = Settings.LoadUnsavedSession(out selectedIndex);
+            TabInfo selectedTab = null;
+            bool restoredAny = false;
+            for (int i = 0; i < documents.Length; i++) {
+                Settings.UnsavedSessionDocument document = documents[i];
+                TabInfo restored = null;
+                if (!String.IsNullOrWhiteSpace(document.FilePath) && File.Exists(document.FilePath)) {
+                    restored = CheckTabs(tabs, document.FilePath);
+                    if (restored == null)
+                        restored = Open(document.FilePath, OpenType.File, addToMRU: false, seltab: false, alreadyOpen: false);
+                    if (restored != null) {
+                        restored.textEditor.Text = document.Text;
+                        restored.filename = Path.GetFileName(document.FilePath);
+                        restored.filepath = document.FilePath;
+                    }
+                } else {
+                    restored = Open(document.Text, OpenType.Text, addToMRU: false, seltab: false);
+                    if (restored != null)
+                        restored.filename = String.IsNullOrWhiteSpace(document.Name) ? GetUnsavedDocumentName() : document.Name;
+                }
+                if (restored == null)
+                    continue;
+
+                restored.changed = true;
+                restored.textEditor.ActiveTextAreaControl.Caret.Line = Math.Min(Math.Max(0, document.CaretLine), Math.Max(0, restored.textEditor.Document.TotalNumberOfLines - 1));
+                UpdateDocumentTab(restored.index);
+                restoredAny = true;
+                if (i == selectedIndex)
+                    selectedTab = restored;
+            }
+            if (selectedTab != null)
+                tabControl1.SelectTab(selectedTab.index);
+            return restoredAny;
+        }
         private void ExpandRestoredProcedureGroups()
         {
             Settings.globalProceduresCollapsed = false;
@@ -947,21 +1029,38 @@ namespace ScriptEditor
 
         private void SaveOpenTabSession()
         {
-            if (!Settings.reopenLastTabs) {
-                Settings.ClearLastSession();
-                return;
+            List<string> paths = new List<string>();
+            List<Settings.UnsavedSessionDocument> unsavedDocuments = new List<Settings.UnsavedSessionDocument>();
+            int selectedIndex = -1;
+            int selectedUnsavedIndex = -1;
+            foreach (TabInfo tab in tabs) {
+                bool savedDocument = !String.IsNullOrWhiteSpace(tab.filepath) && File.Exists(tab.filepath);
+                if (Settings.reopenLastTabs && savedDocument) {
+                    if (tab == currentTab)
+                        selectedIndex = paths.Count;
+                    paths.Add(tab.filepath);
+                }
+                if (Settings.restoreUnsavedChangesOnExit && tab.changed) {
+                    if (tab == currentTab)
+                        selectedUnsavedIndex = unsavedDocuments.Count;
+                    unsavedDocuments.Add(new Settings.UnsavedSessionDocument {
+                        Name = tab.filename,
+                        FilePath = savedDocument ? tab.filepath : null,
+                        Text = tab.textEditor.Text,
+                        CaretLine = tab.textEditor.ActiveTextAreaControl.Caret.Line
+                    });
+                }
             }
 
-            List<string> paths = new List<string>();
-            int selectedIndex = -1;
-            foreach (TabInfo tab in tabs) {
-                if (String.IsNullOrWhiteSpace(tab.filepath) || !File.Exists(tab.filepath))
-                    continue;
-                if (tab == currentTab)
-                    selectedIndex = paths.Count;
-                paths.Add(tab.filepath);
-            }
-            Settings.SaveLastSession(paths, selectedIndex);
+            if (Settings.reopenLastTabs)
+                Settings.SaveLastSession(paths, selectedIndex);
+            else
+                Settings.ClearPreviousTabSession();
+
+            if (Settings.restoreUnsavedChangesOnExit)
+                Settings.SaveUnsavedSession(unsavedDocuments, selectedUnsavedIndex);
+            else
+                Settings.ClearUnsavedSession();
         }
         #endregion
 
@@ -975,7 +1074,7 @@ namespace ScriptEditor
             parserLabel.Alignment = ToolStripItemAlignment.Right;
             parserLabel.Overflow = ToolStripItemOverflow.Never;
             parserLabel.Click += delegate(object sender, EventArgs e) { ParseScript(0); };
-            parserLabel.ToolTipText = "Click - Update parser data.";
+            parserLabel.ToolTipText = "Click to update parser data.";
             parserLabel.TextChanged += delegate(object sender, EventArgs e) {
                 parserLabel.ForeColor = InterfaceTheme.IsDark ? Color.Gainsboro : SystemColors.ControlText;
             };
@@ -1329,6 +1428,39 @@ namespace ScriptEditor
             }
         }
 
+        private bool IsEmptyDocumentTabStrip(Point screenPoint)
+        {
+            if (IsDisposed || !tabControl1.Visible)
+                return false;
+
+            Point location = tabControl1.PointToClient(screenPoint);
+            if (!tabControl1.ClientRectangle.Contains(location))
+                return false;
+
+            int headerBottom = tabControl1.DisplayRectangle.Top;
+            int lastTabRight = 0;
+            for (int i = 0; i < tabControl1.TabCount; i++)
+            {
+                Rectangle tab = tabControl1.GetTabRect(i);
+                headerBottom = Math.Max(headerBottom, tab.Bottom);
+                lastTabRight = Math.Max(lastTabRight, tab.Right);
+                if (tab.Contains(location))
+                    return false;
+            }
+
+            return location.Y >= 0 && location.Y < headerBottom && location.X >= lastTabRight;
+        }
+
+        private void CreateEmptyDocumentFromTabStrip()
+        {
+            if (IsDisposed || !IsHandleCreated)
+                return;
+
+            BeginInvoke(new MethodInvoker(delegate {
+                if (!IsDisposed)
+                    Open(String.Empty, OpenType.Text);
+            }));
+        }
         private void tabControl2_MouseClick(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left) {
@@ -1367,7 +1499,7 @@ namespace ScriptEditor
 
         private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Open(null, OpenType.None);
+            Open(String.Empty, OpenType.Text);
         }
 
         private void openToolStripMenuItem_Click(object sender, EventArgs e)

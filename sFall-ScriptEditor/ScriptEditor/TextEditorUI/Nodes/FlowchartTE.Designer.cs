@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor.TextEditorUI.Nodes
+namespace ScriptEditor.TextEditorUI.Nodes
 {
     partial class FlowchartTE : System.Windows.Forms.UserControl
     {
@@ -150,7 +150,7 @@
             this.tsbPasteNode.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbPasteNode.Name = "tsbPasteNode";
             this.tsbPasteNode.Size = new System.Drawing.Size(23, 22);
-            this.tsbPasteNode.ToolTipText = "Paste select name Node to code";
+            this.tsbPasteNode.ToolTipText = "Insert the selected node name into the code.";
             this.tsbPasteNode.Click += new System.EventHandler(this.tsbPasteNode_Click);
             // 
             // cmbNodesName
@@ -174,7 +174,7 @@
             this.tsbGotoNode.Name = "tsbGotoNode";
             this.tsbGotoNode.Size = new System.Drawing.Size(40, 22);
             this.tsbGotoNode.Text = "Go";
-            this.tsbGotoNode.ToolTipText = "Goto to select Node";
+            this.tsbGotoNode.ToolTipText = "Go to the selected node.";
             this.tsbGotoNode.Click += new System.EventHandler(this.tsbGotoNode_Click);
             // 
             // toolStripSeparator9

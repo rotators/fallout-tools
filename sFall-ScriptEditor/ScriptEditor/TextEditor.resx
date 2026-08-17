@@ -637,8 +637,7 @@
 </value>
   </data>
   <data name="formatCodeToolStripMenuItem.ToolTipText" xml:space="preserve">
-    <value>Automatically formatting (inserting the missing spaces between arithmetic and logical operations) code of script when document is opened.
-Note: This will only work for script files and include files (.ssl .h).</value>
+    <value>Format script and include files when they are opened by adding missing spaces around operators.&#xA;Applies only to .ssl and .h files.</value>
   </data>
   <data name="Edit_toolStripButton.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

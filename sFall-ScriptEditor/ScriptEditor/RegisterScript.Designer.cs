@@ -1,4 +1,4 @@
-﻿
+
 namespace ScriptEditor {
     partial class RegisterScript {
         /// <summary>
@@ -112,7 +112,7 @@ namespace ScriptEditor {
             this.cLine.Name = "cLine";
             this.cLine.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.cLine.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.cLine.ToolTipText = "Script ID";
+            this.cLine.ToolTipText = "Script ID.";
             this.cLine.Width = 50;
             // 
             // cScript
@@ -140,7 +140,7 @@ namespace ScriptEditor {
             this.cVars.Name = "cVars";
             this.cVars.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.cVars.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.cVars.ToolTipText = "Local Variables";
+            this.cVars.ToolTipText = "Local variables.";
             this.cVars.Width = 40;
             // 
             // cName
@@ -151,7 +151,7 @@ namespace ScriptEditor {
             this.cName.Name = "cName";
             this.cName.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.cName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.cName.ToolTipText = "Script game name in scrname.msg";
+            this.cName.ToolTipText = "Script name from scrname.msg.";
             // 
             // groupBox
             // 
@@ -190,7 +190,7 @@ namespace ScriptEditor {
             this.definitionHelpButton.Size = new System.Drawing.Size(21, 23);
             this.definitionHelpButton.TabIndex = 10;
             this.definitionHelpButton.Text = "?";
-            this.toolTip1.SetToolTip(this.definitionHelpButton, "Show definition options help");
+            this.toolTip1.SetToolTip(this.definitionHelpButton, "Show help for definition options.");
             this.definitionHelpButton.UseVisualStyleBackColor = true;
             this.definitionHelpButton.Click += new System.EventHandler(this.definitionHelpButton_Click);
             // 
@@ -247,7 +247,7 @@ namespace ScriptEditor {
             this.Save_button.Name = "Save_button";
             this.Save_button.Size = new System.Drawing.Size(82, 22);
             this.Save_button.Text = "Registered";
-            this.Save_button.ToolTipText = "Save all changes to files.";
+            this.Save_button.ToolTipText = "Save all changes.";
             this.Save_button.Click += new System.EventHandler(this.Save_button_Click);
             // 
             // toolStripSeparator1
@@ -263,7 +263,7 @@ namespace ScriptEditor {
             this.Addbutton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.Addbutton.Name = "Addbutton";
             this.Addbutton.Size = new System.Drawing.Size(25, 22);
-            this.Addbutton.ToolTipText = "Add script line";
+            this.Addbutton.ToolTipText = "Add a script entry.";
             this.Addbutton.Click += new System.EventHandler(this.Addbutton_Click);
             // 
             // toolStripSeparator4
@@ -279,7 +279,7 @@ namespace ScriptEditor {
             this.Delbutton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.Delbutton.Name = "Delbutton";
             this.Delbutton.Size = new System.Drawing.Size(25, 22);
-            this.Delbutton.ToolTipText = "Delete last script line";
+            this.Delbutton.ToolTipText = "Delete the last script entry.";
             this.Delbutton.Click += new System.EventHandler(this.Delbutton_Click);
             // 
             // toolStripSeparator2
@@ -296,7 +296,7 @@ namespace ScriptEditor {
             this.Upbutton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.Upbutton.Name = "Upbutton";
             this.Upbutton.Size = new System.Drawing.Size(25, 22);
-            this.Upbutton.ToolTipText = "Find up";
+            this.Upbutton.ToolTipText = "Find the previous match.";
             this.Upbutton.Click += new System.EventHandler(this.Upbutton_Click);
             // 
             // toolStripSeparator3
@@ -315,7 +315,7 @@ namespace ScriptEditor {
             this.Downbutton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.Downbutton.Name = "Downbutton";
             this.Downbutton.Size = new System.Drawing.Size(25, 22);
-            this.Downbutton.ToolTipText = "Find down";
+            this.Downbutton.ToolTipText = "Find the next match.";
             this.Downbutton.Click += new System.EventHandler(this.Downbutton_Click);
             // 
             // FindtextBox

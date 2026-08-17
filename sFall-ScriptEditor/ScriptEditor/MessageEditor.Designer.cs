@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor {
+namespace ScriptEditor {
     partial class MessageEditor {
         /// <summary>
         /// Required designer variable.
@@ -119,7 +119,7 @@
             this.sendLineToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.S)));
             this.sendLineToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.sendLineToolStripMenuItem.Text = "Send Line";
-            this.sendLineToolStripMenuItem.ToolTipText = "Send current line number to an open script.";
+            this.sendLineToolStripMenuItem.ToolTipText = "Send the current line number to an open script.";
             this.sendLineToolStripMenuItem.Click += new System.EventHandler(this.SendStripButton_Click);
             // 
             // toolStripSeparator12
@@ -133,7 +133,7 @@
             this.playerMarkerToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.O)));
             this.playerMarkerToolStripMenuItem.Size = new System.Drawing.Size(187, 22);
             this.playerMarkerToolStripMenuItem.Text = "Set Player Marker";
-            this.playerMarkerToolStripMenuItem.ToolTipText = "Set player options marker";
+            this.playerMarkerToolStripMenuItem.ToolTipText = "Set the player-options marker.";
             this.playerMarkerToolStripMenuItem.Click += new System.EventHandler(this.playerMarkerToolStripMenuItem_Click);
             // 
             // toolStripSeparator11
@@ -245,7 +245,7 @@
             this.cLine.HeaderText = "Line";
             this.cLine.Name = "cLine";
             this.cLine.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.cLine.ToolTipText = "Msg line number";
+            this.cLine.ToolTipText = "Message line number.";
             this.cLine.Width = 50;
             // 
             // cDescription
@@ -317,7 +317,7 @@
             this.NewStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.NewStripButton.Name = "NewStripButton";
             this.NewStripButton.Size = new System.Drawing.Size(25, 23);
-            this.NewStripButton.ToolTipText = "Clear & New";
+            this.NewStripButton.ToolTipText = "Create a new message file.";
             this.NewStripButton.Click += new System.EventHandler(this.NewStripButton_Click);
             // 
             // toolStripSeparator7
@@ -333,7 +333,7 @@
             this.msgOpenButton.Name = "msgOpenButton";
             this.msgOpenButton.Size = new System.Drawing.Size(69, 23);
             this.msgOpenButton.Text = "Open";
-            this.msgOpenButton.ToolTipText = "Open message file";
+            this.msgOpenButton.ToolTipText = "Open a message file.";
             this.msgOpenButton.ButtonClick += new System.EventHandler(this.msgOpenButton_ButtonClick);
             // 
             // toolStripSeparator16
@@ -349,7 +349,7 @@
             this.msgSaveButton.Name = "msgSaveButton";
             this.msgSaveButton.Size = new System.Drawing.Size(53, 23);
             this.msgSaveButton.Text = "Save";
-            this.msgSaveButton.ToolTipText = "Save messageg file. [Ctrl+S]";
+            this.msgSaveButton.ToolTipText = "Save the message file (Ctrl+S).";
             this.msgSaveButton.Click += new System.EventHandler(this.msgSaveButton_ButtonClick);
             // 
             // toolStripSeparator8
@@ -382,7 +382,7 @@
             this.SendStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.SendStripButton.Name = "SendStripButton";
             this.SendStripButton.Size = new System.Drawing.Size(23, 23);
-            this.SendStripButton.ToolTipText = "Send current line number to an open script [Alt+S]";
+            this.SendStripButton.ToolTipText = "Send the current line number to an open script (Alt+S).";
             this.SendStripButton.Click += new System.EventHandler(this.SendStripButton_Click);
             // 
             // toolStripSeparator9
@@ -399,7 +399,7 @@
             this.MoveToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.MoveToolStripButton.Name = "MoveToolStripButton";
             this.MoveToolStripButton.Size = new System.Drawing.Size(23, 23);
-            this.MoveToolStripButton.ToolTipText = "Enable multi-selective mode for moving and deleting rows.";
+            this.MoveToolStripButton.ToolTipText = "Enable multi-selection for moving or deleting rows.";
             this.MoveToolStripButton.Click += new System.EventHandler(this.MoveToolStripButton_Click);
             // 
             // toolStripSeparator4
@@ -416,7 +416,7 @@
             this.IncAddStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.IncAddStripButton.Name = "IncAddStripButton";
             this.IncAddStripButton.Size = new System.Drawing.Size(23, 23);
-            this.IncAddStripButton.ToolTipText = "Add next number line [Alt+A or Enter]";
+            this.IncAddStripButton.ToolTipText = "Add the next numbered line (Alt+A or Enter).";
             this.IncAddStripButton.Click += new System.EventHandler(this.IncAddStripButton_Click);
             // 
             // InsertEmptyStripButton
@@ -426,7 +426,7 @@
             this.InsertEmptyStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.InsertEmptyStripButton.Name = "InsertEmptyStripButton";
             this.InsertEmptyStripButton.Size = new System.Drawing.Size(23, 23);
-            this.InsertEmptyStripButton.ToolTipText = "Insert an empty line below the current line. [Ctrl+Enter] \r\nor [Shift+Enter] - Insert an empty line above the current line.";
+            this.InsertEmptyStripButton.ToolTipText = "Insert an empty line below the current line (Ctrl+Enter).\r\nShift+Enter inserts an empty line above it.";
             this.InsertEmptyStripButton.Click += new System.EventHandler(this.InsertEmptyStripButton_Click);
             // 
             // InsertCommentStripButton
@@ -439,7 +439,7 @@
             this.InsertCommentStripButton.Name = "InsertCommentStripButton";
             this.InsertCommentStripButton.Size = new System.Drawing.Size(26, 23);
             this.InsertCommentStripButton.Text = "#";
-            this.InsertCommentStripButton.ToolTipText = "Insert comment line. [Alt+C]";
+            this.InsertCommentStripButton.ToolTipText = "Insert a comment line (Alt+C).";
             this.InsertCommentStripButton.Click += new System.EventHandler(this.InsertCommentStripButton_Click);
             // 
             // toolStripSeparator5
@@ -455,7 +455,7 @@
             this.DeleteLineStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.DeleteLineStripButton.Name = "DeleteLineStripButton";
             this.DeleteLineStripButton.Size = new System.Drawing.Size(23, 23);
-            this.DeleteLineStripButton.ToolTipText = "Delete current line [Ctrl+Delete]";
+            this.DeleteLineStripButton.ToolTipText = "Delete the current line (Ctrl+Delete).";
             this.DeleteLineStripButton.Click += new System.EventHandler(this.DeleteLineStripButton_Click);
             // 
             // toolStripSeparator2
@@ -479,7 +479,7 @@
             "50"});
             this.StripComboBox.Name = "StripComboBox";
             this.StripComboBox.Size = new System.Drawing.Size(40, 22);
-            this.StripComboBox.ToolTipText = "The line number after the comment is increased by this number.";
+            this.StripComboBox.ToolTipText = "Increase the message line number after a comment by this amount.";
             // 
             // toolStripSeparator10
             // 
@@ -496,7 +496,7 @@
             this.OpenNotepadtoolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.OpenNotepadtoolStripButton.Name = "OpenNotepadtoolStripButton";
             this.OpenNotepadtoolStripButton.Size = new System.Drawing.Size(32, 23);
-            this.OpenNotepadtoolStripButton.ToolTipText = "Open this message file in external editor.";
+            this.OpenNotepadtoolStripButton.ToolTipText = "Open this message file in an external editor.";
             this.OpenNotepadtoolStripButton.ButtonClick += new System.EventHandler(this.OpenNotepadtoolStripButton_Click);
             // 
             // openAsTextToolStripMenuItem
@@ -504,7 +504,7 @@
             this.openAsTextToolStripMenuItem.Name = "openAsTextToolStripMenuItem";
             this.openAsTextToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.openAsTextToolStripMenuItem.Text = "Open as Text";
-            this.openAsTextToolStripMenuItem.ToolTipText = "Closes the message editor window and opens the file for editing in text format.";
+            this.openAsTextToolStripMenuItem.ToolTipText = "Close this window and open the file as plain text.";
             this.openAsTextToolStripMenuItem.Click += new System.EventHandler(this.openAsTextToolStripMenuItem_Click);
             // 
             // toolStripSeparator15
@@ -552,7 +552,7 @@
             this.HighlightingCommToolStripMenuItem.ShortcutKeyDisplayString = "";
             this.HighlightingCommToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
             this.HighlightingCommToolStripMenuItem.Text = "Highlighting";
-            this.HighlightingCommToolStripMenuItem.ToolTipText = "Highlighting the color of the comment lines.";
+            this.HighlightingCommToolStripMenuItem.ToolTipText = "Highlight comment lines.";
             this.HighlightingCommToolStripMenuItem.Click += new System.EventHandler(this.HighlightingCheck);
             // 
             // ColorComboBox
@@ -603,7 +603,7 @@
             "24"});
             this.FontSizeComboBox.Name = "FontSizeComboBox";
             this.FontSizeComboBox.Size = new System.Drawing.Size(75, 22);
-            this.FontSizeComboBox.ToolTipText = "Hotkey change size [Ctlr + NumPlus] and [Ctlr + NumMinus]";
+            this.FontSizeComboBox.ToolTipText = "Change font size (Ctrl+Num+ or Ctrl+Num-).";
             // 
             // encodingTextDOSToolStripMenuItem
             // 
@@ -611,7 +611,7 @@
             this.encodingTextDOSToolStripMenuItem.Name = "encodingTextDOSToolStripMenuItem";
             this.encodingTextDOSToolStripMenuItem.Size = new System.Drawing.Size(182, 22);
             this.encodingTextDOSToolStripMenuItem.Text = "Encoding: OEM 866";
-            this.encodingTextDOSToolStripMenuItem.ToolTipText = "Read and write Msg files in cyrillic encoding OEM 866.";
+            this.encodingTextDOSToolStripMenuItem.ToolTipText = "Read and write .msg files using Cyrillic OEM 866.";
             this.encodingTextDOSToolStripMenuItem.Click += new System.EventHandler(this.encodingTextDOSToolStripMenuItem_Click);
             // 
             // SearchStripTextBox
@@ -622,7 +622,7 @@
             this.SearchStripTextBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.SearchStripTextBox.Name = "SearchStripTextBox";
             this.SearchStripTextBox.Size = new System.Drawing.Size(300, 22);
-            this.SearchStripTextBox.ToolTipText = "Search text";
+            this.SearchStripTextBox.ToolTipText = "Search text.";
             // 
             // toolStripDropDownButton2
             // 
@@ -680,7 +680,7 @@
             this.NextStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.NextStripButton.Name = "NextStripButton";
             this.NextStripButton.Size = new System.Drawing.Size(23, 23);
-            this.NextStripButton.ToolTipText = "Next find [F3]";
+            this.NextStripButton.ToolTipText = "Find the next match (F3).";
             this.NextStripButton.Click += new System.EventHandler(this.Downbutton_Click);
             // 
             // BackStripButton
@@ -691,7 +691,7 @@
             this.BackStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.BackStripButton.Name = "BackStripButton";
             this.BackStripButton.Size = new System.Drawing.Size(23, 23);
-            this.BackStripButton.ToolTipText = "Back find";
+            this.BackStripButton.ToolTipText = "Find the previous match.";
             this.BackStripButton.Click += new System.EventHandler(this.Upbutton_Click);
             // 
             // toolStripSeparator3

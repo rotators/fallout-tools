@@ -95,7 +95,7 @@ namespace ScriptEditor
         private void AddRow(Entry e)
         {
             dgvScripts.Rows.Add(e, e.row + 1, e.script, e.desc, e.vars, e.name);
-            dgvScripts.Rows[dgvScripts.Rows.Count - 1].Cells[1].ToolTipText = "Unpack script from .dat";
+            dgvScripts.Rows[dgvScripts.Rows.Count - 1].Cells[1].ToolTipText = "Extract script from .dat.";
         }
 
         private RegisterScript(string script, string lst, string msg, string header)

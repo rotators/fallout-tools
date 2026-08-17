@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor
+namespace ScriptEditor
 {
     partial class NodeDiagram
     {
@@ -203,7 +203,7 @@
             this.CreatetoolStripButton.Name = "CreatetoolStripButton";
             this.CreatetoolStripButton.Size = new System.Drawing.Size(52, 22);
             this.CreatetoolStripButton.Text = "New";
-            this.CreatetoolStripButton.ToolTipText = "New flowchart";
+            this.CreatetoolStripButton.ToolTipText = "Create a new flowchart.";
             this.CreatetoolStripButton.Click += new System.EventHandler(this.CreatetoolStripButton_Click);
             // 
             // toolStripSeparator9
@@ -279,7 +279,7 @@
             this.tsbShowAllCode.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbShowAllCode.Name = "tsbShowAllCode";
             this.tsbShowAllCode.Size = new System.Drawing.Size(23, 22);
-            this.tsbShowAllCode.ToolTipText = "Show the code in all nodes.";
+            this.tsbShowAllCode.ToolTipText = "Show code in all nodes.";
             this.tsbShowAllCode.Click += new System.EventHandler(this.showAllCode_Click);
             // 
             // tsbShowCommentCode
@@ -291,7 +291,7 @@
             this.tsbShowCommentCode.Name = "tsbShowCommentCode";
             this.tsbShowCommentCode.Size = new System.Drawing.Size(34, 22);
             this.tsbShowCommentCode.Text = "// ...";
-            this.tsbShowCommentCode.ToolTipText = "Show comment line code";
+            this.tsbShowCommentCode.ToolTipText = "Show comment code.";
             this.tsbShowCommentCode.Click += new System.EventHandler(this.tsbShowCommentCode_Click);
             // 
             // toolStripButton1
@@ -302,7 +302,7 @@
             this.toolStripButton1.Name = "toolStripButton1";
             this.toolStripButton1.Size = new System.Drawing.Size(52, 22);
             this.toolStripButton1.Text = "Wire";
-            this.toolStripButton1.ToolTipText = "Show wire line only for selected nodes.";
+            this.toolStripButton1.ToolTipText = "Show connectors only for selected nodes.";
             this.toolStripButton1.Click += new System.EventHandler(this.toolStripButton1_Click);
             // 
             // toolStripSeparator6
@@ -318,7 +318,7 @@
             this.UpdatetoolStripButton.Name = "UpdatetoolStripButton";
             this.UpdatetoolStripButton.Size = new System.Drawing.Size(67, 22);
             this.UpdatetoolStripButton.Text = "Update";
-            this.UpdatetoolStripButton.ToolTipText = "Update All Nodes";
+            this.UpdatetoolStripButton.ToolTipText = "Update all nodes.";
             this.UpdatetoolStripButton.Click += new System.EventHandler(this.UpdatetoolStripButton_Click);
             // 
             // toolStripSeparator13
@@ -335,7 +335,7 @@
             this.CollapsetoolStripButton.Name = "CollapsetoolStripButton";
             this.CollapsetoolStripButton.Size = new System.Drawing.Size(23, 22);
             this.CollapsetoolStripButton.Text = "Collapse All";
-            this.CollapsetoolStripButton.ToolTipText = "Collapse All Nodes.\r\n[Shift] - Collapse All Contents.";
+            this.CollapsetoolStripButton.ToolTipText = "Collapse all nodes.\r\nShift: collapse all contents.";
             this.CollapsetoolStripButton.Click += new System.EventHandler(this.CollapsetoolStripButton_Click);
             // 
             // ExpandtoolStripButton
@@ -346,7 +346,7 @@
             this.ExpandtoolStripButton.Name = "ExpandtoolStripButton";
             this.ExpandtoolStripButton.Size = new System.Drawing.Size(23, 22);
             this.ExpandtoolStripButton.Text = "Expand All";
-            this.ExpandtoolStripButton.ToolTipText = "Expand All Nodes.\r\n[Shift] - Expand All Contents.";
+            this.ExpandtoolStripButton.ToolTipText = "Expand all nodes.\r\nShift: expand all contents.";
             this.ExpandtoolStripButton.Click += new System.EventHandler(this.ExpandtoolStripButton_Click);
             // 
             // toolStripSeparator7
@@ -438,7 +438,7 @@
             this.ShowExitNodeToolStripMenuItem.Name = "ShowExitNodeToolStripMenuItem";
             this.ShowExitNodeToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
             this.ShowExitNodeToolStripMenuItem.Text = "Don\'t create exit node";
-            this.ShowExitNodeToolStripMenuItem.ToolTipText = "Don\'t create a dialog exit node(usually Node999) on the flowchart.";
+            this.ShowExitNodeToolStripMenuItem.ToolTipText = "Do not create a dialog exit node (usually Node999).";
             this.ShowExitNodeToolStripMenuItem.Click += new System.EventHandler(this.ShowExitNodeToolStripMenuItem_Click);
             // 
             // autoHideNodesToolStripMenuItem
@@ -462,7 +462,7 @@
             this.autoSaveOnExitToolStripMenuItem.Name = "autoSaveOnExitToolStripMenuItem";
             this.autoSaveOnExitToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
             this.autoSaveOnExitToolStripMenuItem.Text = "Auto save on close";
-            this.autoSaveOnExitToolStripMenuItem.ToolTipText = "Automatically save changes to a saved file.";
+            this.autoSaveOnExitToolStripMenuItem.ToolTipText = "Automatically save changes when closing a saved flowchart.";
             this.autoSaveOnExitToolStripMenuItem.Click += new System.EventHandler(this.autoSaveOnExitToolStripMenuItem_Click);
             // 
             // autoUpdateNodesToolStripMenuItem
@@ -471,7 +471,7 @@
             this.autoUpdateNodesToolStripMenuItem.Name = "autoUpdateNodesToolStripMenuItem";
             this.autoUpdateNodesToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
             this.autoUpdateNodesToolStripMenuItem.Text = "Auto Synchronization";
-            this.autoUpdateNodesToolStripMenuItem.ToolTipText = "Automatic updating of information dialog nodes from the script, when the window is activated.";
+            this.autoUpdateNodesToolStripMenuItem.ToolTipText = "Update dialog nodes from the script when this window is activated.";
             this.autoUpdateNodesToolStripMenuItem.Click += new System.EventHandler(this.autoUpdateNodesToolStripMenuItem_Click);
             // 
             // autoArrangeToolStripMenuItem
@@ -480,7 +480,7 @@
             this.autoArrangeToolStripMenuItem.Name = "autoArrangeToolStripMenuItem";
             this.autoArrangeToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
             this.autoArrangeToolStripMenuItem.Text = "Auto arrange nodes";
-            this.autoArrangeToolStripMenuItem.ToolTipText = "Automatically arrange nodes when a new flowchart create.";
+            this.autoArrangeToolStripMenuItem.ToolTipText = "Automatically arrange nodes when creating a flowchart.";
             this.autoArrangeToolStripMenuItem.Click += new System.EventHandler(this.autoArrangeToolStripMenuItem_Click);
             // 
             // toolStripSeparator12
@@ -504,7 +504,7 @@
             this.lowDetailsToolStripMenuItem.Name = "lowDetailsToolStripMenuItem";
             this.lowDetailsToolStripMenuItem.Size = new System.Drawing.Size(209, 22);
             this.lowDetailsToolStripMenuItem.Text = "Nodes low details";
-            this.lowDetailsToolStripMenuItem.ToolTipText = "Drawing nodes without additional graphic information.";
+            this.lowDetailsToolStripMenuItem.ToolTipText = "Show nodes without additional visual details.";
             this.lowDetailsToolStripMenuItem.Click += new System.EventHandler(this.lowDetailsToolStripMenuItem_Click);
             // 
             // toolStripSeparator15
@@ -520,9 +520,7 @@
             this.HelptoolStripButton.Name = "HelptoolStripButton";
             this.HelptoolStripButton.Size = new System.Drawing.Size(51, 20);
             this.HelptoolStripButton.Text = "Help";
-            this.HelptoolStripButton.ToolTipText = "Help Controls:\r\nShift + Left Click (on message) - Quick message edit.\r\nCtrl + Lef" +
-                "t Click - Add Select/Deselect nodes. \r\nMiddle Mouse - Move.\r\nWheel Mouse - Zoom." +
-                "\r\nRight Mouse - Show context menu.";
+            this.HelptoolStripButton.ToolTipText = "Controls:\r\nShift+click a message: quick edit.\r\nCtrl+click: select or deselect nodes.\r\nMiddle mouse: pan.\r\nMouse wheel: zoom.";
             this.HelptoolStripButton.Click += new System.EventHandler(this.HelptoolStripButton_Click);
             // 
             // toolStripSeparator16
@@ -647,7 +645,7 @@
             this.deleteNoteToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
             this.deleteNoteToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.deleteNoteToolStripMenuItem.Text = "Delete Node/Note";
-            this.deleteNoteToolStripMenuItem.ToolTipText = "Delete selected nodes or notes.";
+            this.deleteNoteToolStripMenuItem.ToolTipText = "Delete the selected nodes or notes.";
             this.deleteNoteToolStripMenuItem.Click += new System.EventHandler(this.deleteNoteToolStripMenuItem_Click);
             // 
             // msgPopup

@@ -58,6 +58,7 @@ namespace ScriptEditor
             cbShortDesc.Checked = Settings.shortDesc;
             cbStorePosition.Checked = Settings.storeLastPosition;
             cbReopenLastTabs.Checked = Settings.reopenLastTabs;
+            cbRestoreUnsavedChanges.Checked = Settings.restoreUnsavedChangesOnExit;
             foreach (var item in Settings.msgListPath)
                 msgPathlistView.Items.Add(item.ToString());
             SetLabelText();
@@ -184,6 +185,9 @@ namespace ScriptEditor
             Settings.selectFont= (byte)cbFonts.SelectedIndex;
             Settings.storeLastPosition = cbStorePosition.Checked;
             Settings.reopenLastTabs = cbReopenLastTabs.Checked;
+            Settings.restoreUnsavedChangesOnExit = cbRestoreUnsavedChanges.Checked;
+            if (!Settings.restoreUnsavedChangesOnExit)
+                Settings.ClearUnsavedSession();
             Settings.compileBackwardMode = cbUseBackward.Checked ? 1 : 0;
 
             foreach (ListViewItem item in msgPathlistView.Items)

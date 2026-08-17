@@ -1,4 +1,4 @@
-﻿namespace ScriptEditor
+namespace ScriptEditor
 {
     partial class DialogPreview
     {
@@ -151,8 +151,7 @@
             this.toolStripTextBox.Size = new System.Drawing.Size(90, 21);
             this.toolStripTextBox.Text = "1000";
             this.toolStripTextBox.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.toolStripTextBox.ToolTipText = "Number by which the msg-line number will be incremented to address female phrases" +
-                ".";
+            this.toolStripTextBox.ToolTipText = "Offset added to message line numbers for female phrases.";
             // 
             // lowIQToolStripMenuItem
             // 
@@ -174,7 +173,7 @@
             this.JumpToolStripMenuItem.Name = "JumpToolStripMenuItem";
             this.JumpToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.JumpToolStripMenuItem.Text = "Auto Jump";
-            this.JumpToolStripMenuItem.ToolTipText = "Automatically jump to a procedure after response of player.";
+            this.JumpToolStripMenuItem.ToolTipText = "Automatically jump to the procedure after a player response.";
             // 
             // toolStripSeparator4
             // 
@@ -242,7 +241,7 @@
             this.Column3.ReadOnly = true;
             this.Column3.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Column3.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Column3.ToolTipText = "Goto node, for this player\'s response.";
+            this.Column3.ToolTipText = "Target node for this player response.";
             // 
             // Column2
             // 
@@ -267,8 +266,7 @@
             this.Column4.ReadOnly = true;
             this.Column4.Resizable = System.Windows.Forms.DataGridViewTriState.False;
             this.Column4.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Column4.ToolTipText = "Requirement of player\'s intelligence (positive number is greater than or equal, n" +
-                "egative number is less than or equal).";
+            this.Column4.ToolTipText = "Required player Intelligence. Positive values mean greater than or equal; negative values mean less than or equal.";
             this.Column4.Width = 25;
             // 
             // Column1
@@ -285,7 +283,7 @@
             this.Column1.ReadOnly = true;
             this.Column1.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Column1.Text = "";
-            this.Column1.ToolTipText = "Line number in the message file.";
+            this.Column1.ToolTipText = "Message-file line number.";
             this.Column1.VisitedLinkColor = System.Drawing.Color.DodgerBlue;
             this.Column1.Width = 35;
             // 

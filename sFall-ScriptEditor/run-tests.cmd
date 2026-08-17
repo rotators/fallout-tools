@@ -17,7 +17,10 @@ if not defined MSBUILD (
     exit /b 1
 )
 
-"%MSBUILD%" "%ROOT%SfallScriptEditor.sln" /t:Build /p:Configuration=Release /p:Platform="Any CPU" /nologo /verbosity:minimal
+set "BUILD_TIMESTAMP_ARG="
+if defined BUILD_TIMESTAMP set BUILD_TIMESTAMP_ARG=/p:BuildTimestamp="%BUILD_TIMESTAMP%"
+
+"%MSBUILD%" "%ROOT%SfallScriptEditor.sln" /t:Build /p:Configuration=Release /p:Platform="Any CPU" %BUILD_TIMESTAMP_ARG% /nologo /verbosity:minimal
 if errorlevel 1 exit /b 1
 
 "%MSBUILD%" "%TEST_PROJECT%" /t:Build /p:Configuration=Release /p:Platform=x86 /nologo /verbosity:minimal

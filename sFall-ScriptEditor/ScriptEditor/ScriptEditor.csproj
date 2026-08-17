@@ -98,6 +98,13 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
+  <PropertyGroup>
+    <BuildTimestamp Condition="'$(BuildTimestamp)' == ''">Development build</BuildTimestamp>
+    <GeneratedBuildInfoFile>$(IntermediateOutputPath)BuildInfo.g.cs</GeneratedBuildInfoFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(GeneratedBuildInfoFile)" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="AboutBox.cs">
       <SubType>Form</SubType>
@@ -199,7 +206,9 @@
     <Compile Include="SearchForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DarkDisabledButton.cs" />
+    <Compile Include="DarkDisabledButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="SearchForm.Designer.cs">
       <DependentUpon>SearchForm.cs</DependentUpon>
     </Compile>
@@ -451,6 +460,10 @@
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
     <StartAction>Project</StartAction>
   </PropertyGroup>
+  <Target Name="GenerateBuildInfo" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <WriteLinesToFile File="$(GeneratedBuildInfoFile)" Lines="namespace ScriptEditor { internal static class BuildInfo { internal const string Timestamp = &quot;$(BuildTimestamp)&quot;%3B } }" Overwrite="true" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

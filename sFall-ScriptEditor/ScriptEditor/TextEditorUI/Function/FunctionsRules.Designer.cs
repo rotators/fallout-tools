@@ -139,7 +139,7 @@ namespace ScriptEditor.TextEditorUI.Function {
             "Message",
             "Call"});
             this.typeColumn.Name = "typeColumn";
-            this.typeColumn.ToolTipText = "Type of function.";
+            this.typeColumn.ToolTipText = "Function type.";
             this.typeColumn.Width = 80;
             // 
             // functionColumn
@@ -151,7 +151,7 @@ namespace ScriptEditor.TextEditorUI.Function {
             this.functionColumn.HeaderText = "Function Name";
             this.functionColumn.MinimumWidth = 120;
             this.functionColumn.Name = "functionColumn";
-            this.functionColumn.ToolTipText = "The name of the custom macro.";
+            this.functionColumn.ToolTipText = "Custom macro name.";
             // 
             // argsColumn
             // 
@@ -159,7 +159,7 @@ namespace ScriptEditor.TextEditorUI.Function {
             this.argsColumn.DefaultCellStyle = dataGridViewCellStyle3;
             this.argsColumn.HeaderText = "Args";
             this.argsColumn.Name = "argsColumn";
-            this.argsColumn.ToolTipText = "The total number of arguments in function.";
+            this.argsColumn.ToolTipText = "Total number of function arguments.";
             this.argsColumn.Width = 35;
             // 
             // MsgColumn
@@ -168,7 +168,7 @@ namespace ScriptEditor.TextEditorUI.Function {
             this.MsgColumn.DefaultCellStyle = dataGridViewCellStyle4;
             this.MsgColumn.HeaderText = "Message";
             this.MsgColumn.Name = "MsgColumn";
-            this.MsgColumn.ToolTipText = "A position indicating an argument in a function with a message number string.";
+            this.MsgColumn.ToolTipText = "Argument position containing a message number string.";
             this.MsgColumn.Width = 55;
             // 
             // gotoColumn
@@ -177,7 +177,7 @@ namespace ScriptEditor.TextEditorUI.Function {
             this.gotoColumn.DefaultCellStyle = dataGridViewCellStyle5;
             this.gotoColumn.HeaderText = "Node";
             this.gotoColumn.Name = "gotoColumn";
-            this.gotoColumn.ToolTipText = "A position indicating an argument in a function with a node procedure. Set to 0 - if not used.";
+            this.gotoColumn.ToolTipText = "Argument position containing a node procedure. Set to 0 when unused.";
             this.gotoColumn.Width = 35;
             // 
             // iqColumn
@@ -186,7 +186,7 @@ namespace ScriptEditor.TextEditorUI.Function {
             this.iqColumn.DefaultCellStyle = dataGridViewCellStyle6;
             this.iqColumn.HeaderText = "IQ";
             this.iqColumn.Name = "iqColumn";
-            this.iqColumn.ToolTipText = "A position indicating an argument in a function with IQ. Set to 0 - if not used.";
+            this.iqColumn.ToolTipText = "Argument position containing Intelligence. Set to 0 when unused.";
             this.iqColumn.Width = 35;
             // 
             // FileColumn
@@ -195,7 +195,7 @@ namespace ScriptEditor.TextEditorUI.Function {
             this.FileColumn.DefaultCellStyle = dataGridViewCellStyle7;
             this.FileColumn.HeaderText = "File";
             this.FileColumn.Name = "FileColumn";
-            this.FileColumn.ToolTipText = "A position indicating an argument in a function with a message file number. Set to 0 - if not used.";
+            this.FileColumn.ToolTipText = "Argument position containing a message-file number. Set to 0 when unused.";
             this.FileColumn.Width = 35;
             // 
             // FunctionsRules
