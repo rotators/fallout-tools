@@ -183,6 +183,7 @@ namespace ScriptEditor
             // window theming once its handles have been created by the tab control.
             InterfaceTheme.Apply(tp);
             tabControl1.TabPages.Add(tp);
+            tabControl1.SetDocumentUntitled(tp, String.IsNullOrWhiteSpace(ti.filepath));
             InterfaceTheme.Apply(tp);
             tp.ResumeLayout(false);
             tabControl1.Visible = true;
@@ -387,6 +388,7 @@ namespace ScriptEditor
                     tab.externallyChanged = false;
 
                     SetTabTextChange(tab.index);
+                    SaveUnsavedDocumentRecovery();
                 } finally {
                     savingRunning = false;
                 }
@@ -481,6 +483,7 @@ namespace ScriptEditor
             documentTabs.Remove(page);
             tabControl1.TabPages.RemoveAt(i);
             tabs.RemoveAt(i);
+            SaveUnsavedDocumentRecovery();
             if (tabControl1.TabPages.Count == 0) tabControl1.Visible = false;
 
             for (int j = i; j < tabs.Count; j++) tabs[j].index--;
@@ -639,6 +642,7 @@ namespace ScriptEditor
                 + (tab.externallyChanged ? Environment.NewLine + "Changed outside the editor" : String.Empty);
             page.ImageIndex = -1;
             tabControl1.SetDocumentModified(page, tab.changed);
+            tabControl1.SetDocumentUntitled(page, String.IsNullOrWhiteSpace(tab.filepath));
             tabControl1.Invalidate();
         }
 

@@ -19,6 +19,7 @@ public class DraggableTabControl : TabControl
     private int m_ClosePressedIndex = -1;
     private ContextMenuStrip m_OverflowMenu;
     private readonly HashSet<TabPage> m_ModifiedTabs = new HashSet<TabPage>();
+    private readonly HashSet<TabPage> m_UntitledTabs = new HashSet<TabPage>();
 
     [Category("Appearance")]
     [DefaultValue(false)]
@@ -58,6 +59,24 @@ public class DraggableTabControl : TabControl
         else
             m_ModifiedTabs.Remove(page);
 
+        InvalidateDocumentTab(page);
+    }
+
+    public void SetDocumentUntitled(TabPage page, bool untitled)
+    {
+        if (page == null)
+            return;
+
+        if (untitled)
+            m_UntitledTabs.Add(page);
+        else
+            m_UntitledTabs.Remove(page);
+
+        InvalidateDocumentTab(page);
+    }
+
+    private void InvalidateDocumentTab(TabPage page)
+    {
         int index = TabPages.IndexOf(page);
         if (index >= 0)
             Invalidate(GetTabRect(index));
@@ -66,8 +85,10 @@ public class DraggableTabControl : TabControl
     protected override void OnControlRemoved(ControlEventArgs e)
     {
         TabPage page = e.Control as TabPage;
-        if (page != null)
+        if (page != null) {
             m_ModifiedTabs.Remove(page);
+            m_UntitledTabs.Remove(page);
+        }
         base.OnControlRemoved(e);
     }
 
@@ -201,7 +222,7 @@ public class DraggableTabControl : TabControl
                 if (ShowDocumentStatusIcons)
                 {
                     Rectangle statusBounds = GetDocumentStatusRectangle(tab);
-                    DrawDocumentStatusIcon(graphics, statusBounds, m_ModifiedTabs.Contains(pageTab), dark);
+                    DrawDocumentStatusIcon(graphics, statusBounds, m_ModifiedTabs.Contains(pageTab), m_UntitledTabs.Contains(pageTab), dark);
                     textRect.X = statusBounds.Right + ScriptEditor.DpiHelper.Scale(this, 4);
                     textRect.Width = Math.Max(0, tab.Right - textRect.X);
                 }
@@ -275,12 +296,13 @@ public class DraggableTabControl : TabControl
             height);
     }
 
-    private static void DrawDocumentStatusIcon(Graphics graphics, Rectangle bounds, bool modified, bool dark)
+    private static void DrawDocumentStatusIcon(Graphics graphics, Rectangle bounds, bool modified, bool untitled, bool dark)
     {
-        Color outline = modified
+        bool highlighted = modified || untitled;
+        Color outline = highlighted
             ? Color.FromArgb(230, 159, 50)
             : (dark ? Color.FromArgb(158, 162, 168) : Color.FromArgb(105, 110, 116));
-        Color fill = modified
+        Color fill = highlighted
             ? (dark ? Color.FromArgb(88, 67, 35) : Color.FromArgb(255, 241, 211))
             : (dark ? Color.FromArgb(64, 65, 69) : Color.FromArgb(250, 250, 250));
         int fold = Math.Max(2, bounds.Width / 3);

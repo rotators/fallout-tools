@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -47,6 +47,7 @@ namespace ScriptEditor
                 if (changedTab.index >= 0)
                     SetTabTextChange(changedTab.index);
             }
+            RequestUnsavedDocumentRecovery();
             if (sender != null && changedTab.shouldParse) {
                 if (!changedTab.needsParse) {
                     changedTab.needsParse = true;

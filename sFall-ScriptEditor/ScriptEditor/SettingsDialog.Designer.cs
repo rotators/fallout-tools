@@ -660,9 +660,8 @@ namespace ScriptEditor {
             this.cbRestoreUnsavedChanges.Name = "cbRestoreUnsavedChanges";
             this.cbRestoreUnsavedChanges.Size = new System.Drawing.Size(197, 19);
             this.cbRestoreUnsavedChanges.TabIndex = 4;
-            this.cbRestoreUnsavedChanges.Text = "Restore unsaved changes on exit";
-            this.toolTip.SetToolTip(this.cbRestoreUnsavedChanges, "Keep modified files and untitled documents for restoration the next time the edit" +
-        "or starts. Saved files are not overwritten automatically.");
+            this.cbRestoreUnsavedChanges.Text = "Restore unsaved changes on restart";
+            this.toolTip.SetToolTip(this.cbRestoreUnsavedChanges, "Keep recovery copies of modified files and open untitled documents for restoration after a restart or unexpected closure. Saved files are not overwritten automatically.");
             this.cbRestoreUnsavedChanges.UseVisualStyleBackColor = true;
             //
             // cbStorePosition

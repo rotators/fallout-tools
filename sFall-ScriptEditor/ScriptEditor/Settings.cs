@@ -671,8 +671,10 @@ namespace ScriptEditor
                         writer.Write(Math.Max(0, document.CaretLine));
                     }
                 }
-                TryDeleteFile(UnsavedSessionPath);
-                File.Move(temporaryPath, UnsavedSessionPath);
+                if (File.Exists(UnsavedSessionPath))
+                    File.Replace(temporaryPath, UnsavedSessionPath, null);
+                else
+                    File.Move(temporaryPath, UnsavedSessionPath);
             } catch (Exception ex) {
                 TryDeleteFile(temporaryPath);
                 Program.printLog("   Could not save unsaved document recovery data: " + ex.Message);

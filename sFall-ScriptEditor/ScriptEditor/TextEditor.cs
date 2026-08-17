@@ -137,7 +137,13 @@ namespace ScriptEditor
         private bool savingRunning = false;
         private bool isClosing = false;
         private Timer statusMessageTimer;
+        private Timer unsavedRecoveryTimer;
+        private int unsavedRecoveryLastChangeTick = -1;
+        private int unsavedRecoveryPendingSinceTick = -1;
         private EmptyTabStripMessageFilter emptyTabStripMessageFilter;
+
+        private const int UnsavedRecoveryIdleDelayMilliseconds = 3000;
+        private const int UnsavedRecoveryMaximumDelayMilliseconds = 30000;
 
         internal TreeView VarTree = new TreeView();
         private TabPage VarTab = new TabPage("Variables");
@@ -189,6 +195,7 @@ namespace ScriptEditor
             ConfigureDialogPreviewContextMenu();
             ConfigureMainToolbar();
             ConfigureStatusNotifications();
+            ConfigureUnsavedDocumentRecovery();
             ConfigureStatusZoomMenu();
 
             tabControl3.TabPages.RemoveAt(2); // скрываем от пользователя еще нереализованный функционал
@@ -878,6 +885,7 @@ namespace ScriptEditor
 
             SaveOpenTabSession();
             isClosing = true;
+            unsavedRecoveryTimer.Stop();
             if (bwSyntaxParser.IsBusy)
                 bwSyntaxParser.CancelAsync();
             splitContainer3.Panel1Collapsed = true;
@@ -901,6 +909,79 @@ namespace ScriptEditor
             };
         }
 
+        private void ConfigureUnsavedDocumentRecovery()
+        {
+            unsavedRecoveryTimer = new Timer(components) { Interval = 500 };
+            unsavedRecoveryTimer.Tick += delegate {
+                if (isClosing || !Settings.restoreUnsavedChangesOnExit) {
+                    unsavedRecoveryTimer.Stop();
+                    return;
+                }
+
+                int now = Environment.TickCount;
+                if (unsavedRecoveryLastChangeTick < 0 || unsavedRecoveryPendingSinceTick < 0) {
+                    unsavedRecoveryTimer.Stop();
+                    return;
+                }
+
+                if (ElapsedMilliseconds(now, unsavedRecoveryLastChangeTick) < UnsavedRecoveryIdleDelayMilliseconds &&
+                    ElapsedMilliseconds(now, unsavedRecoveryPendingSinceTick) < UnsavedRecoveryMaximumDelayMilliseconds)
+                    return;
+
+                SaveUnsavedDocumentRecovery();
+                unsavedRecoveryLastChangeTick = -1;
+                unsavedRecoveryPendingSinceTick = -1;
+                unsavedRecoveryTimer.Stop();
+            };
+        }
+
+        private static uint ElapsedMilliseconds(int now, int then)
+        {
+            return unchecked((uint)(now - then));
+        }
+
+        private void RequestUnsavedDocumentRecovery()
+        {
+            if (isClosing || !Settings.restoreUnsavedChangesOnExit)
+                return;
+
+            int now = Environment.TickCount;
+            if (unsavedRecoveryPendingSinceTick < 0)
+                unsavedRecoveryPendingSinceTick = now;
+            unsavedRecoveryLastChangeTick = now;
+            unsavedRecoveryTimer.Start();
+        }
+
+        private void SaveUnsavedDocumentRecovery()
+        {
+            if (!Settings.restoreUnsavedChangesOnExit)
+                return;
+
+            List<Settings.UnsavedSessionDocument> documents = new List<Settings.UnsavedSessionDocument>();
+            int selectedIndex = -1;
+            foreach (TabInfo tab in tabs) {
+                // Untitled tabs have no file to reopen, so retain them even before their
+                // first edit. Saved files need recovery only while they are modified.
+                bool untitledDocument = String.IsNullOrWhiteSpace(tab.filepath);
+                if (!tab.changed && !untitledDocument)
+                    continue;
+
+                if (tab == currentTab)
+                    selectedIndex = documents.Count;
+                bool savedDocument = !String.IsNullOrWhiteSpace(tab.filepath) && File.Exists(tab.filepath);
+                documents.Add(new Settings.UnsavedSessionDocument {
+                    Name = tab.filename,
+                    FilePath = savedDocument ? tab.filepath : null,
+                    Text = tab.textEditor.Text,
+                    CaretLine = tab.textEditor.ActiveTextAreaControl.Caret.Line
+                });
+            }
+
+            if (documents.Count == 0)
+                Settings.ClearUnsavedSession();
+            else
+                Settings.SaveUnsavedSession(documents, selectedIndex);
+        }
         internal void ShowStatusMessage(string message, NotificationKind kind, int duration)
         {
             if (InvokeRequired) {
@@ -1006,7 +1087,9 @@ namespace ScriptEditor
                 if (restored == null)
                     continue;
 
-                restored.changed = true;
+                // An untouched untitled tab is retained for session continuity, but does
+                // not represent work that needs a save confirmation when it is closed.
+                restored.changed = !String.IsNullOrWhiteSpace(document.FilePath) || !String.IsNullOrEmpty(document.Text);
                 restored.textEditor.ActiveTextAreaControl.Caret.Line = Math.Min(Math.Max(0, document.CaretLine), Math.Max(0, restored.textEditor.Document.TotalNumberOfLines - 1));
                 UpdateDocumentTab(restored.index);
                 restoredAny = true;
@@ -1030,25 +1113,13 @@ namespace ScriptEditor
         private void SaveOpenTabSession()
         {
             List<string> paths = new List<string>();
-            List<Settings.UnsavedSessionDocument> unsavedDocuments = new List<Settings.UnsavedSessionDocument>();
             int selectedIndex = -1;
-            int selectedUnsavedIndex = -1;
             foreach (TabInfo tab in tabs) {
                 bool savedDocument = !String.IsNullOrWhiteSpace(tab.filepath) && File.Exists(tab.filepath);
                 if (Settings.reopenLastTabs && savedDocument) {
                     if (tab == currentTab)
                         selectedIndex = paths.Count;
                     paths.Add(tab.filepath);
-                }
-                if (Settings.restoreUnsavedChangesOnExit && tab.changed) {
-                    if (tab == currentTab)
-                        selectedUnsavedIndex = unsavedDocuments.Count;
-                    unsavedDocuments.Add(new Settings.UnsavedSessionDocument {
-                        Name = tab.filename,
-                        FilePath = savedDocument ? tab.filepath : null,
-                        Text = tab.textEditor.Text,
-                        CaretLine = tab.textEditor.ActiveTextAreaControl.Caret.Line
-                    });
                 }
             }
 
@@ -1058,12 +1129,11 @@ namespace ScriptEditor
                 Settings.ClearPreviousTabSession();
 
             if (Settings.restoreUnsavedChangesOnExit)
-                Settings.SaveUnsavedSession(unsavedDocuments, selectedUnsavedIndex);
+                SaveUnsavedDocumentRecovery();
             else
                 Settings.ClearUnsavedSession();
         }
         #endregion
-
         #region Control set states
         private void InitControlEvent()
         {
