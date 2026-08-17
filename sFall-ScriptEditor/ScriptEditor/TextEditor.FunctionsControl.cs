@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -158,12 +158,13 @@ namespace ScriptEditor
 
             if (type == OpenType.File ) { //&& !alwaysNew
                 if (alwaysNew) {
-                    string temp = Path.Combine(Settings.scriptTempPath, unsaved);
+                    string temp = Path.Combine(Settings.scriptTempPath, GetUnsavedDocumentName());
                     File.Copy(file, temp, true);
                     file = temp;
                 }
                 ti.filepath = file;
                 ti.filename = Path.GetFileName(file);
+                ti.changed = alwaysNew;
             } else {
                 ti.filepath = null;
                 ti.filename = GetUnsavedDocumentName();
@@ -183,7 +184,7 @@ namespace ScriptEditor
             // window theming once its handles have been created by the tab control.
             InterfaceTheme.Apply(tp);
             tabControl1.TabPages.Add(tp);
-            tabControl1.SetDocumentUntitled(tp, String.IsNullOrWhiteSpace(ti.filepath));
+            tabControl1.SetDocumentUntitled(tp, String.IsNullOrWhiteSpace(ti.filepath) || IsTemporaryUnsavedFile(ti.filepath));
             InterfaceTheme.Apply(tp);
             tp.ResumeLayout(false);
             tabControl1.Visible = !startupRestorationInProgress;
@@ -360,7 +361,7 @@ namespace ScriptEditor
         private void Save(TabInfo tab, bool close = false)
         {
             if (tab != null) {
-                if (tab.filepath == null) {
+                if (tab.filepath == null || IsTemporaryUnsavedFile(tab.filepath)) {
                     SaveAs(tab, close);
                     return;
                 }
@@ -572,7 +573,21 @@ namespace ScriptEditor
             return CheckTabs(tabs, filepath) != null;
         }
 
-        private string GetUnsavedDocumentName() { string candidate = unsaved; int suffix = 2; while (tabs.Any(tab => tab.filepath == null && String.Equals(tab.filename, candidate, StringComparison.OrdinalIgnoreCase))) candidate = "unsaved" + suffix++ + ".ssl"; return candidate; }
+        private string GetUnsavedDocumentName() { string candidate = unsaved; int suffix = 2; while (tabs.Any(tab => (String.IsNullOrWhiteSpace(tab.filepath) || IsTemporaryUnsavedFile(tab.filepath)) && String.Equals(tab.filename, candidate, StringComparison.OrdinalIgnoreCase))) candidate = "unsaved" + suffix++ + ".ssl"; return candidate; }
+
+        private static bool IsTemporaryUnsavedFile(string filePath)
+        {
+            if (String.IsNullOrWhiteSpace(filePath))
+                return false;
+
+            try {
+                return String.Equals(Path.GetFullPath(Path.GetDirectoryName(filePath)), Path.GetFullPath(Settings.scriptTempPath), StringComparison.OrdinalIgnoreCase)
+                    && Path.GetFileNameWithoutExtension(filePath).StartsWith("unsaved", StringComparison.OrdinalIgnoreCase)
+                    && String.Equals(Path.GetExtension(filePath), ".ssl", StringComparison.OrdinalIgnoreCase);
+            } catch {
+                return false;
+            }
+        }
 
         private static string GetDocumentTabText(TabInfo tab)
         {
@@ -643,7 +658,7 @@ namespace ScriptEditor
                 + (tab.externallyChanged ? Environment.NewLine + "Changed outside the editor" : String.Empty);
             page.ImageIndex = -1;
             tabControl1.SetDocumentModified(page, tab.changed);
-            tabControl1.SetDocumentUntitled(page, String.IsNullOrWhiteSpace(tab.filepath));
+            tabControl1.SetDocumentUntitled(page, String.IsNullOrWhiteSpace(tab.filepath) || IsTemporaryUnsavedFile(tab.filepath));
             tabControl1.Invalidate();
         }
 

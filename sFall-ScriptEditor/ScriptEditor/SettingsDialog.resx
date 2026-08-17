@@ -144,6 +144,9 @@
         wGEHW+xtrLDebcHOHWbsMjdb+w9WX/6F370P0Tty1Sp4AAAAAElFTkSuQmCC
 </value>
   </data>
+  <metadata name="toolTip.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>319, 17</value>
+  </metadata>
   <metadata name="folderBrowserDialog1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
@@ -164,13 +167,10 @@
     <value>186, 17</value>
   </metadata>
   <data name="cbOptimize.ToolTip" xml:space="preserve">
-    <value>None: no optimization.&#xA;Basic: removes unreferenced procedures and variables.&#xA;Full: also applies constant folding, dead-code removal, and variable combining.&#xA;Experimental: adds variable reuse and constant propagation; may break code. Use Full when possible.</value>
-  </data>
-  <data name="cbShortCircuit.ToolTip" xml:space="preserve">
-    <value>With short-circuit evaluation, the right side of AND or OR is skipped once the result is known.&#xA;Example: in X AND Y, Y is skipped when X is false. In X OR Y, Y is skipped when X is true.</value>
-  </data>
-  <data name="cbAutocomplete.ToolTip" xml:space="preserve">
-    <value>Show procedure, variable, constant, and macro suggestions as you type.&#xA;Press Ctrl+Space to open the suggestion list.</value>
+    <value>None: no optimization.
+Basic: removes unreferenced procedures and variables.
+Full: also applies constant folding, dead-code removal, and variable combining.
+Experimental: adds variable reuse and constant propagation; may break code. Use Full when possible.</value>
   </data>
   <metadata name="MsgcontextMenu.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>404, 17</value>

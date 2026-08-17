@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -970,13 +970,13 @@ namespace ScriptEditor
             foreach (TabInfo tab in tabs) {
                 // Untitled tabs have no file to reopen, so retain them even before their
                 // first edit. Saved files need recovery only while they are modified.
-                bool untitledDocument = String.IsNullOrWhiteSpace(tab.filepath);
+                bool untitledDocument = String.IsNullOrWhiteSpace(tab.filepath) || IsTemporaryUnsavedFile(tab.filepath);
                 if (!tab.changed && !untitledDocument)
                     continue;
 
                 if (tab == currentTab)
                     selectedIndex = documents.Count;
-                bool savedDocument = !String.IsNullOrWhiteSpace(tab.filepath) && File.Exists(tab.filepath);
+                bool savedDocument = !untitledDocument && File.Exists(tab.filepath);
                 documents.Add(new Settings.UnsavedSessionDocument {
                     Name = tab.filename,
                     FilePath = savedDocument ? tab.filepath : null,
@@ -1042,7 +1042,7 @@ namespace ScriptEditor
                     return;
                 }
 
-                while (pathIndex < paths.Length && !File.Exists(paths[pathIndex]))
+                while (pathIndex < paths.Length && (!File.Exists(paths[pathIndex]) || IsTemporaryUnsavedFile(paths[pathIndex])))
                     pathIndex++;
 
                 if (pathIndex < paths.Length) {
@@ -1098,7 +1098,7 @@ namespace ScriptEditor
             for (int i = 0; i < documents.Length; i++) {
                 Settings.UnsavedSessionDocument document = documents[i];
                 TabInfo restored = null;
-                if (!String.IsNullOrWhiteSpace(document.FilePath) && File.Exists(document.FilePath)) {
+                if (!String.IsNullOrWhiteSpace(document.FilePath) && File.Exists(document.FilePath) && !IsTemporaryUnsavedFile(document.FilePath)) {
                     restored = CheckTabs(tabs, document.FilePath);
                     if (restored == null)
                         restored = Open(document.FilePath, OpenType.File, addToMRU: false, seltab: false, alreadyOpen: false);
@@ -1109,8 +1109,12 @@ namespace ScriptEditor
                     }
                 } else {
                     restored = Open(document.Text, OpenType.Text, addToMRU: false, seltab: false);
-                    if (restored != null)
-                        restored.filename = String.IsNullOrWhiteSpace(document.Name) ? GetUnsavedDocumentName() : document.Name;
+                    if (restored != null) {
+                        string requestedName = String.IsNullOrWhiteSpace(document.Name) ? GetUnsavedDocumentName() : document.Name;
+                        restored.filename = tabs.Any(tab => !Object.ReferenceEquals(tab, restored) && String.Equals(tab.filename, requestedName, StringComparison.OrdinalIgnoreCase))
+                            ? GetUnsavedDocumentName()
+                            : requestedName;
+                    }
                 }
                 if (restored == null)
                     continue;
@@ -1135,7 +1139,7 @@ namespace ScriptEditor
             List<string> paths = new List<string>();
             int selectedIndex = -1;
             foreach (TabInfo tab in tabs) {
-                bool savedDocument = !String.IsNullOrWhiteSpace(tab.filepath) && File.Exists(tab.filepath);
+                bool savedDocument = !String.IsNullOrWhiteSpace(tab.filepath) && !IsTemporaryUnsavedFile(tab.filepath) && File.Exists(tab.filepath);
                 if (Settings.reopenLastTabs && savedDocument) {
                     if (tab == currentTab)
                         selectedIndex = paths.Count;
@@ -1782,7 +1786,7 @@ namespace ScriptEditor
             if (currentTab == null || RegistredScriptDialogShow)
                 return;
 
-            if (currentTab.filepath == null) {
+            if (currentTab.filepath == null || IsTemporaryUnsavedFile(currentTab.filepath)) {
                 ScriptEditor.ThemedMessageBox.Show("You cannot register an unsaved script.", "Error");
                 return;
             }

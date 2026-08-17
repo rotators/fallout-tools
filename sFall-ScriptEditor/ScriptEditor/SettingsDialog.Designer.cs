@@ -149,7 +149,8 @@ namespace ScriptEditor {
             this.cbUseBackward.Size = new System.Drawing.Size(133, 19);
             this.cbUseBackward.TabIndex = 2;
             this.cbUseBackward.Text = "Use backward mode";
-            this.toolTip.SetToolTip(this.cbUseBackward, "Use compatibility mode for scripts written for the BIS compiler.\r\nAllows legacy scripts without sfall functions to compile without editing.");
+            this.toolTip.SetToolTip(this.cbUseBackward, "Use compatibility mode for scripts written for the BIS compiler.\r\nAllows legacy s" +
+        "cripts without sfall functions to compile without editing.");
             this.cbUseBackward.UseVisualStyleBackColor = true;
             // 
             // cbIncludePath
@@ -297,7 +298,8 @@ namespace ScriptEditor {
             this.cbEnableParser.Size = new System.Drawing.Size(68, 19);
             this.cbEnableParser.TabIndex = 0;
             this.cbEnableParser.Text = "Enabled";
-            this.toolTip.SetToolTip(this.cbEnableParser, "Enable parsing for open scripts.\r\nEnables Find Declaration, Find References, and the globals panel.");
+            this.toolTip.SetToolTip(this.cbEnableParser, "Enable parsing for open scripts.\r\nEnables Find Declaration, Find References, and " +
+        "the globals panel.");
             this.cbEnableParser.UseVisualStyleBackColor = true;
             this.cbEnableParser.CheckedChanged += new System.EventHandler(this.cbEnableParser_CheckedChanged);
             // 
@@ -309,7 +311,9 @@ namespace ScriptEditor {
             this.cbShortCircuit.Size = new System.Drawing.Size(150, 19);
             this.cbShortCircuit.TabIndex = 6;
             this.cbShortCircuit.Text = "Short-circuit evaluation";
-            this.toolTip.SetToolTip(this.cbShortCircuit, resources.GetString("cbShortCircuit.ToolTip"));
+            this.toolTip.SetToolTip(this.cbShortCircuit, "With short-circuit evaluation, the right side of AND or OR is skipped once the re" +
+        "sult is known.\nExample: in X AND Y, Y is skipped when X is false. In X OR Y, Y i" +
+        "s skipped when X is true.");
             this.cbShortCircuit.UseVisualStyleBackColor = true;
             // 
             // toolTip
@@ -327,7 +331,8 @@ namespace ScriptEditor {
             this.cbAutocomplete.Size = new System.Drawing.Size(140, 19);
             this.cbAutocomplete.TabIndex = 0;
             this.cbAutocomplete.Text = "Enable Autocomplete";
-            this.toolTip.SetToolTip(this.cbAutocomplete, resources.GetString("cbAutocomplete.ToolTip"));
+            this.toolTip.SetToolTip(this.cbAutocomplete, "Show procedure, variable, constant, and macro suggestions as you type.\nPress Ctrl" +
+        "+Space to open the suggestion list.");
             this.cbAutocomplete.UseVisualStyleBackColor = true;
             // 
             // button1
@@ -508,7 +513,7 @@ namespace ScriptEditor {
             "Original",
             "F-Geck",
             "Dark"});
-            this.Highlight_comboBox.Location = new System.Drawing.Point(72, 15);
+            this.Highlight_comboBox.Location = new System.Drawing.Point(75, 21);
             this.Highlight_comboBox.Name = "Highlight_comboBox";
             this.Highlight_comboBox.Size = new System.Drawing.Size(79, 23);
             this.Highlight_comboBox.TabIndex = 0;
@@ -522,7 +527,7 @@ namespace ScriptEditor {
             "System",
             "Light",
             "Dark"});
-            this.InterfaceTheme_comboBox.Location = new System.Drawing.Point(261, 15);
+            this.InterfaceTheme_comboBox.Location = new System.Drawing.Point(264, 21);
             this.InterfaceTheme_comboBox.Name = "InterfaceTheme_comboBox";
             this.InterfaceTheme_comboBox.Size = new System.Drawing.Size(76, 23);
             this.InterfaceTheme_comboBox.TabIndex = 1;
@@ -633,7 +638,7 @@ namespace ScriptEditor {
             this.cbFonts.ItemHeight = 15;
             this.cbFonts.Items.AddRange(new object[] {
             "Courier New"});
-            this.cbFonts.Location = new System.Drawing.Point(440, 15);
+            this.cbFonts.Location = new System.Drawing.Point(439, 21);
             this.cbFonts.MaxDropDownItems = 10;
             this.cbFonts.Name = "cbFonts";
             this.cbFonts.Size = new System.Drawing.Size(145, 23);
@@ -654,16 +659,18 @@ namespace ScriptEditor {
             this.cbReopenLastTabs.UseVisualStyleBackColor = true;
             // 
             // cbRestoreUnsavedChanges
-            //
+            // 
             this.cbRestoreUnsavedChanges.AutoSize = true;
             this.cbRestoreUnsavedChanges.Location = new System.Drawing.Point(269, 47);
             this.cbRestoreUnsavedChanges.Name = "cbRestoreUnsavedChanges";
-            this.cbRestoreUnsavedChanges.Size = new System.Drawing.Size(197, 19);
+            this.cbRestoreUnsavedChanges.Size = new System.Drawing.Size(212, 19);
             this.cbRestoreUnsavedChanges.TabIndex = 4;
             this.cbRestoreUnsavedChanges.Text = "Restore unsaved changes on restart";
-            this.toolTip.SetToolTip(this.cbRestoreUnsavedChanges, "Keep recovery copies of modified files and open untitled documents for restoration after a restart or unexpected closure. Saved files are not overwritten automatically.");
+            this.toolTip.SetToolTip(this.cbRestoreUnsavedChanges, "Keep recovery copies of modified files and open untitled documents for restoratio" +
+        "n after a restart or unexpected closure. Saved files are not overwritten automat" +
+        "ically.");
             this.cbRestoreUnsavedChanges.UseVisualStyleBackColor = true;
-            //
+            // 
             // cbStorePosition
             // 
             this.cbStorePosition.AutoSize = true;
@@ -672,7 +679,8 @@ namespace ScriptEditor {
             this.cbStorePosition.Size = new System.Drawing.Size(120, 19);
             this.cbStorePosition.TabIndex = 2;
             this.cbStorePosition.Text = "Store last position";
-            this.toolTip.SetToolTip(this.cbStorePosition, "Remember the cursor position in each file and restore it when the file is reopened.");
+            this.toolTip.SetToolTip(this.cbStorePosition, "Remember the cursor position in each file and restore it when the file is reopene" +
+        "d.");
             this.cbStorePosition.UseVisualStyleBackColor = true;
             // 
             // cmbPreprocessor
@@ -695,7 +703,7 @@ namespace ScriptEditor {
             // labelScriptStyle
             // 
             this.labelScriptStyle.AutoSize = true;
-            this.labelScriptStyle.Location = new System.Drawing.Point(6, 19);
+            this.labelScriptStyle.Location = new System.Drawing.Point(9, 25);
             this.labelScriptStyle.Name = "labelScriptStyle";
             this.labelScriptStyle.Size = new System.Drawing.Size(67, 15);
             this.labelScriptStyle.TabIndex = 45;
@@ -704,7 +712,7 @@ namespace ScriptEditor {
             // labelInterfaceStyle
             // 
             this.labelInterfaceStyle.AutoSize = true;
-            this.labelInterfaceStyle.Location = new System.Drawing.Point(179, 19);
+            this.labelInterfaceStyle.Location = new System.Drawing.Point(182, 25);
             this.labelInterfaceStyle.Name = "labelInterfaceStyle";
             this.labelInterfaceStyle.Size = new System.Drawing.Size(83, 15);
             this.labelInterfaceStyle.TabIndex = 46;
@@ -713,7 +721,7 @@ namespace ScriptEditor {
             // labelCodeFont
             // 
             this.labelCodeFont.AutoSize = true;
-            this.labelCodeFont.Location = new System.Drawing.Point(378, 19);
+            this.labelCodeFont.Location = new System.Drawing.Point(377, 25);
             this.labelCodeFont.Name = "labelCodeFont";
             this.labelCodeFont.Size = new System.Drawing.Size(63, 15);
             this.labelCodeFont.TabIndex = 47;
