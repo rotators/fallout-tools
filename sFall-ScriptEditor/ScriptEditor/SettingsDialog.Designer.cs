@@ -135,7 +135,7 @@ namespace ScriptEditor {
             this.cbWarnings.Location = new System.Drawing.Point(6, 67);
             this.cbWarnings.Name = "cbWarnings";
             this.cbWarnings.Size = new System.Drawing.Size(76, 19);
-            this.cbWarnings.TabIndex = 0;
+            this.cbWarnings.TabIndex = 4;
             this.cbWarnings.Text = "Warnings";
             this.toolTip.SetToolTip(this.cbWarnings, "Show compiler and preprocessor warning messages.");
             this.cbWarnings.UseVisualStyleBackColor = true;
@@ -146,7 +146,7 @@ namespace ScriptEditor {
             this.cbUseBackward.Location = new System.Drawing.Point(6, 44);
             this.cbUseBackward.Name = "cbUseBackward";
             this.cbUseBackward.Size = new System.Drawing.Size(133, 19);
-            this.cbUseBackward.TabIndex = 1;
+            this.cbUseBackward.TabIndex = 2;
             this.cbUseBackward.Text = "Use backward mode";
             this.toolTip.SetToolTip(this.cbUseBackward, "Switches the sfall compiler to backward compatibility with the BIS compiler.\r\nThi" +
         "s will allow compile old scripts (w/o sfall functions) without the need to editi" +
@@ -171,7 +171,7 @@ namespace ScriptEditor {
             this.bChange.Location = new System.Drawing.Point(555, 30);
             this.bChange.Name = "bChange";
             this.bChange.Size = new System.Drawing.Size(30, 25);
-            this.bChange.TabIndex = 4;
+            this.bChange.TabIndex = 2;
             this.toolTip.SetToolTip(this.bChange, "Change folder");
             this.bChange.UseVisualStyleBackColor = true;
             this.bChange.Click += new System.EventHandler(this.bChange_Click);
@@ -209,7 +209,7 @@ namespace ScriptEditor {
             this.cbAutoOpenMessages.Location = new System.Drawing.Point(9, 23);
             this.cbAutoOpenMessages.Name = "cbAutoOpenMessages";
             this.cbAutoOpenMessages.Size = new System.Drawing.Size(123, 19);
-            this.cbAutoOpenMessages.TabIndex = 9;
+            this.cbAutoOpenMessages.TabIndex = 0;
             this.cbAutoOpenMessages.Text = "Open message file";
             this.toolTip.SetToolTip(this.cbAutoOpenMessages, "Automatically open an associated message file if it exists when the script is ope" +
         "ned.");
@@ -221,7 +221,7 @@ namespace ScriptEditor {
             this.bScriptsH.Location = new System.Drawing.Point(555, 122);
             this.bScriptsH.Name = "bScriptsH";
             this.bScriptsH.Size = new System.Drawing.Size(30, 25);
-            this.bScriptsH.TabIndex = 10;
+            this.bScriptsH.TabIndex = 7;
             this.toolTip.SetToolTip(this.bScriptsH, "Select path to Scripts.H file");
             this.bScriptsH.UseVisualStyleBackColor = true;
             this.bScriptsH.Click += new System.EventHandler(this.bScriptsH_Click);
@@ -241,7 +241,7 @@ namespace ScriptEditor {
             this.tbLanguage.MaxLength = 8;
             this.tbLanguage.Name = "tbLanguage";
             this.tbLanguage.Size = new System.Drawing.Size(138, 23);
-            this.tbLanguage.TabIndex = 13;
+            this.tbLanguage.TabIndex = 2;
             this.toolTip.SetToolTip(this.tbLanguage, "Language folder for message files, default \'english\'.");
             // 
             // label5
@@ -267,7 +267,7 @@ namespace ScriptEditor {
             this.cbOptimize.Location = new System.Drawing.Point(204, 41);
             this.cbOptimize.Name = "cbOptimize";
             this.cbOptimize.Size = new System.Drawing.Size(95, 23);
-            this.cbOptimize.TabIndex = 15;
+            this.cbOptimize.TabIndex = 3;
             this.toolTip.SetToolTip(this.cbOptimize, resources.GetString("cbOptimize.ToolTip"));
             // 
             // label6
@@ -286,7 +286,7 @@ namespace ScriptEditor {
             this.cbTabsToSpaces.Location = new System.Drawing.Point(261, 52);
             this.cbTabsToSpaces.Name = "cbTabsToSpaces";
             this.cbTabsToSpaces.Size = new System.Drawing.Size(145, 19);
-            this.cbTabsToSpaces.TabIndex = 18;
+            this.cbTabsToSpaces.TabIndex = 5;
             this.cbTabsToSpaces.Text = "Convert tabs to spaces";
             this.toolTip.SetToolTip(this.cbTabsToSpaces, "When you press the tab key, convert the tab character to spaces.\r\n(the number of " +
         "spaces is set in the box to the right).");
@@ -298,7 +298,7 @@ namespace ScriptEditor {
             this.cbEnableParser.Location = new System.Drawing.Point(6, 17);
             this.cbEnableParser.Name = "cbEnableParser";
             this.cbEnableParser.Size = new System.Drawing.Size(68, 19);
-            this.cbEnableParser.TabIndex = 8;
+            this.cbEnableParser.TabIndex = 0;
             this.cbEnableParser.Text = "Enabled";
             this.toolTip.SetToolTip(this.cbEnableParser, "Enable parsing currently opened scripts.\r\nThis includes \"Find declaration\", \"Find" +
         " references\" and similar functions,\r\nas well as right panel with program globals" +
@@ -312,7 +312,7 @@ namespace ScriptEditor {
             this.cbShortCircuit.Location = new System.Drawing.Point(204, 67);
             this.cbShortCircuit.Name = "cbShortCircuit";
             this.cbShortCircuit.Size = new System.Drawing.Size(150, 19);
-            this.cbShortCircuit.TabIndex = 20;
+            this.cbShortCircuit.TabIndex = 6;
             this.cbShortCircuit.Text = "Short-circuit evaluation";
             this.toolTip.SetToolTip(this.cbShortCircuit, resources.GetString("cbShortCircuit.ToolTip"));
             this.cbShortCircuit.UseVisualStyleBackColor = true;
@@ -330,7 +330,7 @@ namespace ScriptEditor {
             this.cbAutocomplete.Location = new System.Drawing.Point(6, 19);
             this.cbAutocomplete.Name = "cbAutocomplete";
             this.cbAutocomplete.Size = new System.Drawing.Size(140, 19);
-            this.cbAutocomplete.TabIndex = 21;
+            this.cbAutocomplete.TabIndex = 0;
             this.cbAutocomplete.Text = "Enable Autocomplete";
             this.toolTip.SetToolTip(this.cbAutocomplete, resources.GetString("cbAutocomplete.ToolTip"));
             this.cbAutocomplete.UseVisualStyleBackColor = true;
@@ -342,7 +342,7 @@ namespace ScriptEditor {
             this.button1.Location = new System.Drawing.Point(495, 639);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(100, 27);
-            this.button1.TabIndex = 24;
+            this.button1.TabIndex = 9;
             this.button1.Text = "OK";
             this.toolTip.SetToolTip(this.button1, "Close and save settings");
             this.button1.UseVisualStyleBackColor = true;
@@ -354,7 +354,7 @@ namespace ScriptEditor {
             this.cbParserWarn.Location = new System.Drawing.Point(96, 17);
             this.cbParserWarn.Name = "cbParserWarn";
             this.cbParserWarn.Size = new System.Drawing.Size(76, 19);
-            this.cbParserWarn.TabIndex = 30;
+            this.cbParserWarn.TabIndex = 1;
             this.cbParserWarn.Text = "Warnings";
             this.toolTip.SetToolTip(this.cbParserWarn, "Show parser warning messages.");
             this.cbParserWarn.UseVisualStyleBackColor = false;
@@ -365,7 +365,7 @@ namespace ScriptEditor {
             this.cbCompilePath.Location = new System.Drawing.Point(363, 12);
             this.cbCompilePath.Name = "cbCompilePath";
             this.cbCompilePath.Size = new System.Drawing.Size(170, 19);
-            this.cbCompilePath.TabIndex = 14;
+            this.cbCompilePath.TabIndex = 0;
             this.cbCompilePath.Text = "Don\'t use compilation path";
             this.toolTip.SetToolTip(this.cbCompilePath, "Compile scripts into the same folder as the source SSL file.");
             this.cbCompilePath.UseVisualStyleBackColor = true;
@@ -377,7 +377,7 @@ namespace ScriptEditor {
             this.groupBox3.Location = new System.Drawing.Point(8, 515);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(434, 118);
-            this.groupBox3.TabIndex = 27;
+            this.groupBox3.TabIndex = 7;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Paths to message files";
             this.toolTip.SetToolTip(this.groupBox3, "Additional folders in which the editor will search for associated message files.\r" +
@@ -398,7 +398,7 @@ namespace ScriptEditor {
             this.msgPathlistView.Name = "msgPathlistView";
             this.msgPathlistView.ShowGroups = false;
             this.msgPathlistView.Size = new System.Drawing.Size(420, 90);
-            this.msgPathlistView.TabIndex = 15;
+            this.msgPathlistView.TabIndex = 0;
             this.toolTip.SetToolTip(this.msgPathlistView, "Search paths for message files.\r\nThe top path has priority over the paths below i" +
         "t.\r\nRight-click this list to add, remove, or reorder paths.");
             this.msgPathlistView.UseCompatibleStateImageBehavior = false;
@@ -463,7 +463,7 @@ namespace ScriptEditor {
             this.bAssociate.Location = new System.Drawing.Point(8, 78);
             this.bAssociate.Name = "bAssociate";
             this.bAssociate.Size = new System.Drawing.Size(139, 28);
-            this.bAssociate.TabIndex = 32;
+            this.bAssociate.TabIndex = 0;
             this.bAssociate.Text = "Set file associations...";
             this.toolTip.SetToolTip(this.bAssociate, "Associate SSL, INT and MSG files with the sfall editor.");
             this.bAssociate.UseVisualStyleBackColor = true;
@@ -475,7 +475,7 @@ namespace ScriptEditor {
             this.cbUserCompile.Location = new System.Drawing.Point(6, 20);
             this.cbUserCompile.Name = "cbUserCompile";
             this.cbUserCompile.Size = new System.Drawing.Size(160, 19);
-            this.cbUserCompile.TabIndex = 22;
+            this.cbUserCompile.TabIndex = 0;
             this.cbUserCompile.Text = "Use batch file to compile ";
             this.toolTip.SetToolTip(this.cbUserCompile, "Compile scripts using the custom UserComp.bat batch file.");
             this.cbUserCompile.UseVisualStyleBackColor = true;
@@ -487,7 +487,7 @@ namespace ScriptEditor {
             this.bHeaders.Location = new System.Drawing.Point(555, 76);
             this.bHeaders.Name = "bHeaders";
             this.bHeaders.Size = new System.Drawing.Size(30, 25);
-            this.bHeaders.TabIndex = 16;
+            this.bHeaders.TabIndex = 5;
             this.toolTip.SetToolTip(this.bHeaders, "Change folder");
             this.bHeaders.UseVisualStyleBackColor = true;
             this.bHeaders.Click += new System.EventHandler(this.bHeaders_Click);
@@ -502,7 +502,7 @@ namespace ScriptEditor {
             this.HintLang_comboBox.Location = new System.Drawing.Point(136, 50);
             this.HintLang_comboBox.Name = "HintLang_comboBox";
             this.HintLang_comboBox.Size = new System.Drawing.Size(112, 23);
-            this.HintLang_comboBox.TabIndex = 25;
+            this.HintLang_comboBox.TabIndex = 4;
             this.toolTip.SetToolTip(this.HintLang_comboBox, "Language for function descriptions and help tips. (Program restart required.)");
             // 
             // Highlight_comboBox
@@ -516,7 +516,7 @@ namespace ScriptEditor {
             this.Highlight_comboBox.Location = new System.Drawing.Point(72, 15);
             this.Highlight_comboBox.Name = "Highlight_comboBox";
             this.Highlight_comboBox.Size = new System.Drawing.Size(79, 23);
-            this.Highlight_comboBox.TabIndex = 28;
+            this.Highlight_comboBox.TabIndex = 0;
             this.toolTip.SetToolTip(this.Highlight_comboBox, "Syntax highlighting scheme for the script code.");
             // 
             // InterfaceTheme_comboBox
@@ -530,7 +530,7 @@ namespace ScriptEditor {
             this.InterfaceTheme_comboBox.Location = new System.Drawing.Point(261, 15);
             this.InterfaceTheme_comboBox.Name = "InterfaceTheme_comboBox";
             this.InterfaceTheme_comboBox.Size = new System.Drawing.Size(76, 23);
-            this.InterfaceTheme_comboBox.TabIndex = 44;
+            this.InterfaceTheme_comboBox.TabIndex = 1;
             this.toolTip.SetToolTip(this.InterfaceTheme_comboBox, "Application interface colour scheme.");
             // 
             // cbAssociateID
@@ -540,7 +540,7 @@ namespace ScriptEditor {
             this.cbAssociateID.Location = new System.Drawing.Point(168, 23);
             this.cbAssociateID.Name = "cbAssociateID";
             this.cbAssociateID.Size = new System.Drawing.Size(106, 19);
-            this.cbAssociateID.TabIndex = 33;
+            this.cbAssociateID.TabIndex = 1;
             this.cbAssociateID.Text = "Associate by ID";
             this.toolTip.SetToolTip(this.cbAssociateID, "Associate message files by script number, instead of script name. (need Scripts.l" +
         "st)");
@@ -556,7 +556,7 @@ namespace ScriptEditor {
             this.cbNonColor.Location = new System.Drawing.Point(163, 19);
             this.cbNonColor.Name = "cbNonColor";
             this.cbNonColor.Size = new System.Drawing.Size(22, 22);
-            this.cbNonColor.TabIndex = 35;
+            this.cbNonColor.TabIndex = 1;
             this.cbNonColor.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.toolTip.SetToolTip(this.cbNonColor, "Use the colored word list in the AutoComplete window.");
             this.cbNonColor.UseVisualStyleBackColor = true;
@@ -567,7 +567,7 @@ namespace ScriptEditor {
             this.cbAutoPaired.Location = new System.Drawing.Point(6, 42);
             this.cbAutoPaired.Name = "cbAutoPaired";
             this.cbAutoPaired.Size = new System.Drawing.Size(156, 19);
-            this.cbAutoPaired.TabIndex = 36;
+            this.cbAutoPaired.TabIndex = 2;
             this.cbAutoPaired.Text = "Input paired parentheses";
             this.toolTip.SetToolTip(this.cbAutoPaired, "Automatically insert paired parentheses and quotation marks.");
             this.cbAutoPaired.UseVisualStyleBackColor = true;
@@ -587,7 +587,7 @@ namespace ScriptEditor {
             0});
             this.tbTabSize.Name = "tbTabSize";
             this.tbTabSize.Size = new System.Drawing.Size(52, 23);
-            this.tbTabSize.TabIndex = 34;
+            this.tbTabSize.TabIndex = 6;
             this.tbTabSize.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.toolTip.SetToolTip(this.tbTabSize, "Default: 3");
             this.tbTabSize.Value = new decimal(new int[] {
@@ -603,7 +603,7 @@ namespace ScriptEditor {
             this.cbDebug.Location = new System.Drawing.Point(112, 67);
             this.cbDebug.Name = "cbDebug";
             this.cbDebug.Size = new System.Drawing.Size(61, 19);
-            this.cbDebug.TabIndex = 23;
+            this.cbDebug.TabIndex = 5;
             this.cbDebug.Text = "Debug";
             this.toolTip.SetToolTip(this.cbDebug, "Show additional optimization debug information when compiling a script.");
             this.cbDebug.UseVisualStyleBackColor = true;
@@ -614,7 +614,7 @@ namespace ScriptEditor {
             this.cbShowTips.Location = new System.Drawing.Point(8, 22);
             this.cbShowTips.Name = "cbShowTips";
             this.cbShowTips.Size = new System.Drawing.Size(77, 19);
-            this.cbShowTips.TabIndex = 39;
+            this.cbShowTips.TabIndex = 0;
             this.cbShowTips.Text = "Show tips";
             this.toolTip.SetToolTip(this.cbShowTips, "Popup tips for code or functions when entering an opening parenthesis.");
             this.cbShowTips.UseVisualStyleBackColor = true;
@@ -625,7 +625,7 @@ namespace ScriptEditor {
             this.cbShortDesc.Location = new System.Drawing.Point(91, 22);
             this.cbShortDesc.Name = "cbShortDesc";
             this.cbShortDesc.Size = new System.Drawing.Size(121, 19);
-            this.cbShortDesc.TabIndex = 40;
+            this.cbShortDesc.TabIndex = 1;
             this.cbShortDesc.Text = "Short descriptions";
             this.toolTip.SetToolTip(this.cbShortDesc, "Show short pop-up descriptions for opcodes.");
             this.cbShortDesc.UseVisualStyleBackColor = true;
@@ -643,7 +643,7 @@ namespace ScriptEditor {
             this.cbFonts.MaxDropDownItems = 10;
             this.cbFonts.Name = "cbFonts";
             this.cbFonts.Size = new System.Drawing.Size(145, 23);
-            this.cbFonts.TabIndex = 41;
+            this.cbFonts.TabIndex = 2;
             this.toolTip.SetToolTip(this.cbFonts, "Font for the text editor code. The font size is set in the main editor window in " +
         "the lower right corner.\r\n(Size is set from +3 ...- 3 of the default size for the" +
         " selected font)");
@@ -654,7 +654,7 @@ namespace ScriptEditor {
             this.cbReopenLastTabs.Location = new System.Drawing.Point(376, 22);
             this.cbReopenLastTabs.Name = "cbReopenLastTabs";
             this.cbReopenLastTabs.Size = new System.Drawing.Size(209, 19);
-            this.cbReopenLastTabs.TabIndex = 45;
+            this.cbReopenLastTabs.TabIndex = 3;
             this.cbReopenLastTabs.Text = "Reopen tabs from previous session";
             this.toolTip.SetToolTip(this.cbReopenLastTabs, "Automatically reopen the script tabs that were open when the editor last closed.");
             this.cbReopenLastTabs.UseVisualStyleBackColor = true;
@@ -665,7 +665,7 @@ namespace ScriptEditor {
             this.cbStorePosition.Location = new System.Drawing.Point(237, 22);
             this.cbStorePosition.Name = "cbStorePosition";
             this.cbStorePosition.Size = new System.Drawing.Size(120, 19);
-            this.cbStorePosition.TabIndex = 44;
+            this.cbStorePosition.TabIndex = 2;
             this.cbStorePosition.Text = "Store last position";
             this.toolTip.SetToolTip(this.cbStorePosition, "When you close the script document, save the current position of the carriage\r\nso" +
         " that the next time you open the script document, goto that position.");
@@ -683,7 +683,7 @@ namespace ScriptEditor {
             this.cmbPreprocessor.Location = new System.Drawing.Point(204, 13);
             this.cmbPreprocessor.Name = "cmbPreprocessor";
             this.cmbPreprocessor.Size = new System.Drawing.Size(165, 23);
-            this.cmbPreprocessor.TabIndex = 24;
+            this.cmbPreprocessor.TabIndex = 1;
             this.toolTip.SetToolTip(this.cmbPreprocessor, "Uses another preprocessor instead of the built-in sfall compiler.\r\nNote: Try diff" +
         "erent preprocessors if you have problems with pre-processing the script during c" +
         "ompilation.");
@@ -730,7 +730,7 @@ namespace ScriptEditor {
             this.groupBox1.Location = new System.Drawing.Point(8, 68);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(389, 125);
-            this.groupBox1.TabIndex = 22;
+            this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Compilation";
             // 
@@ -750,7 +750,7 @@ namespace ScriptEditor {
             this.groupBox2.Location = new System.Drawing.Point(8, 288);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(593, 158);
-            this.groupBox2.TabIndex = 23;
+            this.groupBox2.TabIndex = 5;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Paths";
             // 
@@ -770,7 +770,7 @@ namespace ScriptEditor {
             this.tbScriptsHPath.Name = "tbScriptsHPath";
             this.tbScriptsHPath.ReadOnly = true;
             this.tbScriptsHPath.Size = new System.Drawing.Size(543, 23);
-            this.tbScriptsHPath.TabIndex = 15;
+            this.tbScriptsHPath.TabIndex = 6;
             // 
             // textBox2
             // 
@@ -779,7 +779,7 @@ namespace ScriptEditor {
             this.textBox2.Name = "textBox2";
             this.textBox2.ReadOnly = true;
             this.textBox2.Size = new System.Drawing.Size(543, 23);
-            this.textBox2.TabIndex = 13;
+            this.textBox2.TabIndex = 1;
             // 
             // textBox1
             // 
@@ -788,7 +788,7 @@ namespace ScriptEditor {
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
             this.textBox1.Size = new System.Drawing.Size(543, 23);
-            this.textBox1.TabIndex = 13;
+            this.textBox1.TabIndex = 4;
             // 
             // label2
             // 
@@ -817,7 +817,7 @@ namespace ScriptEditor {
             this.groupBox4.Location = new System.Drawing.Point(408, 68);
             this.groupBox4.Name = "groupBox4";
             this.groupBox4.Size = new System.Drawing.Size(193, 50);
-            this.groupBox4.TabIndex = 31;
+            this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Parser";
             // 
@@ -829,7 +829,7 @@ namespace ScriptEditor {
             this.groupBox5.Location = new System.Drawing.Point(408, 124);
             this.groupBox5.Name = "groupBox5";
             this.groupBox5.Size = new System.Drawing.Size(193, 69);
-            this.groupBox5.TabIndex = 38;
+            this.groupBox5.TabIndex = 3;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "Code editor";
             // 
@@ -853,7 +853,7 @@ namespace ScriptEditor {
             this.groupBox6.Location = new System.Drawing.Point(8, 6);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(593, 56);
-            this.groupBox6.TabIndex = 43;
+            this.groupBox6.TabIndex = 0;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Appearance";
             // 
@@ -871,7 +871,7 @@ namespace ScriptEditor {
             this.groupEditorBehavior.Location = new System.Drawing.Point(8, 199);
             this.groupEditorBehavior.Name = "groupEditorBehavior";
             this.groupEditorBehavior.Size = new System.Drawing.Size(593, 83);
-            this.groupEditorBehavior.TabIndex = 50;
+            this.groupEditorBehavior.TabIndex = 4;
             this.groupEditorBehavior.TabStop = false;
             this.groupEditorBehavior.Text = "Editing";
             // 
@@ -884,7 +884,7 @@ namespace ScriptEditor {
             this.groupMessageOptions.Location = new System.Drawing.Point(8, 452);
             this.groupMessageOptions.Name = "groupMessageOptions";
             this.groupMessageOptions.Size = new System.Drawing.Size(593, 51);
-            this.groupMessageOptions.TabIndex = 51;
+            this.groupMessageOptions.TabIndex = 6;
             this.groupMessageOptions.TabStop = false;
             this.groupMessageOptions.Text = "Message files";
             // 
@@ -895,7 +895,7 @@ namespace ScriptEditor {
             this.groupFileAssociation.Location = new System.Drawing.Point(448, 515);
             this.groupFileAssociation.Name = "groupFileAssociation";
             this.groupFileAssociation.Size = new System.Drawing.Size(153, 118);
-            this.groupFileAssociation.TabIndex = 52;
+            this.groupFileAssociation.TabIndex = 8;
             this.groupFileAssociation.TabStop = false;
             // 
             // SettingsDialog
@@ -1013,3 +1013,4 @@ namespace ScriptEditor {
         private System.Windows.Forms.Label labelCodeFont;
     }
 }
+
