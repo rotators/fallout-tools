@@ -526,7 +526,7 @@ namespace ScriptEditor
 
             ApplyDpiMetrics();
             HandleCreated += delegate { ApplyDpiMetrics(); };
-            DpiChanged += delegate { ApplyDpiMetrics(); };
+            DpiChanged += delegate { ApplyDpiMetrics(); }; // comment out for .NET 4.0 build
 
             // File commands form one group; these dividers only added visual noise.
             toolStripSeparator7.Visible = false;

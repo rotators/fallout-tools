@@ -536,7 +536,7 @@ namespace ScriptEditor
             if (!success) {
                 parserLabel.Text = "Failed to compile: " + tab.filename;
                 parserLabel.ForeColor = Color.Firebrick;
-                msg += "\r\n Compilation Failed! (See the output build and errors window log for details).";
+                msg += "\r\n Compilation Failed! (See build and error logs in the output window for details).";
                 CompileFail.Play();
 
                 if (showMessages) {
@@ -551,7 +551,7 @@ namespace ScriptEditor
                     EditorNotifications.Show(this, "Compiled " + tab.filename + " successfully.", NotificationKind.Success);
                 parserLabel.Text = "Compiled: " + tab.filename + " at " + DateTime.Now.ToString("HH:mm:ss");
                 parserLabel.ForeColor = InterfaceTheme.IsDark ? Color.FromArgb(137, 209, 133) : Color.DarkGreen;
-                msg += "\r\n Compilation Successfully!\r\n";
+                msg += "\r\n Compilation Succeeded!\r\n";
             }
             return success;
         }

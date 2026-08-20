@@ -121,7 +121,7 @@ namespace ScriptEditor.TextEditorUI.CompleteList
             AutoComleteList.KeyDown += ACL_KeyDown;
 
             ApplyDpiMetrics();
-            panel.DpiChangedAfterParent += delegate { ApplyDpiMetrics(); };
+            panel.DpiChangedAfterParent += delegate { ApplyDpiMetrics(); }; // comment out for .NET 4.0 build
 
             tipAC = new ToolTip();
             tipAC.OwnerDraw = true;

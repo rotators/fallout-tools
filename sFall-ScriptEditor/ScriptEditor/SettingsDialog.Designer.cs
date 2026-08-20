@@ -686,18 +686,18 @@ namespace ScriptEditor {
             // cmbPreprocessor
             // 
             this.cmbPreprocessor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbPreprocessor.DropDownWidth = 180;
+            this.cmbPreprocessor.DropDownWidth = 210;
             this.cmbPreprocessor.FormattingEnabled = true;
             this.cmbPreprocessor.Items.AddRange(new object[] {
             "Internal MCPP (built-in sfall compiler)",
             "External MCPP",
-            "OpenWatcom C32 preprocessor"});
+            "Open Watcom C/C++ preprocessor"});
             this.cmbPreprocessor.Location = new System.Drawing.Point(204, 13);
             this.cmbPreprocessor.Name = "cmbPreprocessor";
             this.cmbPreprocessor.Size = new System.Drawing.Size(165, 23);
             this.cmbPreprocessor.TabIndex = 1;
-            this.toolTip.SetToolTip(this.cmbPreprocessor, "Uses another preprocessor instead of the built-in sfall compiler.\r\nNote: Try diff" +
-        "erent preprocessors if you have problems with pre-processing the script during c" +
+            this.toolTip.SetToolTip(this.cmbPreprocessor, "Use another preprocessor instead of the built-in sfall compiler.\r\nNote: Try diff" +
+        "erent preprocessors if you have problems with preprocessing the script during c" +
         "ompilation.");
             // 
             // labelScriptStyle

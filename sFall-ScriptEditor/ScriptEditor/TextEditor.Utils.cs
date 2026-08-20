@@ -245,7 +245,7 @@ namespace ScriptEditor
             EditorNotifications.Show(this, "Searching files...", NotificationKind.Information, 60000);
 
             try {
-                FolderSearchResult result = await Task.Run(() =>
+                FolderSearchResult result = await Task.Run(() => // change to TaskEx w/ Bcl.Async for .NET 4.0 build
                     SearchFolderFiles(folder, patterns, recursive, findAll, searchText, regex,
                         matchCase, cancellation.Token), cancellation.Token);
 

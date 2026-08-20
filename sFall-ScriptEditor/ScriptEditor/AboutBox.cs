@@ -143,27 +143,30 @@ namespace ScriptEditor
             using (Font linkFont = new Font("Segoe UI", 9F, FontStyle.Underline)) {
                 AppendHeading("Copyright", headingFont, headingColor);
                 AppendParagraph(AssemblyCopyright, bodyFont, bodyColor);
-                AppendParagraph("Original editor by the Sfall Team, 2010-2021\nExtended version by Mr.Stalin", bodyFont, secondaryColor);
+                AppendParagraph("Original editor by Sfall Team, 2010-2021\nExtended version by Mr.Stalin", bodyFont, secondaryColor);
 
                 AppendHeading("Code editor", headingFont, headingColor);
                 AppendParagraph("ICSharpCode.TextEditor 3.2.1 and DiagramCanvas 3.2.1 - LGPL", bodyFont, bodyColor);
                 AppendParagraph("Copyright 2002-2010 AlphaSierraPapa and Christoph Wille\nControls modified by Mr.Stalin\nhttps://www.icsharpcode.net/opensource/sd/", bodyFont, secondaryColor);
 
                 AppendHeading("Script compiler", headingFont, headingColor);
-                AppendParagraph("SSLC, sfall edition - for the sfall 4.0 series", bodyFont, bodyColor);
+                AppendParagraph("SSLC, sfall edition - for the sfall 4.x series", bodyFont, bodyColor);
 
                 AppendHeading("Preprocessors", headingFont, headingColor);
-                AppendParagraph("MCPP 2.7.2 (BCD)\nCopyright 1998, 2002-2008 Kiyoshi Matsui", bodyFont, bodyColor);
-                AppendParagraph("Open Watcom C32 Optimizing Compiler 2.0 beta\nCopyright 1984-2002 Sybase, Inc.\nCopyright 2002-2017 The Open Watcom Contributors", bodyFont, secondaryColor);
+                AppendParagraph("MCPP 2.7.2 (BCD)", bodyFont, bodyColor);
+                AppendParagraph("Copyright 1998, 2002-2008 Kiyoshi Matsui", bodyFont, secondaryColor);
+                AppendParagraph("Open Watcom C/C++32 Optimizing Compiler 2.0 beta", bodyFont, bodyColor);
+                AppendParagraph("Copyright 1984-2002 Sybase, Inc.\nCopyright 2002-2020 The Open Watcom Contributors", bodyFont, secondaryColor);
 
                 AppendHeading("Decompiler", headingFont, headingColor);
-                AppendParagraph("int2ssl 8.4.6\nCopyright 2005-2009 Anchorite (TeamX)", bodyFont, bodyColor);
+                AppendParagraph("int2ssl 8.4.9", bodyFont, bodyColor);
+                AppendParagraph("Copyright 2005-2009 Anchorite (TeamX)\nContinued by Nirran, phobos2077 (2014-2025), Mr.Stalin (2018-2021)", bodyFont, secondaryColor);
 
                 AppendHeading("Licenses", headingFont, headingColor);
-                AppendFormatted("Full license texts are available in ", bodyFont, secondaryColor);
+                AppendFormatted("Full license texts are available in ", bodyFont, bodyColor);
                 AppendLicenseLink("licences.txt", linkFont,
                     dark ? Color.FromArgb(86, 156, 214) : Color.MediumBlue);
-                AppendFormatted("." + Environment.NewLine, bodyFont, secondaryColor);
+                AppendFormatted("." + Environment.NewLine, bodyFont, bodyColor);
             }
 
             textBoxDescription.SelectAll();

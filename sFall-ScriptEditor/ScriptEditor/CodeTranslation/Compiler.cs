@@ -171,7 +171,7 @@ namespace ScriptEditor.CodeTranslation
                 string outfile = (batch) ? Path.GetRandomFileName() : "preprocess.ssl"; // common preprocess file (generate random name for batch compile)
                 if (Settings.useMcpp || Settings.useWatcom) {
                     if (!batch) {
-                        output += Environment.NewLine + (Settings.useWatcom ? "Open Watcom C32 preprocessing script: " : "External MCPP preprocessing script: ");
+                        output += Environment.NewLine + (Settings.useWatcom ? "Open Watcom C/C++ preprocessing script: " : "External MCPP preprocessing script: ");
                         output += Path.GetFileName(infile) + Environment.NewLine;
                         output += "Predefine: " + (Settings.preprocDef ?? string.Empty) + Environment.NewLine;
                     }
@@ -183,10 +183,10 @@ namespace ScriptEditor.CodeTranslation
                     if (!batch) {
                         output += new string('-', 22) + Environment.NewLine;
                         if (success) {
-                            output += "Created preprocessing file: OK\r\n";
-                            output += "[Done] Preprocessing script successfully completed.\r\n";
+                            output += "Creating preprocessed file: OK\r\n";
+                            output += "[Done] Script preprocessing succeeded.\r\n";
                         } else
-                            output += "[Error] Preprocessing script failed...";
+                            output += "[Error] Script preprocessing failed...";
                     }
                 }
 

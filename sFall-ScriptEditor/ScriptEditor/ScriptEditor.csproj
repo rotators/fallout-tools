@@ -471,4 +471,12 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="LocateEditBin" BeforeTargets="SetStackSize">
+    <Exec Command="&quot;%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe&quot; -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -find VC\Tools\MSVC\*\bin\Hostx86\x86\editbin.exe" ConsoleToMSBuild="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="EditBinPath" />
+    </Exec>
+  </Target>
+  <Target Name="SetStackSize" AfterTargets="Build" DependsOnTargets="LocateEditBin">
+    <Exec Command="&quot;$(EditBinPath)&quot; /STACK:4194304,16384 &quot;$(TargetPath)&quot;" />
+  </Target>
 </Project>
