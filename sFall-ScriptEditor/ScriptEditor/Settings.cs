@@ -88,7 +88,7 @@ namespace ScriptEditor
         public static byte msgFontSize = 0;
         public static string pathHeadersFiles;
         public static bool associateID = false;
-        public static bool useMcpp = true;
+        public static bool useMcpp = false;
         public static bool autocompleteColor = true;
         public static bool autoInputPaired = true;
         public static bool showTabsChar = false;
@@ -432,7 +432,7 @@ namespace ScriptEditor
             if (!firstRun) {
                 var culture = System.Globalization.CultureInfo.CurrentCulture;
                 Settings.hintsLang = (byte)((culture.ToString() == "ru-RU") ? 1 : 0);
-                FileAssociation.Associate();
+                //FileAssociation.Associate(); // auto file association
             }
 
             EncCodePage = (encoding == (byte)EncodingType.OEM866) ? Encoding.GetEncoding("cp866") : Encoding.Default;
