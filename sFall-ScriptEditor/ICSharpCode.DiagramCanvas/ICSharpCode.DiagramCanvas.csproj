@@ -43,7 +43,6 @@
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
     <DocumentationFile>
     </DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
@@ -54,7 +53,6 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>pdbonly</DebugType>
     <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>

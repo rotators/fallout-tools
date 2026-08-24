@@ -38,9 +38,13 @@ namespace ScriptEditor
 
         public static void Associate(bool force = false)
         {
+            if (ScriptEditor.ThemedMessageBox.Show("Do you want to associate .ssl, .int, and .msg files with the script editor?",
+                "Associate files", MessageBoxButtons.YesNo) == DialogResult.No)
+                return;
+
             try {
                 RegisterPerUser();
-                if (force) OpenDefaultApps();
+                if (force && Environment.OSVersion.Version.Major > 5) OpenDefaultApps();
             } catch (UnauthorizedAccessException ex) {
                 ShowAssociationError(ex);
             } catch (SecurityException ex) {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -76,6 +77,10 @@ namespace ScriptEditor
         private static readonly ToolStripProfessionalRenderer DarkToolStripRenderer = new DarkRenderer();
         private static readonly Image DarkHelpIcon = CreateHelpIcon(true);
         private static readonly Image LightHelpIcon = CreateHelpIcon(false);
+
+        private static readonly bool SupportsDarkMode =
+            Environment.OSVersion.Version.Major > 6 ||
+            (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Minor >= 1);
 
         private sealed class GridColumnSelectionStyle
         {
@@ -1088,13 +1093,18 @@ namespace ScriptEditor
 
                 bool dark = IsDark;
                 string theme = dark ? "DarkMode_Explorer" : "Explorer";
-                AllowDarkModeForWindow(info.hwndList, dark);
+                if (SupportsDarkMode) {
+                    try {
+                        AllowDarkModeForWindow(info.hwndList, dark);
+                        EnumChildWindows(info.hwndList, delegate (System.IntPtr hwnd, System.IntPtr param) {
+                            AllowDarkModeForWindow(hwnd, dark);
+                            SetWindowTheme(hwnd, theme, null);
+                            return true;
+                        }, System.IntPtr.Zero);
+
+                    } catch { }
+                }
                 SetWindowTheme(info.hwndList, theme, null);
-                EnumChildWindows(info.hwndList, delegate(System.IntPtr hwnd, System.IntPtr param) {
-                    AllowDarkModeForWindow(hwnd, dark);
-                    SetWindowTheme(hwnd, theme, null);
-                    return true;
-                }, System.IntPtr.Zero);
                 InvalidateRect(info.hwndList, System.IntPtr.Zero, true);
             }
             private void DrawArrowButton()
@@ -1216,7 +1226,8 @@ namespace ScriptEditor
         {
             if (!control.IsHandleCreated) return;
             try {
-                AllowDarkModeForWindow(control.Handle, dark);
+                if (SupportsDarkMode)
+                    AllowDarkModeForWindow(control.Handle, dark);
                 // Editable text/combo controls use classic drawing to avoid light
                 // Windows hot-state flashes. RichTextBox retains Explorer styling
                 // so its native scrollbar uses the dark Windows presentation.
@@ -1230,7 +1241,8 @@ namespace ScriptEditor
                 string themeParts = darkInput ? "" : null;
                 SetWindowTheme(control.Handle, theme, themeParts);
                 EnumChildWindows(control.Handle, delegate(System.IntPtr hwnd, System.IntPtr param) {
-                    AllowDarkModeForWindow(hwnd, dark);
+                    if (SupportsDarkMode)
+                        AllowDarkModeForWindow(hwnd, dark);
                     SetWindowTheme(hwnd, theme, themeParts);
                     return true;
                 }, System.IntPtr.Zero);
@@ -1255,9 +1267,11 @@ namespace ScriptEditor
         private static void SetPreferredTheme(bool dark)
         {
             try {
-                SetPreferredAppMode(dark ? PreferredAppMode.ForceDark : PreferredAppMode.ForceLight);
+                if (SupportsDarkMode)
+                    SetPreferredAppMode(dark ? PreferredAppMode.ForceDark : PreferredAppMode.ForceLight);
                 ToolStripManager.Renderer = dark ? (ToolStripRenderer)DarkToolStripRenderer : new ToolStripSystemRenderer();
-                FlushMenuThemes();
+                if (SupportsDarkMode)
+                    FlushMenuThemes();
             } catch { }
         }
         [DllImport("dwmapi.dll")]

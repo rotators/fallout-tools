@@ -95,7 +95,7 @@ namespace ScriptEditor
         public static bool autoTrailingSpaces = true;
         public static bool showTips = true;
         public static bool shortDesc = false;
-        public static byte selectFont = 11; // 0 - default
+        public static byte selectFont = 0; // 0 - default
         public static sbyte sizeFont = 0; // 0 - default
         public static bool showVRuler = true;
         public static bool storeLastPosition = true;
@@ -432,7 +432,7 @@ namespace ScriptEditor
             if (!firstRun) {
                 var culture = System.Globalization.CultureInfo.CurrentCulture;
                 Settings.hintsLang = (byte)((culture.ToString() == "ru-RU") ? 1 : 0);
-                //FileAssociation.Associate(); // auto file association
+                FileAssociation.Associate();
             }
 
             EncCodePage = (encoding == (byte)EncodingType.OEM866) ? Encoding.GetEncoding("cp866") : Encoding.Default;
