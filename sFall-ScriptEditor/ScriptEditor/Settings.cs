@@ -37,7 +37,7 @@ namespace ScriptEditor
         public static readonly Dictionary<string, float> FontAdjustSize = new Dictionary<string, float>() {
             {"Anonymous Pro", 10.5f},       {"Consolas", 10.5f},            {"Cousine", 10.5f},
             {"InconsolataCyr", 11.0f},      {"InputMono", 9.5f},            {"InputMonoCondensed", 9.5f},
-            {"Liberation Mono", 10.25f},    {"Meslo LG S DZ", 9.75f},       {"Ubuntu Mono",  11.75f}
+            {"Liberation Mono", 10.25f},    {"Meslo LG S", 9.75f},          {"Ubuntu Mono",  11.75f}
         };
 
         public static List<string> searchListPath = new List<string>();
@@ -95,7 +95,7 @@ namespace ScriptEditor
         public static bool autoTrailingSpaces = true;
         public static bool showTips = true;
         public static bool shortDesc = false;
-        public static byte selectFont = 0; // 0 - default
+        public static byte selectFont = 11; // 0 - default
         public static sbyte sizeFont = 0; // 0 - default
         public static bool showVRuler = true;
         public static bool storeLastPosition = true;
