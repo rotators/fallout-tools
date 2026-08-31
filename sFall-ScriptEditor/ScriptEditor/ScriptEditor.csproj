@@ -99,7 +99,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <PropertyGroup>
-    <BuildTimestamp Condition="'$(BuildTimestamp)' == ''">Development build</BuildTimestamp>
+    <BuildTimestamp Condition="'$(BuildTimestamp)' == ''">$([System.DateTime]::UtcNow.ToString('yyyy-MM-dd HH:mm:ss')) UTC</BuildTimestamp>
     <GeneratedBuildInfoFile>$(IntermediateOutputPath)BuildInfo.g.cs</GeneratedBuildInfoFile>
   </PropertyGroup>
   <ItemGroup>
