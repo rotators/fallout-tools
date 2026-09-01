@@ -1237,6 +1237,7 @@
         <Key word = "SKILL_SCIENCE" />
         <Key word = "SKILL_REPAIR" />
         <Key word = "SKILL_CONVERSANT" />
+        <Key word = "SKILL_SPEECH" />
         <Key word = "SKILL_BARTER" />
         <Key word = "SKILL_GAMBLING" />
         <Key word = "SKILL_OUTDOORSMAN" />
@@ -1470,6 +1471,15 @@
         <Key word = "HOOK_SETLIGHTING" />
         <Key word = "HOOK_SNEAK" />
         <Key word = "HOOK_STDPROCEDURE" />
+        <Key word = "HOOK_STDPROCEDURE_END" />
+        <Key word = "HOOK_TARGETOBJECT" />
+        <Key word = "HOOK_ENCOUNTER" />
+        <Key word = "HOOK_ADJUSTPOISON" />
+        <Key word = "HOOK_ADJUSTRADS" />
+        <Key word = "HOOK_ROLLCHECK" />
+        <Key word = "HOOK_BESTWEAPON" />
+        <Key word = "HOOK_CANUSEWEAPON" />
+        <Key word = "HOOK_BUILDSFXWEAPON" />
 
         <Key word = "LIST_CRITTERS" />
         <Key word = "LIST_GROUNDITEMS" />
