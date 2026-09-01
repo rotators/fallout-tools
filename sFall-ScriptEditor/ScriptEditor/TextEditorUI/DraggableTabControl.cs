@@ -533,10 +533,10 @@ public class DraggableTabControl : UserControl
                 tabsSwapped(this, new TabsSwappedEventArgs(sourceIndex, targetIndex));
             m_Pages.RemoveAt(sourceIndex);
             m_Pages.Insert(targetIndex, page);
-            m_PageHost.TabPages.Remove(page);
-            m_PageHost.TabPages.Insert(targetIndex, page);
+            // The page host is implementation-only and its order is irrelevant.
+            // Keeping the TabPage attached prevents the editor surface from being
+            // recreated (and briefly flashing its default background) while dragging.
             m_SelectedIndex = m_Pages.IndexOf(selected);
-            UpdatePageVisibility();
         }
         finally { m_IsReordering = false; }
         EnsureSelectedVisible();

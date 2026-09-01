@@ -42,6 +42,7 @@ namespace SfallScriptEditor.Tests
             Run("managed tab arrows preserve selection and order", ManagedTabArrowsPreserveSelectionAndOrder);
             Run("overflow close targets visible page", OverflowCloseTargetsVisiblePage);
             Run("managed reorder and removal preserve page identity", ManagedReorderAndRemovalPreservePageIdentity);
+            Run("managed reorder keeps document view attached", ManagedReorderKeepsDocumentViewAttached);
             Run("designer control collection routes tab pages", DesignerControlCollectionRoutesTabPages);
             Run("tab navigation arrows are not empty tab strip", TabNavigationArrowsAreNotEmptyTabStrip);
             Run("notification severity is conveyed in text", NotificationSeverityIsConveyedInText);
@@ -317,6 +318,30 @@ namespace SfallScriptEditor.Tests
 
                 control.Controls.Remove(page);
                 Equal(0, control.TabCount);
+            }
+        }
+
+        private static void ManagedReorderKeepsDocumentViewAttached()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                var first = new TabPage("First.ssl");
+                var moved = new TabPage("Moved.ssl");
+                var last = new TabPage("Last.ssl");
+                control.TabPages.AddRange(new[] { first, moved, last });
+                control.SelectedTab = moved;
+                IntPtr controlHandle = control.Handle;
+                IntPtr pageHandle = moved.Handle;
+                Control parent = moved.Parent;
+                int parentChanges = 0;
+                moved.ParentChanged += delegate { parentChanges++; };
+
+                control.MoveTab(moved, 2);
+
+                True(controlHandle != IntPtr.Zero, "The tab control should have a live window handle.");
+                Equal(parent, moved.Parent);
+                Equal(pageHandle, moved.Handle);
+                Equal(0, parentChanges);
+                Equal(moved, control.SelectedTab);
             }
         }
 
