@@ -39,6 +39,7 @@ namespace SfallScriptEditor.Tests
             Run("dialog procedures are discovered from their content", DialogProceduresAreDiscoveredFromContent);
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
+            Run("current sfall hooks are syntax highlighted", CurrentSfallHooksAreSyntaxHighlighted);
             Run("dark editor host surfaces do not expose light backgrounds", DarkEditorHostSurfacesDoNotExposeLightBackgrounds);
             Run("dark combo boxes keep stable native chrome", DarkComboBoxesKeepStableNativeChrome);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
@@ -207,6 +208,25 @@ namespace SfallScriptEditor.Tests
                 }
             } finally {
                 Settings.interfaceTheme = originalTheme;
+            }
+        }
+
+        private static void CurrentSfallHooksAreSyntaxHighlighted()
+        {
+            string[] hooks = {
+                "HOOK_STDPROCEDURE_END", "HOOK_TARGETOBJECT", "HOOK_ENCOUNTER",
+                "HOOK_ADJUSTPOISON", "HOOK_ADJUSTRADS", "HOOK_ROLLCHECK",
+                "HOOK_BESTWEAPON", "HOOK_CANUSEWEAPON", "HOOK_BUILDSFXWEAPON"
+            };
+            string[] syntaxFiles = {
+                "ssl_SyntaxRules.xshd", "ssl+_SyntaxRules.xshd", "ssld_SyntaxRules.xshd"
+            };
+            foreach (string syntaxFile in syntaxFiles) {
+                string path = Path.Combine("ScriptEditor", "SyntaxRules", syntaxFile);
+                string definition = File.ReadAllText(path);
+                foreach (string hook in hooks)
+                    True(definition.Contains("word = \"" + hook + "\""),
+                        hook + " must be present in " + syntaxFile + ".");
             }
         }
 
