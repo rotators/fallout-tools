@@ -13,49 +13,6 @@ namespace ScriptEditor
     {
         static Mutex mutex = new Mutex(true, "SFALL_SCRIPT_EDITOR_4");
         private static int crashReportWritten;
-        private static readonly string RunMarkerPath = Path.Combine(Application.StartupPath, "last-run.marker");
-
-        private static void BeginRunDiagnostics(string[] args)
-        {
-            try {
-                if (File.Exists(RunMarkerPath)) {
-                    string previousPath = Path.Combine(Application.StartupPath,
-                        "abnormal-termination-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + ".log");
-                    File.Move(RunMarkerPath, previousPath);
-                }
-
-                File.WriteAllText(RunMarkerPath,
-                    "Sfall Script Editor run marker" + Environment.NewLine
-                    + "UTC start: " + DateTime.UtcNow.ToString("O") + Environment.NewLine
-                    + "Version: " + Application.ProductVersion + Environment.NewLine
-                    + "Command line: " + Environment.CommandLine + Environment.NewLine
-                    + "Arguments: " + String.Join(" | ", args ?? new string[0]) + Environment.NewLine);
-                Application.ApplicationExit += delegate { CompleteRunDiagnostics(); };
-            } catch {
-                // Diagnostics must never prevent the editor from starting.
-            }
-        }
-
-        private static void AppendRunMarker(string message)
-        {
-            try {
-                if (!File.Exists(RunMarkerPath))
-                    return;
-                File.AppendAllText(RunMarkerPath, DateTime.UtcNow.ToString("O") + "  " + message + Environment.NewLine);
-            } catch {
-                // The process may be terminating or the install folder may be unavailable.
-            }
-        }
-
-        private static void CompleteRunDiagnostics()
-        {
-            try {
-                if (File.Exists(RunMarkerPath))
-                    File.Delete(RunMarkerPath);
-            } catch {
-                // A marker left behind will be reported as an abnormal termination next launch.
-            }
-        }
 
         private static void ConfigureCrashDiagnostics(string[] args)
         {
@@ -112,7 +69,6 @@ namespace ScriptEditor
             if (args.Length > 0 && mutex.WaitOne(TimeSpan.Zero, true) 
                 && Path.GetExtension(args[0]).ToLowerInvariant() == ".msg") {
                 mutex.Close();
-                BeginRunDiagnostics(args);
                 // run only Messages editor
                 printLog("Run only message editor...");
                 Settings.Load();
@@ -122,7 +78,6 @@ namespace ScriptEditor
             } else {
                 // check if another instance is already running
                 if (mutex.WaitOne(TimeSpan.Zero, true)) {
-                    BeginRunDiagnostics(args);
                     File.Delete("sse.log");    
                     printLog("Run main editor...");                 
                     Settings.Load();
@@ -165,7 +120,6 @@ namespace ScriptEditor
 
         public static void printLog(string log) {
             File.AppendAllText(Application.StartupPath + "\\sse.log", log + Environment.NewLine);
-            AppendRunMarker(log);
         }
     }
 }
