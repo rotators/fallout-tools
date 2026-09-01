@@ -39,6 +39,7 @@ namespace SfallScriptEditor.Tests
             Run("dialog procedures are discovered from their content", DialogProceduresAreDiscoveredFromContent);
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
+            Run("dark editor host surfaces do not expose light backgrounds", DarkEditorHostSurfacesDoNotExposeLightBackgrounds);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
             Run("tab close retains pressed page identity", TabCloseRetainsPressedPageIdentity);
             Run("managed tab arrows preserve selection and order", ManagedTabArrowsPreserveSelectionAndOrder);
@@ -178,6 +179,32 @@ namespace SfallScriptEditor.Tests
             True(args.IsCurrent, "A new parser request should match its document revision.");
             tab.MarkTextChanged();
             True(!args.IsCurrent, "An edit must invalidate an in-flight parser request.");
+        }
+
+        private static void DarkEditorHostSurfacesDoNotExposeLightBackgrounds()
+        {
+            InterfaceThemeMode originalTheme = Settings.interfaceTheme;
+            try {
+                Settings.interfaceTheme = InterfaceThemeMode.Dark;
+                using (var editor = new ICSharpCode.TextEditor.TextEditorControl()) {
+                    InterfaceTheme.Apply(editor);
+                    Color expected = Color.FromArgb(40, 40, 42);
+                    Equal(expected, editor.BackColor);
+
+                    var pending = new Stack<Control>();
+                    foreach (Control child in editor.Controls)
+                        pending.Push(child);
+                    while (pending.Count > 0) {
+                        Control control = pending.Pop();
+                        if (control is Panel)
+                            Equal(expected, control.BackColor);
+                        foreach (Control child in control.Controls)
+                            pending.Push(child);
+                    }
+                }
+            } finally {
+                Settings.interfaceTheme = originalTheme;
+            }
         }
 
         private static void MetadataOnlyFileChangesAreIgnored()

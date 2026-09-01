@@ -93,6 +93,8 @@ namespace ScriptEditor
             }
             //Create the text editor and set up the tab
             ICSharpCode.TextEditor.TextEditorControl te = new ICSharpCode.TextEditor.TextEditorControl();
+            Program.SetDoubleBuffered(te);
+            Program.SetDoubleBuffered(te.ActiveTextAreaControl);
 
             if (caretSoftwareModeToolStripMenuItem.CheckState == CheckState.Indeterminate)
                 caretSoftwareModeToolStripMenuItem.Checked = (Caret.GraphicsMode == ImplementationMode.SoftwareMode);

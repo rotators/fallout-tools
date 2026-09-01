@@ -175,6 +175,11 @@ namespace ScriptEditor
            //this.UpdateStyles();
 
            Program.SetDoubleBuffered(panel1);
+           Program.SetDoubleBuffered(splitContainer1);
+           Program.SetDoubleBuffered(splitContainer1.Panel1);
+           Program.SetDoubleBuffered(splitContainer2);
+           Program.SetDoubleBuffered(splitContainer2.Panel1);
+           Program.SetDoubleBuffered(splitContainer2.Panel2);
            Program.SetDoubleBuffered(dgvErrors);
            dgvErrors.Scroll += dgvErrors_Scroll;
         }

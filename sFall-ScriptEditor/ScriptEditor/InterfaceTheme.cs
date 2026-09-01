@@ -195,6 +195,7 @@ namespace ScriptEditor
             ApplyTypography(control);
             ApplyNativeTheme(control, dark);
             if (control is ICSharpCode.TextEditor.TextEditorControl) {
+                ApplyTextEditorHostColors(control, dark);
                 RegisterDynamicThemingToChildren(control);
                 ApplyNativeThemeToChildren(control, dark);
                 return;
@@ -437,6 +438,27 @@ namespace ScriptEditor
             }
 
             foreach (Control child in control.Controls) ApplyControl(child, dark);
+        }
+
+        private static void ApplyTextEditorHostColors(Control editor, bool dark)
+        {
+            Color back = dark ? DarkBack : SystemColors.Window;
+            Color fore = dark ? DarkText : SystemColors.WindowText;
+            editor.BackColor = back;
+            editor.ForeColor = fore;
+            ApplyTextEditorPanelColors(editor, back, fore);
+        }
+
+        private static void ApplyTextEditorPanelColors(Control parent, Color back, Color fore)
+        {
+            foreach (Control child in parent.Controls) {
+                Panel panel = child as Panel;
+                if (panel != null) {
+                    panel.BackColor = back;
+                    panel.ForeColor = fore;
+                }
+                ApplyTextEditorPanelColors(child, back, fore);
+            }
         }
 
         private static void GridEditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
