@@ -70,8 +70,7 @@ public class DraggableTabControl : UserControl
             ItemSize = new Size(0, 1),
             Multiline = true,
             TabStop = false,
-            Margin = System.Windows.Forms.Padding.Empty,
-            Visible = false
+            Margin = System.Windows.Forms.Padding.Empty
         };
         m_ContentPanel.Controls.Add(m_PageHost);
         Controls.Add(m_ContentPanel);
@@ -197,12 +196,10 @@ public class DraggableTabControl : UserControl
         if (panelBounds.Width <= 0 || panelBounds.Height <= 0)
             return;
 
-        if (m_PageHost.TabCount == 0) {
-            m_PageHost.Visible = false;
+        if (m_PageHost.TabCount == 0)
             return;
-        }
 
-        // Probe the native TabControl chrome once while it is hidden. Reapplying
+        // Probe the native TabControl chrome once. Reapplying
         // the panel bounds before every final clipped layout resized the selected
         // TabPage twice and briefly exposed the native light-themed host.
         if (!m_PageHostChromeMeasured) {
@@ -223,7 +220,6 @@ public class DraggableTabControl : UserControl
             panelBounds.Height + m_PageHostChromeTop + m_PageHostChromeBottom);
         if (m_PageHost.Bounds != finalBounds)
             m_PageHost.Bounds = finalBounds;
-        m_PageHost.Visible = true;
     }
 
     protected override void OnSizeChanged(EventArgs e)

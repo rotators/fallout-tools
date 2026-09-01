@@ -47,6 +47,7 @@ namespace SfallScriptEditor.Tests
             Run("managed reorder and removal preserve page identity", ManagedReorderAndRemovalPreservePageIdentity);
             Run("managed reorder keeps document view attached", ManagedReorderKeepsDocumentViewAttached);
             Run("document host avoids intermediate layouts", DocumentHostAvoidsIntermediateLayouts);
+            Run("document page text can be assigned after insertion", DocumentPageTextCanBeAssignedAfterInsertion);
             Run("designer control collection routes tab pages", DesignerControlCollectionRoutesTabPages);
             Run("tab navigation arrows are not empty tab strip", TabNavigationArrowsAreNotEmptyTabStrip);
             Run("notification severity is conveyed in text", NotificationSeverityIsConveyedInText);
@@ -408,6 +409,21 @@ namespace SfallScriptEditor.Tests
                 control.PerformLayout();
                 True(sizeChanges <= 1,
                     "One outer resize must not pass the document through intermediate page-host bounds.");
+            }
+        }
+
+        private static void DocumentPageTextCanBeAssignedAfterInsertion()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                control.Size = new Size(640, 420);
+                IntPtr handle = control.Handle;
+                var page = new TabPage();
+                control.Controls.Add(page);
+
+                page.Text = "Initialized.ssl";
+
+                Equal("Initialized.ssl", page.Text);
+                Equal(page, control.SelectedTab);
             }
         }
 
