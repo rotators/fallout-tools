@@ -46,6 +46,7 @@ namespace SfallScriptEditor.Tests
             Run("overflow close targets visible page", OverflowCloseTargetsVisiblePage);
             Run("managed reorder and removal preserve page identity", ManagedReorderAndRemovalPreservePageIdentity);
             Run("managed reorder keeps document view attached", ManagedReorderKeepsDocumentViewAttached);
+            Run("document host avoids intermediate layouts", DocumentHostAvoidsIntermediateLayouts);
             Run("designer control collection routes tab pages", DesignerControlCollectionRoutesTabPages);
             Run("tab navigation arrows are not empty tab strip", TabNavigationArrowsAreNotEmptyTabStrip);
             Run("notification severity is conveyed in text", NotificationSeverityIsConveyedInText);
@@ -385,6 +386,28 @@ namespace SfallScriptEditor.Tests
 
                 control.Controls.Remove(page);
                 Equal(0, control.TabCount);
+            }
+        }
+
+        private static void DocumentHostAvoidsIntermediateLayouts()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                control.Size = new Size(640, 420);
+                var current = new TabPage("Current.ssl");
+                control.TabPages.Add(current);
+                IntPtr handle = control.Handle;
+                control.PerformLayout();
+
+                int sizeChanges = 0;
+                current.SizeChanged += delegate { sizeChanges++; };
+                control.TabPages.Add(new TabPage("New.ssl"));
+                Equal(0, sizeChanges);
+
+                sizeChanges = 0;
+                control.Size = new Size(700, 460);
+                control.PerformLayout();
+                True(sizeChanges <= 1,
+                    "One outer resize must not pass the document through intermediate page-host bounds.");
             }
         }
 

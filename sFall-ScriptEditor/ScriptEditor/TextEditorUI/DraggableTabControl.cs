@@ -22,6 +22,11 @@ public class DraggableTabControl : UserControl
     private readonly Panel m_ContentPanel;
     private readonly TabControl m_PageHost;
     private readonly ToolTip m_ToolTip;
+    private bool m_PageHostChromeMeasured;
+    private int m_PageHostChromeLeft;
+    private int m_PageHostChromeTop;
+    private int m_PageHostChromeRight;
+    private int m_PageHostChromeBottom;
     private readonly HashSet<TabPage> m_ModifiedTabs = new HashSet<TabPage>();
     private readonly HashSet<TabPage> m_UntitledTabs = new HashSet<TabPage>();
     private readonly List<Rectangle> m_TabBounds = new List<Rectangle>();
@@ -65,7 +70,8 @@ public class DraggableTabControl : UserControl
             ItemSize = new Size(0, 1),
             Multiline = true,
             TabStop = false,
-            Margin = System.Windows.Forms.Padding.Empty
+            Margin = System.Windows.Forms.Padding.Empty,
+            Visible = false
         };
         m_ContentPanel.Controls.Add(m_PageHost);
         Controls.Add(m_ContentPanel);
@@ -191,13 +197,33 @@ public class DraggableTabControl : UserControl
         if (panelBounds.Width <= 0 || panelBounds.Height <= 0)
             return;
 
-        m_PageHost.Bounds = panelBounds;
-        Rectangle pageBounds = m_PageHost.DisplayRectangle;
-        int horizontalChrome = Math.Max(0, m_PageHost.Width - pageBounds.Width);
-        int verticalChrome = Math.Max(0, m_PageHost.Height - pageBounds.Height);
-        m_PageHost.SetBounds(-pageBounds.Left, -pageBounds.Top,
-            panelBounds.Width + horizontalChrome,
-            panelBounds.Height + verticalChrome);
+        if (m_PageHost.TabCount == 0) {
+            m_PageHost.Visible = false;
+            return;
+        }
+
+        // Probe the native TabControl chrome once while it is hidden. Reapplying
+        // the panel bounds before every final clipped layout resized the selected
+        // TabPage twice and briefly exposed the native light-themed host.
+        if (!m_PageHostChromeMeasured) {
+            m_PageHost.SetBounds(0, 0,
+                Math.Max(100, panelBounds.Width), Math.Max(100, panelBounds.Height));
+            Rectangle pageBounds = m_PageHost.DisplayRectangle;
+            m_PageHostChromeLeft = Math.Max(0, pageBounds.Left);
+            m_PageHostChromeTop = Math.Max(0, pageBounds.Top);
+            m_PageHostChromeRight = Math.Max(0, m_PageHost.ClientSize.Width - pageBounds.Right);
+            m_PageHostChromeBottom = Math.Max(0, m_PageHost.ClientSize.Height - pageBounds.Bottom);
+            m_PageHostChromeMeasured = true;
+        }
+
+        Rectangle finalBounds = new Rectangle(
+            -m_PageHostChromeLeft,
+            -m_PageHostChromeTop,
+            panelBounds.Width + m_PageHostChromeLeft + m_PageHostChromeRight,
+            panelBounds.Height + m_PageHostChromeTop + m_PageHostChromeBottom);
+        if (m_PageHost.Bounds != finalBounds)
+            m_PageHost.Bounds = finalBounds;
+        m_PageHost.Visible = true;
     }
 
     protected override void OnSizeChanged(EventArgs e)
@@ -513,6 +539,7 @@ public class DraggableTabControl : UserControl
             m_SelectedIndex = m_Pages.IndexOf(selectedBefore);
             UpdatePageVisibility();
         }
+        LayoutPageHost();
         NormalizeFirstVisibleIndex();
         Invalidate();
     }
