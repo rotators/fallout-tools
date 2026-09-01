@@ -40,6 +40,7 @@ namespace SfallScriptEditor.Tests
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
             Run("dark editor host surfaces do not expose light backgrounds", DarkEditorHostSurfacesDoNotExposeLightBackgrounds);
+            Run("dark combo boxes keep stable native chrome", DarkComboBoxesKeepStableNativeChrome);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
             Run("tab close retains pressed page identity", TabCloseRetainsPressedPageIdentity);
             Run("managed tab arrows preserve selection and order", ManagedTabArrowsPreserveSelectionAndOrder);
@@ -203,6 +204,32 @@ namespace SfallScriptEditor.Tests
                         foreach (Control child in control.Controls)
                             pending.Push(child);
                     }
+                }
+            } finally {
+                Settings.interfaceTheme = originalTheme;
+            }
+        }
+
+        private static void DarkComboBoxesKeepStableNativeChrome()
+        {
+            InterfaceThemeMode originalTheme = Settings.interfaceTheme;
+            try {
+                Settings.interfaceTheme = InterfaceThemeMode.Dark;
+                using (var comboBox = new ComboBox {
+                    DropDownStyle = ComboBoxStyle.DropDownList,
+                    Bounds = new Rectangle(12, 8, 140, 23)
+                }) {
+                    comboBox.Items.AddRange(new object[] { "First", "Second" });
+                    comboBox.SelectedIndex = 0;
+                    IntPtr handle = comboBox.Handle;
+
+                    InterfaceTheme.Apply(comboBox);
+                    Rectangle themedBounds = comboBox.Bounds;
+                    InterfaceTheme.Apply(comboBox);
+
+                    Equal(FlatStyle.Standard, comboBox.FlatStyle);
+                    Equal(DrawMode.Normal, comboBox.DrawMode);
+                    Equal(themedBounds, comboBox.Bounds);
                 }
             } finally {
                 Settings.interfaceTheme = originalTheme;

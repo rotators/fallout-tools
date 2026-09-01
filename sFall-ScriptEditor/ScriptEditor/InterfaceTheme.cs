@@ -60,10 +60,7 @@ namespace ScriptEditor
         private static readonly Dictionary<NumericUpDown, BorderStyle> NumericUpDownBorders = new Dictionary<NumericUpDown, BorderStyle>();
         private static readonly Dictionary<NumericUpDown, int> NumericUpDownHeights = new Dictionary<NumericUpDown, int>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
-        private static readonly Dictionary<ComboBox, int> ComboItemHeights = new Dictionary<ComboBox, int>();
-        private static readonly Dictionary<ComboBox, DrawMode> ComboDrawModes = new Dictionary<ComboBox, DrawMode>();
-        private static readonly HashSet<ComboBox> DrawnCombos = new HashSet<ComboBox>();
-        private static readonly Dictionary<ComboBox, ComboBoxWindow> ComboWindows = new Dictionary<ComboBox, ComboBoxWindow>();
+        private static readonly HashSet<ComboBox> PopupThemedCombos = new HashSet<ComboBox>();
         private static readonly Dictionary<GroupBox, FlatStyle> GroupStyles = new Dictionary<GroupBox, FlatStyle>();
         private static readonly Dictionary<ListView, bool> ListGridLines = new Dictionary<ListView, bool>();
         private static readonly Dictionary<DataGridView, DataGridViewHeaderBorderStyle> GridHeaderBorders = new Dictionary<DataGridView, DataGridViewHeaderBorderStyle>();
@@ -233,31 +230,7 @@ namespace ScriptEditor
             if (comboBox != null) {
                 comboBox.BackColor = dark ? DarkBack : SystemColors.Window;
                 comboBox.ForeColor = dark ? DarkText : SystemColors.WindowText;
-                DrawMode originalDrawMode;
-                if (!ComboDrawModes.TryGetValue(comboBox, out originalDrawMode)) {
-                    originalDrawMode = comboBox.DrawMode;
-                    ComboDrawModes.Add(comboBox, originalDrawMode);
-                }
-                DrawMode targetDrawMode = dark ? DrawMode.OwnerDrawFixed : originalDrawMode;
-                if (comboBox.DrawMode != targetDrawMode)
-                    comboBox.DrawMode = targetDrawMode;
-                if (comboBox.Name == "cbFonts") {
-                    int originalItemHeight;
-                    if (!ComboItemHeights.TryGetValue(comboBox, out originalItemHeight)) {
-                        originalItemHeight = comboBox.ItemHeight;
-                        ComboItemHeights.Add(comboBox, originalItemHeight);
-                    }
-                    int targetItemHeight = originalItemHeight + (dark ? 3 : 0);
-                    if (comboBox.ItemHeight != targetItemHeight)
-                        comboBox.ItemHeight = targetItemHeight;
-                }
-                if (DrawnCombos.Add(comboBox)) comboBox.DrawItem += DrawComboBoxItem;
-                ComboBoxWindow comboWindow;
-                if (!ComboWindows.TryGetValue(comboBox, out comboWindow)) {
-                    comboWindow = new ComboBoxWindow(comboBox);
-                    ComboWindows.Add(comboBox, comboWindow);
-                }
-                comboWindow.PaintNow();
+                if (PopupThemedCombos.Add(comboBox)) comboBox.DropDown += ApplyComboBoxPopupTheme;
             }
 
             ProgressBar progressBar = control as ProgressBar;
@@ -369,7 +342,7 @@ namespace ScriptEditor
             if (themedCombo != null) {
                 FlatStyle original;
                 if (!ComboStyles.TryGetValue(themedCombo, out original)) { original = themedCombo.FlatStyle; ComboStyles.Add(themedCombo, original); }
-                FlatStyle targetFlatStyle = dark ? FlatStyle.Flat : original;
+                FlatStyle targetFlatStyle = dark ? FlatStyle.Standard : original;
                 if (themedCombo.FlatStyle != targetFlatStyle)
                     themedCombo.FlatStyle = targetFlatStyle;
             }
@@ -760,19 +733,6 @@ namespace ScriptEditor
                 ControlPaint.DrawFocusRectangle(e.Graphics, textBounds, textColor, background);
         }
 
-        private static void DrawComboBoxItem(object sender, DrawItemEventArgs e)
-        {
-            if (!IsDark) return;
-            ComboBox comboBox = (ComboBox)sender;
-            bool selected = (e.State & DrawItemState.Selected) != 0;
-            Color back = selected ? DarkSelection : DarkBack;
-            using (Brush brush = new SolidBrush(back)) e.Graphics.FillRectangle(brush, e.Bounds);
-            if (e.Index >= 0) {
-                TextRenderer.DrawText(e.Graphics, comboBox.GetItemText(comboBox.Items[e.Index]), comboBox.Font,
-                    new Rectangle(e.Bounds.X + 2, e.Bounds.Y, System.Math.Max(0, e.Bounds.Width - 4), e.Bounds.Height),
-                    DarkText, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-            }
-        }
         private static void ApplyToolStrip(ToolStrip toolStrip, bool dark)
         {
             toolStrip.BackColor = dark ? DarkControl : SystemColors.Control;
@@ -912,10 +872,7 @@ namespace ScriptEditor
             ComboBox comboBox = control as ComboBox;
             if (comboBox != null) {
                 ComboStyles.Remove(comboBox);
-                ComboItemHeights.Remove(comboBox);
-                ComboDrawModes.Remove(comboBox);
-                DrawnCombos.Remove(comboBox);
-                ComboWindows.Remove(comboBox);
+                PopupThemedCombos.Remove(comboBox);
             }
             GroupBox groupBox = control as GroupBox;
             if (groupBox != null)
@@ -1030,158 +987,30 @@ namespace ScriptEditor
                 }
             }
         }
-        private sealed class ComboBoxWindow : NativeWindow
+        private static void ApplyComboBoxPopupTheme(object sender, EventArgs e)
         {
-            private const int PaintComboMessage = 0x8001;
-            private readonly ComboBox comboBox;
-            private bool paintPending;
+            ComboBox comboBox = sender as ComboBox;
+            if (comboBox == null || !comboBox.IsHandleCreated) return;
 
-            internal ComboBoxWindow(ComboBox comboBox)
-            {
-                this.comboBox = comboBox;
-                AssignHandle(comboBox.Handle);
-                comboBox.HandleCreated += delegate { AssignHandle(comboBox.Handle); RequestPaint(); };
-                comboBox.HandleDestroyed += delegate { paintPending = false; ReleaseHandle(); };
-                comboBox.EnabledChanged += delegate { comboBox.Invalidate(); RequestPaint(); };
-                comboBox.DropDown += delegate { ApplyPopupTheme(); };
+            ComboBoxInfo info = new ComboBoxInfo();
+            info.cbSize = Marshal.SizeOf(typeof(ComboBoxInfo));
+            if (!GetComboBoxInfo(comboBox.Handle, ref info) || info.hwndList == System.IntPtr.Zero)
+                return;
+
+            bool dark = IsDark;
+            string theme = dark ? "DarkMode_Explorer" : "Explorer";
+            if (SupportsDarkMode) {
+                try {
+                    AllowDarkModeForWindow(info.hwndList, dark);
+                    EnumChildWindows(info.hwndList, delegate(System.IntPtr hwnd, System.IntPtr param) {
+                        AllowDarkModeForWindow(hwnd, dark);
+                        SetWindowTheme(hwnd, theme, null);
+                        return true;
+                    }, System.IntPtr.Zero);
+                } catch { }
             }
-
-            internal void RequestPaint()
-            {
-                if (!comboBox.IsHandleCreated || paintPending) return;
-                paintPending = true;
-                PostMessage(comboBox.Handle, PaintComboMessage, System.IntPtr.Zero, System.IntPtr.Zero);
-            }
-
-            internal void PaintNow()
-            {
-                if (!IsDark || !comboBox.IsHandleCreated)
-                    return;
-                paintPending = false;
-                ApplyPopupTheme();
-                if (comboBox.Enabled)
-                    DrawArrowButton();
-                else
-                    DrawDisabledComboBox();
-            }
-
-            protected override void WndProc(ref Message m)
-            {
-                if (m.Msg == 0x000F && IsDark && comboBox.IsHandleCreated &&
-                    comboBox.DropDownStyle == ComboBoxStyle.DropDownList) {
-                    PaintStruct paintStruct = new PaintStruct { reserved = new byte[32] };
-                    BeginPaint(comboBox.Handle, ref paintStruct);
-                    EndPaint(comboBox.Handle, ref paintStruct);
-                    if (comboBox.Enabled)
-                        DrawArrowButton();
-                    else
-                        DrawDisabledComboBox();
-                    return;
-                }
-
-                if (m.Msg == PaintComboMessage) {
-                    paintPending = false;
-                    if (IsDark && comboBox.IsHandleCreated) {
-                        if (comboBox.Enabled)
-                            DrawArrowButton();
-                        else
-                            DrawDisabledComboBox();
-                    }
-                    return;
-                }
-
-                base.WndProc(ref m);
-                if (IsDark && comboBox.IsHandleCreated &&
-                    (m.Msg == 0x000F || m.Msg == 0x0085)) {
-                    // The input controls use classic, non-hot native styling in dark mode.
-                    // Drawing on every mouse move only churns the GDI surface and makes the
-                    // arrow blink, so overlay it only after an actual paint operation.
-                    if (comboBox.Enabled)
-                        DrawArrowButton();
-                    else
-                        DrawDisabledComboBox();
-                }
-            }
-
-            private void ApplyPopupTheme()
-            {
-                if (!comboBox.IsHandleCreated) return;
-
-                ComboBoxInfo info = new ComboBoxInfo();
-                info.cbSize = Marshal.SizeOf(typeof(ComboBoxInfo));
-                if (!GetComboBoxInfo(comboBox.Handle, ref info) || info.hwndList == System.IntPtr.Zero)
-                    return;
-
-                bool dark = IsDark;
-                string theme = dark ? "DarkMode_Explorer" : "Explorer";
-                if (SupportsDarkMode) {
-                    try {
-                        AllowDarkModeForWindow(info.hwndList, dark);
-                        EnumChildWindows(info.hwndList, delegate (System.IntPtr hwnd, System.IntPtr param) {
-                            AllowDarkModeForWindow(hwnd, dark);
-                            SetWindowTheme(hwnd, theme, null);
-                            return true;
-                        }, System.IntPtr.Zero);
-
-                    } catch { }
-                }
-                SetWindowTheme(info.hwndList, theme, null);
-                InvalidateRect(info.hwndList, System.IntPtr.Zero, true);
-            }
-            private void DrawArrowButton()
-            {
-                DrawComboBoxSurface(DarkText);
-            }
-
-            private void DrawDisabledComboBox()
-            {
-                DrawComboBoxSurface(Color.FromArgb(170, 170, 175));
-            }
-
-            private void DrawComboBoxSurface(Color textColor)
-            {
-                Rectangle bounds = new Rectangle(0, 0, comboBox.Width, comboBox.Height);
-                if (bounds.Width < 1 || bounds.Height < 1) return;
-
-                ComboBoxInfo info = new ComboBoxInfo();
-                info.cbSize = Marshal.SizeOf(typeof(ComboBoxInfo));
-                Rectangle buttonBounds;
-                if (GetComboBoxInfo(comboBox.Handle, ref info)) {
-                    buttonBounds = Rectangle.FromLTRB(System.Math.Max(0, info.rcButton.Left - 2), info.rcButton.Top,
-                        info.rcButton.Right, info.rcButton.Bottom);
-                } else {
-                    int buttonWidth = SystemInformation.VerticalScrollBarWidth;
-                    buttonBounds = new Rectangle(System.Math.Max(0, bounds.Right - buttonWidth),
-                        bounds.Top, System.Math.Min(buttonWidth, bounds.Width), bounds.Height);
-                }
-
-                Rectangle textBounds = new Rectangle(bounds.Left + 3, bounds.Top,
-                    System.Math.Max(0, bounds.Width - buttonBounds.Width - 6), bounds.Height);
-
-                using (Graphics graphics = Graphics.FromHwnd(comboBox.Handle))
-                using (Brush backgroundBrush = new SolidBrush(DarkBack))
-                using (Brush buttonBrush = new SolidBrush(DarkControl))
-                using (Brush arrowBrush = new SolidBrush(textColor))
-                using (Pen borderPen = new Pen(DarkBorder)) {
-                    graphics.FillRectangle(backgroundBrush, bounds);
-                    graphics.FillRectangle(buttonBrush, buttonBounds);
-                    graphics.DrawRectangle(borderPen, bounds.Left, bounds.Top,
-                        bounds.Width - 1, bounds.Height - 1);
-                    graphics.DrawLine(borderPen, buttonBounds.Left, buttonBounds.Top,
-                        buttonBounds.Left, buttonBounds.Bottom - 1);
-                    TextRenderer.DrawText(graphics, comboBox.Text, comboBox.Font, textBounds,
-                        textColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter |
-                        TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
-
-                    int centerX = buttonBounds.Left + buttonBounds.Width / 2;
-                    int centerY = buttonBounds.Top + buttonBounds.Height / 2;
-                    graphics.FillPolygon(arrowBrush, new Point[] {
-                        new Point(centerX - 4, centerY - 2),
-                        new Point(centerX + 4, centerY - 2),
-                        new Point(centerX, centerY + 2)
-                    });
-                }
-            }
+            SetWindowTheme(info.hwndList, theme, null);
+            InvalidateRect(info.hwndList, System.IntPtr.Zero, true);
         }
         private sealed class ListViewGridWindow : NativeWindow
         {
@@ -1249,16 +1078,18 @@ namespace ScriptEditor
             try {
                 if (SupportsDarkMode)
                     AllowDarkModeForWindow(control.Handle, dark);
-                // Editable text/combo controls use classic drawing to avoid light
-                // Windows hot-state flashes. RichTextBox retains Explorer styling
-                // so its native scrollbar uses the dark Windows presentation.
+                // Let Windows paint ComboBox chrome and pressed/focus states using
+                // its dedicated dark control theme. Text inputs retain classic
+                // drawing so their configured colours remain authoritative.
                 bool themedTabSizeSpinner = control is NumericUpDown && control.Name == "tbTabSize";
                 TextBox standardTextBox = control as TextBox;
                 bool hasNativeScrollbar = control is RichTextBox ||
                     (standardTextBox != null && standardTextBox.Multiline && standardTextBox.ScrollBars != ScrollBars.None);
-                bool darkInput = dark && !themedTabSizeSpinner && (control is ComboBox || control is NumericUpDown ||
+                bool darkComboBox = dark && control is ComboBox;
+                bool darkInput = dark && !themedTabSizeSpinner && (control is NumericUpDown ||
                     (control is TextBoxBase && !hasNativeScrollbar));
-                string theme = darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer");
+                string theme = darkComboBox ? "DarkMode_CFD" :
+                    (darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer"));
                 string themeParts = darkInput ? "" : null;
                 SetWindowTheme(control.Handle, theme, themeParts);
                 EnumChildWindows(control.Handle, delegate(System.IntPtr hwnd, System.IntPtr param) {
@@ -1320,26 +1151,8 @@ namespace ScriptEditor
             internal System.IntPtr hwndList;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct PaintStruct
-        {
-            internal System.IntPtr hdc;
-            internal bool erase;
-            internal NativeRect rcPaint;
-            internal bool restore;
-            internal bool increment;
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
-            internal byte[] reserved;
-        }
-
         [DllImport("user32.dll")]
         private static extern bool GetComboBoxInfo(System.IntPtr hwndCombo, ref ComboBoxInfo info);
-        [DllImport("user32.dll")]
-        private static extern System.IntPtr BeginPaint(System.IntPtr hWnd, ref PaintStruct paintStruct);
-        [DllImport("user32.dll")]
-        private static extern bool EndPaint(System.IntPtr hWnd, ref PaintStruct paintStruct);
-        [DllImport("user32.dll")]
-        private static extern bool PostMessage(System.IntPtr hwnd, int message, System.IntPtr wParam, System.IntPtr lParam);
         [DllImport("user32.dll")]
         private static extern System.IntPtr SendMessage(System.IntPtr hwnd, int message, System.IntPtr wParam, System.IntPtr lParam);
         [DllImport("user32.dll")]
