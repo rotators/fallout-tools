@@ -46,20 +46,29 @@ namespace ScriptEditor
             { "Delbutton", "DarkToolbar_ScriptListRemove" }, { "Upbutton", "DarkToolbar_ScriptListFindPrevious" },
             { "Downbutton", "DarkToolbar_ScriptListFindNext" }, { "toolStripLabel1", "DarkToolbar_ScriptListFind" }
         };
+        private static readonly Dictionary<Control, ControlBorderWindow> ControlBorders = new Dictionary<Control, ControlBorderWindow>();
         private static readonly Dictionary<ButtonBase, FlatStyle> ButtonStyles = new Dictionary<ButtonBase, FlatStyle>();
         private static readonly Dictionary<Button, Image> LightButtonImages = new Dictionary<Button, Image>();
         private static readonly Dictionary<string, string> DarkButtonIconKeys = new Dictionary<string, string> {
             { "minimizelog_button", "DarkToolbar_OutputPane" },
             { "Split_button", "DarkToolbar_SplitDocument" }
         };
+        private static readonly HashSet<CheckBox> DrawnCheckBoxes = new HashSet<CheckBox>();
+        private static readonly Dictionary<CheckBox, Padding> CheckBoxPaddings = new Dictionary<CheckBox, Padding>();
+        private static readonly HashSet<RadioButton> DrawnRadioButtons = new HashSet<RadioButton>();
+        private static readonly Dictionary<TextBoxBase, BorderStyle> TextBoxBorders = new Dictionary<TextBoxBase, BorderStyle>();
+        private static readonly Dictionary<NumericUpDown, BorderStyle> NumericUpDownBorders = new Dictionary<NumericUpDown, BorderStyle>();
+        private static readonly Dictionary<NumericUpDown, int> NumericUpDownHeights = new Dictionary<NumericUpDown, int>();
         private static readonly Dictionary<ComboBox, FlatStyle> ComboStyles = new Dictionary<ComboBox, FlatStyle>();
         private static readonly HashSet<ComboBox> PopupThemedCombos = new HashSet<ComboBox>();
         private static readonly Dictionary<GroupBox, FlatStyle> GroupStyles = new Dictionary<GroupBox, FlatStyle>();
+        private static readonly Dictionary<ListView, bool> ListGridLines = new Dictionary<ListView, bool>();
         private static readonly Dictionary<DataGridView, DataGridViewHeaderBorderStyle> GridHeaderBorders = new Dictionary<DataGridView, DataGridViewHeaderBorderStyle>();
         private static readonly Dictionary<DataGridView, DataGridViewCellBorderStyle> GridCellBorders = new Dictionary<DataGridView, DataGridViewCellBorderStyle>();
         private static readonly HashSet<DataGridView> ThemedGrids = new HashSet<DataGridView>();
         private static readonly Dictionary<DataGridViewColumn, GridColumnSelectionStyle> GridColumnSelectionStyles = new Dictionary<DataGridViewColumn, GridColumnSelectionStyle>();
         private static readonly Dictionary<DataGridViewComboBoxColumn, GridComboBoxColumnStyle> GridComboBoxColumnStyles = new Dictionary<DataGridViewComboBoxColumn, GridComboBoxColumnStyle>();
+        private static readonly Dictionary<ListView, ListViewGridWindow> ListGridWindows = new Dictionary<ListView, ListViewGridWindow>();
         private static readonly HashSet<Control> DynamicControls = new HashSet<Control>();
         private static readonly HashSet<ContextMenuStrip> ThemedContextMenus = new HashSet<ContextMenuStrip>();
         private static readonly ToolStripProfessionalRenderer DarkToolStripRenderer = new DarkRenderer();
@@ -196,6 +205,25 @@ namespace ScriptEditor
             if (textBox != null) {
                 textBox.BackColor = dark ? DarkBack : (textBox.ReadOnly ? SystemColors.ControlLight : SystemColors.Window);
                 textBox.ForeColor = dark ? DarkText : SystemColors.WindowText;
+                BorderStyle original;
+                if (!TextBoxBorders.TryGetValue(textBox, out original)) { original = textBox.BorderStyle; TextBoxBorders.Add(textBox, original); }
+                if (dark)
+                    textBox.BorderStyle = textBox.Multiline && (textBox.Dock == DockStyle.Fill || textBox.ReadOnly) ? BorderStyle.None : BorderStyle.FixedSingle;
+                else
+                    textBox.BorderStyle = original;
+            }
+
+            NumericUpDown numericUpDown = control as NumericUpDown;
+            if (numericUpDown != null) {
+                BorderStyle original;
+                if (!NumericUpDownBorders.TryGetValue(numericUpDown, out original)) { original = numericUpDown.BorderStyle; NumericUpDownBorders.Add(numericUpDown, original); }
+                int originalHeight;
+                if (!NumericUpDownHeights.TryGetValue(numericUpDown, out originalHeight)) { originalHeight = numericUpDown.Height; NumericUpDownHeights.Add(numericUpDown, originalHeight); }
+                numericUpDown.BorderStyle = dark
+                    ? (numericUpDown.Name == "tbTabSize" ? BorderStyle.FixedSingle : BorderStyle.None)
+                    : original;
+                if (numericUpDown.Name == "tbTabSize")
+                    numericUpDown.Height = dark ? originalHeight + 1 : originalHeight;
             }
 
             ComboBox comboBox = control as ComboBox;
@@ -257,7 +285,7 @@ namespace ScriptEditor
                 }
             }
 
-            Button button = control as Button;
+            ButtonBase button = control as ButtonBase;
             if (button != null) {
                 FlatStyle original;
                 if (!ButtonStyles.TryGetValue(button, out original)) { original = button.FlatStyle; ButtonStyles.Add(button, original); }
@@ -271,6 +299,44 @@ namespace ScriptEditor
 
             Button imageButton = control as Button;
             if (imageButton != null) ApplyButtonImage(imageButton, dark);
+
+            CheckBox checkBox = control as CheckBox;
+            if (checkBox != null && checkBox.Appearance == Appearance.Normal) {
+                Padding originalPadding;
+                if (!CheckBoxPaddings.TryGetValue(checkBox, out originalPadding)) {
+                    originalPadding = checkBox.Padding;
+                    CheckBoxPaddings.Add(checkBox, originalPadding);
+                }
+                checkBox.Padding = dark
+                    ? new Padding(originalPadding.Left, originalPadding.Top,
+                        originalPadding.Right + DpiHelper.Scale(checkBox, 6), originalPadding.Bottom)
+                    : originalPadding;
+                if (DrawnCheckBoxes.Add(checkBox)) {
+                    checkBox.Paint += DrawCheckBox;
+                    checkBox.CheckedChanged += delegate { checkBox.Invalidate(); };
+                    checkBox.CheckStateChanged += delegate { checkBox.Invalidate(); };
+                    checkBox.EnabledChanged += delegate { checkBox.Invalidate(); };
+                    checkBox.MouseEnter += delegate { checkBox.Invalidate(); };
+                    checkBox.MouseLeave += delegate { checkBox.Invalidate(); };
+                    checkBox.GotFocus += delegate { checkBox.Invalidate(); };
+                    checkBox.LostFocus += delegate { checkBox.Invalidate(); };
+                }
+                checkBox.Invalidate();
+            }
+
+            RadioButton radioButton = control as RadioButton;
+            if (radioButton != null && radioButton.Appearance == Appearance.Normal) {
+                if (DrawnRadioButtons.Add(radioButton)) {
+                    radioButton.Paint += DrawRadioButton;
+                    radioButton.CheckedChanged += delegate { radioButton.Invalidate(); };
+                    radioButton.EnabledChanged += delegate { radioButton.Invalidate(); };
+                    radioButton.MouseEnter += delegate { radioButton.Invalidate(); };
+                    radioButton.MouseLeave += delegate { radioButton.Invalidate(); };
+                    radioButton.GotFocus += delegate { radioButton.Invalidate(); };
+                    radioButton.LostFocus += delegate { radioButton.Invalidate(); };
+                }
+                radioButton.Invalidate();
+            }
 
             ComboBox themedCombo = control as ComboBox;
             if (themedCombo != null) {
@@ -297,8 +363,20 @@ namespace ScriptEditor
 
             ListView list = control as ListView;
             if (list != null) {
+                bool originalGridLines;
+                if (!ListGridLines.TryGetValue(list, out originalGridLines)) {
+                    originalGridLines = list.GridLines;
+                    ListGridLines.Add(list, originalGridLines);
+                }
                 list.BackColor = dark ? DarkBack : SystemColors.Window;
                 list.ForeColor = dark ? DarkText : SystemColors.WindowText;
+                list.GridLines = dark ? false : originalGridLines;
+                ListViewGridWindow gridWindow;
+                if (!ListGridWindows.TryGetValue(list, out gridWindow)) {
+                    gridWindow = new ListViewGridWindow(list);
+                    ListGridWindows.Add(list, gridWindow);
+                }
+                gridWindow.Enabled = dark && originalGridLines;
             }
 
             ListBox listBox = control as ListBox;
@@ -316,6 +394,8 @@ namespace ScriptEditor
                 link.ActiveLinkColor = Color.FromArgb(120, 180, 230);
                 link.VisitedLinkColor = Color.FromArgb(170, 130, 210);
             }
+
+            if (dark && ShouldDrawDarkBorder(control)) EnsureControlBorder(control);
 
             TabControl tabControl = control as TabControl;
             if (tabControl != null) ApplyTabControl(tabControl, dark);
@@ -546,6 +626,113 @@ namespace ScriptEditor
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
         }
 
+        private static void DrawCheckBox(object sender, PaintEventArgs e)
+        {
+            if (!IsDark) return;
+
+            CheckBox checkBox = (CheckBox)sender;
+            Rectangle bounds = checkBox.ClientRectangle;
+            Color background = checkBox.BackColor.A == 0 && checkBox.Parent != null
+                ? checkBox.Parent.BackColor : checkBox.BackColor;
+            using (Brush backgroundBrush = new SolidBrush(background))
+                e.Graphics.FillRectangle(backgroundBrush, bounds);
+
+            int glyphSize = DpiHelper.Scale(checkBox, 13);
+            Rectangle glyph = new Rectangle(0, System.Math.Max(0, (bounds.Height - glyphSize) / 2), glyphSize, glyphSize);
+            bool hovered = checkBox.Enabled && glyph.Contains(checkBox.PointToClient(Cursor.Position));
+            bool active = checkBox.CheckState != CheckState.Unchecked;
+            Color glyphBack = active
+                ? (checkBox.Enabled ? (hovered ? Color.FromArgb(18, 132, 224) : DarkAccent) : DarkSelection)
+                : DarkBack;
+            Color glyphBorder = checkBox.Enabled
+                ? (hovered ? Color.FromArgb(155, 205, 245) : Color.FromArgb(135, 135, 140))
+                : DarkBorder;
+
+            using (Brush glyphBrush = new SolidBrush(glyphBack))
+                e.Graphics.FillRectangle(glyphBrush, glyph);
+            using (Pen borderPen = new Pen(glyphBorder))
+                e.Graphics.DrawRectangle(borderPen, glyph.X, glyph.Y, glyph.Width - 1, glyph.Height - 1);
+
+            if (active) {
+                Color markColor = checkBox.Enabled ? Color.White : Color.FromArgb(205, 205, 210);
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (Pen markPen = new Pen(markColor, DpiHelper.Scale(2F, DpiHelper.GetDpi(e.Graphics)))) {
+                    markPen.StartCap = LineCap.Square;
+                    markPen.EndCap = LineCap.Square;
+                    if (checkBox.CheckState == CheckState.Indeterminate) {
+                        e.Graphics.DrawLine(markPen, glyph.Left + DpiHelper.Scale(checkBox, 3), glyph.Top + DpiHelper.Scale(checkBox, 6),
+                            glyph.Right - DpiHelper.Scale(checkBox, 4), glyph.Top + DpiHelper.Scale(checkBox, 6));
+                    } else {
+                        e.Graphics.DrawLines(markPen, new Point[] {
+                            new Point(glyph.Left + DpiHelper.Scale(checkBox, 3), glyph.Top + DpiHelper.Scale(checkBox, 6)),
+                            new Point(glyph.Left + DpiHelper.Scale(checkBox, 5), glyph.Top + DpiHelper.Scale(checkBox, 9)),
+                            new Point(glyph.Left + DpiHelper.Scale(checkBox, 10), glyph.Top + DpiHelper.Scale(checkBox, 3))
+                        });
+                    }
+                }
+                e.Graphics.SmoothingMode = SmoothingMode.None;
+            }
+
+            int textGap = DpiHelper.Scale(checkBox, 5);
+            Rectangle textBounds = new Rectangle(glyph.Right + textGap, 0,
+                System.Math.Max(0, bounds.Width - glyph.Right - textGap), bounds.Height);
+            Color textColor = checkBox.Enabled ? DarkText : Color.FromArgb(155, 155, 160);
+            TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+            if (!checkBox.UseMnemonic) flags |= TextFormatFlags.NoPrefix;
+            TextRenderer.DrawText(e.Graphics, checkBox.Text, checkBox.Font, textBounds, textColor, flags);
+
+            if (checkBox.Focused && checkBox.Enabled && textBounds.Width > 0)
+                ControlPaint.DrawFocusRectangle(e.Graphics, textBounds, textColor, background);
+        }
+
+        private static void DrawRadioButton(object sender, PaintEventArgs e)
+        {
+            if (!IsDark) return;
+
+            RadioButton radioButton = (RadioButton)sender;
+            Rectangle bounds = radioButton.ClientRectangle;
+            Color background = radioButton.BackColor.A == 0 && radioButton.Parent != null
+                ? radioButton.Parent.BackColor : radioButton.BackColor;
+            using (Brush backgroundBrush = new SolidBrush(background))
+                e.Graphics.FillRectangle(backgroundBrush, bounds);
+
+            int glyphSize = DpiHelper.Scale(radioButton, 13);
+            Rectangle glyph = new Rectangle(0, System.Math.Max(0, (bounds.Height - glyphSize) / 2), glyphSize, glyphSize);
+            bool hovered = radioButton.Enabled && glyph.Contains(radioButton.PointToClient(Cursor.Position));
+            Color glyphBack = radioButton.Checked
+                ? (radioButton.Enabled ? (hovered ? Color.FromArgb(18, 132, 224) : DarkAccent) : DarkSelection)
+                : DarkBack;
+            Color glyphBorder = radioButton.Enabled
+                ? (hovered ? Color.FromArgb(155, 205, 245) : Color.FromArgb(135, 135, 140))
+                : DarkBorder;
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            using (Brush glyphBrush = new SolidBrush(glyphBack))
+                e.Graphics.FillEllipse(glyphBrush, glyph);
+            using (Pen borderPen = new Pen(glyphBorder))
+                e.Graphics.DrawEllipse(borderPen, glyph.X, glyph.Y, glyph.Width - 1, glyph.Height - 1);
+
+            if (radioButton.Checked) {
+                int dotInset = DpiHelper.Scale(radioButton, 4);
+                Rectangle dot = Rectangle.Inflate(glyph, -dotInset, -dotInset);
+                Color dotColor = radioButton.Enabled ? Color.White : Color.FromArgb(205, 205, 210);
+                using (Brush dotBrush = new SolidBrush(dotColor))
+                    e.Graphics.FillEllipse(dotBrush, dot);
+            }
+            e.Graphics.SmoothingMode = SmoothingMode.None;
+
+            int textGap = DpiHelper.Scale(radioButton, 5);
+            Rectangle textBounds = new Rectangle(glyph.Right + textGap, 0,
+                System.Math.Max(0, bounds.Width - glyph.Right - textGap), bounds.Height);
+            Color textColor = radioButton.Enabled ? DarkText : Color.FromArgb(155, 155, 160);
+            TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+            if (!radioButton.UseMnemonic) flags |= TextFormatFlags.NoPrefix;
+            TextRenderer.DrawText(e.Graphics, radioButton.Text, radioButton.Font, textBounds, textColor, flags);
+
+            if (radioButton.Focused && radioButton.Enabled && textBounds.Width > 0)
+                ControlPaint.DrawFocusRectangle(e.Graphics, textBounds, textColor, background);
+        }
+
         private static void ApplyToolStrip(ToolStrip toolStrip, bool dark)
         {
             toolStrip.BackColor = dark ? DarkControl : SystemColors.Control;
@@ -640,6 +827,7 @@ namespace ScriptEditor
         {
             Control control = (Control)sender;
             DynamicControls.Remove(control);
+            ControlBorders.Remove(control);
 
             Form form = control as Form;
             if (form != null) {
@@ -659,12 +847,28 @@ namespace ScriptEditor
                     ThemedContextMenus.Remove(contextMenu);
                 RemoveToolStripItemThemeState(toolStrip.Items);
             }
-            Button button = control as Button;
+            ButtonBase button = control as ButtonBase;
             if (button != null)
                 ButtonStyles.Remove(button);
             Button imageButton = control as Button;
             if (imageButton != null)
                 LightButtonImages.Remove(imageButton);
+            CheckBox checkBox = control as CheckBox;
+            if (checkBox != null) {
+                DrawnCheckBoxes.Remove(checkBox);
+                CheckBoxPaddings.Remove(checkBox);
+            }
+            RadioButton radioButton = control as RadioButton;
+            if (radioButton != null)
+                DrawnRadioButtons.Remove(radioButton);
+            TextBoxBase textBox = control as TextBoxBase;
+            if (textBox != null)
+                TextBoxBorders.Remove(textBox);
+            NumericUpDown numericUpDown = control as NumericUpDown;
+            if (numericUpDown != null) {
+                NumericUpDownBorders.Remove(numericUpDown);
+                NumericUpDownHeights.Remove(numericUpDown);
+            }
             ComboBox comboBox = control as ComboBox;
             if (comboBox != null) {
                 ComboStyles.Remove(comboBox);
@@ -673,6 +877,11 @@ namespace ScriptEditor
             GroupBox groupBox = control as GroupBox;
             if (groupBox != null)
                 GroupStyles.Remove(groupBox);
+            ListView listView = control as ListView;
+            if (listView != null) {
+                ListGridLines.Remove(listView);
+                ListGridWindows.Remove(listView);
+            }
             DataGridView grid = control as DataGridView;
             if (grid != null) {
                 GridHeaderBorders.Remove(grid);
@@ -729,6 +938,55 @@ namespace ScriptEditor
             ApplyNativeThemeToChildren(control, dark);
             control.Invalidate(true);
         }
+        private static bool ShouldDrawDarkBorder(Control control)
+        {
+            TextBoxBase textBox = control as TextBoxBase;
+            if (textBox != null) return textBox.BorderStyle != BorderStyle.None;
+            if (control is ComboBox || control is ListView || control is NumericUpDown) return true;
+            // DataGridView repaints its client area while scrolling. Drawing an overlay border
+            // from a NativeWindow hook leaves stale row fragments behind, so keep its border native.
+            if (control is DataGridView) return false;
+            Panel panel = control as Panel;
+            if (panel != null && panel.BorderStyle != BorderStyle.None) return true;
+            PictureBox picture = control as PictureBox;
+            return picture != null && picture.BorderStyle != BorderStyle.None;
+        }
+
+        private static void EnsureControlBorder(Control control)
+        {
+            if (!ControlBorders.ContainsKey(control))
+                ControlBorders.Add(control, new ControlBorderWindow(control));
+        }
+
+        private sealed class ControlBorderWindow : NativeWindow
+        {
+            private readonly Control control;
+
+            internal ControlBorderWindow(Control control)
+            {
+                this.control = control;
+                AssignHandle(control.Handle);
+                control.HandleCreated += delegate { AssignHandle(control.Handle); };
+                control.HandleDestroyed += delegate { ReleaseHandle(); };
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+                if ((m.Msg != 0x000F && m.Msg != 0x0085) || !IsDark ||
+                    !control.IsHandleCreated || !ShouldDrawDarkBorder(control)) return;
+                using (Graphics graphics = Graphics.FromHwnd(control.Handle))
+                using (Pen pen = new Pen(DarkBorder))
+                {
+                    int width = System.Math.Max(0, control.Width - 1);
+                    int height = System.Math.Max(0, control.Height - 1);
+                    graphics.DrawRectangle(pen, 0, 0, width, height);
+                    if (!(control is NumericUpDown) && width > 2 && height > 2)
+                        graphics.DrawRectangle(pen, 1, 1, width - 2, height - 2);
+
+                }
+            }
+        }
         private static void ApplyComboBoxPopupTheme(object sender, EventArgs e)
         {
             ComboBox comboBox = sender as ComboBox;
@@ -753,6 +1011,34 @@ namespace ScriptEditor
             }
             SetWindowTheme(info.hwndList, theme, null);
             InvalidateRect(info.hwndList, System.IntPtr.Zero, true);
+        }
+        private sealed class ListViewGridWindow : NativeWindow
+        {
+            private readonly ListView list;
+
+            internal bool Enabled { get; set; }
+
+            internal ListViewGridWindow(ListView list)
+            {
+                this.list = list;
+                AssignHandle(list.Handle);
+                list.HandleCreated += delegate { AssignHandle(list.Handle); };
+                list.HandleDestroyed += delegate { ReleaseHandle(); };
+            }
+
+            protected override void WndProc(ref Message m)
+            {
+                base.WndProc(ref m);
+                if (m.Msg != 0x000F || !Enabled || !IsDark || !list.IsHandleCreated) return;
+
+                int rowHeight = list.Items.Count > 0 ? list.Items[0].Bounds.Height : list.Font.Height + 5;
+                if (rowHeight < 1) return;
+                using (Graphics graphics = Graphics.FromHwnd(list.Handle))
+                using (Pen pen = new Pen(DarkBorder)) {
+                    for (int y = rowHeight - 1; y < list.ClientSize.Height; y += rowHeight)
+                        graphics.DrawLine(pen, 0, y, list.ClientSize.Width - 1, y);
+                }
+            }
         }
         private static void ApplyNativeProgressBar(ProgressBar progressBar, bool dark)
         {
@@ -792,21 +1078,24 @@ namespace ScriptEditor
             try {
                 if (SupportsDarkMode)
                     AllowDarkModeForWindow(control.Handle, dark);
-                // Let Windows paint standard control chrome and pressed/focus states.
-                // Text inputs only need their managed colours changed; replacing their
-                // native theme also recalculates the Designer-assigned control height.
+                // Let Windows paint ComboBox chrome and pressed/focus states using
+                // its dedicated dark control theme. Text inputs retain classic
+                // drawing so their configured colours remain authoritative.
+                bool themedTabSizeSpinner = control is NumericUpDown && control.Name == "tbTabSize";
                 TextBox standardTextBox = control as TextBox;
                 bool hasNativeScrollbar = control is RichTextBox ||
                     (standardTextBox != null && standardTextBox.Multiline && standardTextBox.ScrollBars != ScrollBars.None);
                 bool darkComboBox = dark && control is ComboBox;
-                bool darkInput = dark && control is TextBoxBase && !hasNativeScrollbar;
-                if (darkInput) return;
-                string theme = darkComboBox ? "DarkMode_CFD" : (dark ? "DarkMode_Explorer" : "Explorer");
-                SetWindowTheme(control.Handle, theme, null);
+                bool darkInput = dark && !themedTabSizeSpinner && (control is NumericUpDown ||
+                    (control is TextBoxBase && !hasNativeScrollbar));
+                string theme = darkComboBox ? "DarkMode_CFD" :
+                    (darkInput ? "" : (dark ? "DarkMode_Explorer" : "Explorer"));
+                string themeParts = darkInput ? "" : null;
+                SetWindowTheme(control.Handle, theme, themeParts);
                 EnumChildWindows(control.Handle, delegate(System.IntPtr hwnd, System.IntPtr param) {
                     if (SupportsDarkMode)
                         AllowDarkModeForWindow(hwnd, dark);
-                    SetWindowTheme(hwnd, theme, null);
+                    SetWindowTheme(hwnd, theme, themeParts);
                     return true;
                 }, System.IntPtr.Zero);
                 // Native TreeView scrolling can leave stale one-pixel row fragments,
