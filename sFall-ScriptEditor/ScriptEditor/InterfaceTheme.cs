@@ -600,8 +600,7 @@ namespace ScriptEditor
             if (!TabMultiline.TryGetValue(tabControl, out multiline)) { multiline = tabControl.Multiline; TabMultiline.Add(tabControl, multiline); }
             tabControl.Appearance = appearance;
             tabControl.Multiline = multiline;
-            tabControl.DrawMode = dark || tabControl is global::DraggableTabControl
-                ? TabDrawMode.OwnerDrawFixed : TabDrawMode.Normal;
+            tabControl.DrawMode = dark ? TabDrawMode.OwnerDrawFixed : TabDrawMode.Normal;
             if (ThemedTabs.Add(tabControl)) tabControl.DrawItem += DrawTab;
             foreach (TabPage page in tabControl.TabPages) {
                 page.BackColor = dark ? DarkBack : SystemColors.Control;

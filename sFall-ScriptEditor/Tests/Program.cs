@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using ICSharpCode.TextEditor.Document;
 using ScriptEditor;
 using ScriptEditor.CodeTranslation;
@@ -36,6 +38,12 @@ namespace SfallScriptEditor.Tests
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
+            Run("tab close retains pressed page identity", TabCloseRetainsPressedPageIdentity);
+            Run("managed tab arrows preserve selection and order", ManagedTabArrowsPreserveSelectionAndOrder);
+            Run("overflow close targets visible page", OverflowCloseTargetsVisiblePage);
+            Run("managed reorder and removal preserve page identity", ManagedReorderAndRemovalPreservePageIdentity);
+            Run("designer control collection routes tab pages", DesignerControlCollectionRoutesTabPages);
+            Run("tab navigation arrows are not empty tab strip", TabNavigationArrowsAreNotEmptyTabStrip);
             Run("notification severity is conveyed in text", NotificationSeverityIsConveyedInText);
             Run("LF message files populate hover text", LfMessageFilesPopulateHoverText);
             Run("message cache reloads changed files", MessageCacheReloadsChangedFiles);
@@ -167,6 +175,191 @@ namespace SfallScriptEditor.Tests
             True(args.IsCurrent, "A new parser request should match its document revision.");
             tab.MarkTextChanged();
             True(!args.IsCurrent, "An edit must invalidate an in-flight parser request.");
+        }
+
+        private static void TabCloseRetainsPressedPageIdentity()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                control.Size = new Size(480, 100);
+                control.ShowCloseButtons = true;
+                var first = new TabPage("First.ssl");
+                var pressed = new TabPage("Pressed.ssl");
+                var replacement = new TabPage("Replacement.ssl");
+                control.TabPages.AddRange(new[] { first, pressed, replacement });
+                control.SelectedTab = pressed;
+                IntPtr handle = control.Handle;
+
+                Rectangle pressedBounds = control.GetTabRect(control.TabPages.IndexOf(pressed));
+                Point closePoint = new Point(pressedBounds.Right - DpiHelper.Scale(control, 9),
+                    pressedBounds.Top + pressedBounds.Height / 2);
+                TabPage requested = null;
+                control.TabCloseRequested += delegate(object sender, TabCloseRequestedEventArgs e) {
+                    requested = e.TabPage;
+                };
+
+                control.RaiseMouseDown(closePoint);
+                control.TabPages.Remove(pressed);
+                control.TabPages.Add(pressed);
+                control.RaiseMouseUp(closePoint);
+
+                True(requested == null,
+                    "Removing the pressed page between mouse-down and mouse-up must not close its replacement.");
+            }
+        }
+
+        private static void ManagedTabArrowsPreserveSelectionAndOrder()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                control.Size = new Size(360, 100);
+                control.ShowCloseButtons = true;
+                var pages = new List<TabPage>();
+                for (int i = 0; i < 12; i++) {
+                    var page = new TabPage("Document" + i + ".ssl");
+                    pages.Add(page);
+                    control.TabPages.Add(page);
+                }
+                control.SelectedTab = pages[0];
+                IntPtr handle = control.Handle;
+                control.PerformLayout();
+
+                Point rightArrow = new Point(control.ClientSize.Width - DpiHelper.Scale(control, 10),
+                    Math.Max(1, control.GetTabRect(0).Height / 2));
+                control.RaiseMouseDown(rightArrow);
+                control.RaiseMouseUp(rightArrow);
+
+                Equal(pages[0], control.SelectedTab);
+                True(control.GetTabRect(0).IsEmpty,
+                    "Arrow navigation should scroll the managed viewport without changing selection.");
+                for (int i = 0; i < pages.Count; i++)
+                    Equal(pages[i], control.TabPages[i]);
+            }
+        }
+
+        private static void OverflowCloseTargetsVisiblePage()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                control.Size = new Size(360, 100);
+                control.ShowCloseButtons = true;
+                var pages = new List<TabPage>();
+                for (int i = 0; i < 12; i++) {
+                    var page = new TabPage("Document" + i + ".ssl");
+                    pages.Add(page);
+                    control.TabPages.Add(page);
+                }
+                control.SelectedTab = pages[0];
+                IntPtr handle = control.Handle;
+                control.PerformLayout();
+
+                Point rightArrow = new Point(control.ClientSize.Width - DpiHelper.Scale(control, 10),
+                    Math.Max(1, control.GetTabRect(0).Height / 2));
+                for (int i = 0; i < 5; i++) {
+                    control.RaiseMouseDown(rightArrow);
+                    control.RaiseMouseUp(rightArrow);
+                }
+
+                TabPage target = pages[6];
+                Rectangle targetBounds = control.GetTabRect(control.TabPages.IndexOf(target));
+                True(!targetBounds.IsEmpty, "The close target should be visible after managed scrolling.");
+                Point closePoint = new Point(targetBounds.Right - DpiHelper.Scale(control, 9),
+                    targetBounds.Top + targetBounds.Height / 2);
+                TabPage requested = null;
+                control.TabCloseRequested += delegate(object sender, TabCloseRequestedEventArgs e) {
+                    requested = e.TabPage;
+                };
+
+                control.RaiseMouseMove(closePoint);
+                control.RaiseMouseDown(closePoint);
+                control.RaiseMouseUp(closePoint);
+
+                Equal(target, requested);
+                Equal(pages[0], control.SelectedTab);
+            }
+        }
+
+        private static void ManagedReorderAndRemovalPreservePageIdentity()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                var first = new TabPage("First.ssl");
+                var moved = new TabPage("Moved.ssl");
+                var selected = new TabPage("Selected.ssl");
+                var last = new TabPage("Last.ssl");
+                control.TabPages.AddRange(new[] { first, moved, selected, last });
+                control.SelectedTab = selected;
+
+                TabsSwappedEventArgs swap = null;
+                control.tabsSwapped += delegate(object sender, TabsSwappedEventArgs e) { swap = e; };
+                control.MoveTab(moved, 3);
+
+                Equal(first, control.TabPages[0]);
+                Equal(selected, control.TabPages[1]);
+                Equal(last, control.TabPages[2]);
+                Equal(moved, control.TabPages[3]);
+                Equal(selected, control.SelectedTab);
+                Equal(1, swap.aIndex);
+                Equal(3, swap.bIndex);
+
+                control.TabPages.Remove(first);
+                Equal(selected, control.SelectedTab);
+                control.TabPages.Remove(selected);
+                Equal(last, control.SelectedTab);
+            }
+        }
+
+        private static void DesignerControlCollectionRoutesTabPages()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                var page = new TabPage("Designer.ssl");
+                control.Controls.Add(page);
+
+                Equal(1, control.TabCount);
+                Equal(page, control.TabPages[0]);
+                Equal(page, control.SelectedTab);
+
+                control.Controls.Remove(page);
+                Equal(0, control.TabCount);
+            }
+        }
+
+        private static void TabNavigationArrowsAreNotEmptyTabStrip()
+        {
+            using (var control = new TestDraggableTabControl()) {
+                control.Size = new Size(360, 100);
+                for (int i = 0; i < 12; i++)
+                    control.TabPages.Add(new TabPage("Document" + i + ".ssl"));
+                IntPtr handle = control.Handle;
+                control.PerformLayout();
+
+                Point leftArrow = new Point(control.ClientSize.Width - DpiHelper.Scale(control, 34),
+                    Math.Max(1, control.GetTabRect(0).Height / 2));
+                Point rightArrow = new Point(control.ClientSize.Width - DpiHelper.Scale(control, 10),
+                    leftArrow.Y);
+                True(control.IsTabNavigationArea(leftArrow),
+                    "The managed left tab arrow should be recognized as navigation chrome.");
+                True(control.IsTabNavigationArea(rightArrow),
+                    "The managed right tab arrow should be recognized as navigation chrome.");
+                True(!TextEditor.IsEmptyDocumentTabStripLocation(control, leftArrow),
+                    "Double-clicking the left tab arrow must not create an empty document.");
+                True(!TextEditor.IsEmptyDocumentTabStripLocation(control, rightArrow),
+                    "Double-clicking the right tab arrow must not create an empty document.");
+            }
+        }
+
+        private sealed class TestDraggableTabControl : DraggableTabControl
+        {
+            internal void RaiseMouseMove(Point location)
+            {
+                base.OnMouseMove(new MouseEventArgs(MouseButtons.None, 0, location.X, location.Y, 0));
+            }
+
+            internal void RaiseMouseDown(Point location)
+            {
+                base.OnMouseDown(new MouseEventArgs(MouseButtons.Left, 1, location.X, location.Y, 0));
+            }
+
+            internal void RaiseMouseUp(Point location)
+            {
+                base.OnMouseUp(new MouseEventArgs(MouseButtons.Left, 1, location.X, location.Y, 0));
+            }
         }
 
         private static void LfMessageFilesPopulateHoverText()

@@ -1083,8 +1083,7 @@ namespace ScriptEditor
             if (currentIndex == targetIndex)
                 return;
 
-            tabControl1.TabPages.RemoveAt(currentIndex);
-            tabControl1.TabPages.Insert(targetIndex, page);
+            tabControl1.MoveTab(page, targetIndex);
             SynchronizeDocumentTabOrder();
             UpdateDocumentTab(tab.index);
         }
@@ -1519,7 +1518,7 @@ namespace ScriptEditor
                                 Close(tab);
                         }
                         else if (e.Button == MouseButtons.Right) {
-                            cmsTabControls.Tag = i;
+                            cmsTabControls.Tag = tabControl1.TabPages[i];
 
                             foreach (ToolStripItem item in cmsTabControls.Items)
                                 item.Visible = true;
@@ -1541,11 +1540,20 @@ namespace ScriptEditor
             if (!tabControl1.ClientRectangle.Contains(location))
                 return false;
 
-            int headerBottom = tabControl1.DisplayRectangle.Top;
+            return IsEmptyDocumentTabStripLocation(tabControl1, location);
+        }
+
+        internal static bool IsEmptyDocumentTabStripLocation(DraggableTabControl tabControl, Point location)
+        {
+            if (tabControl == null || !tabControl.ClientRectangle.Contains(location)
+                || tabControl.IsTabNavigationArea(location))
+                return false;
+
+            int headerBottom = tabControl.DisplayRectangle.Top;
             int lastTabRight = 0;
-            for (int i = 0; i < tabControl1.TabCount; i++)
+            for (int i = 0; i < tabControl.TabCount; i++)
             {
-                Rectangle tab = tabControl1.GetTabRect(i);
+                Rectangle tab = tabControl.GetTabRect(i);
                 headerBottom = Math.Max(headerBottom, tab.Bottom);
                 lastTabRight = Math.Max(lastTabRight, tab.Right);
                 if (tab.Contains(location))
@@ -1907,11 +1915,17 @@ namespace ScriptEditor
 
         private void closeToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            int i = (int)cmsTabControls.Tag;
-            if ((i & 0x10000000) != 0)
-                tabControl2.TabPages.RemoveAt(i ^ 0x10000000);
-            else
-                Close(GetDocumentTabAt(i));
+            if (cmsTabControls.Tag is int) {
+                int i = (int)cmsTabControls.Tag;
+                if ((i & 0x10000000) != 0)
+                    tabControl2.TabPages.RemoveAt(i ^ 0x10000000);
+                return;
+            }
+
+            TabPage page = cmsTabControls.Tag as TabPage;
+            TabInfo tab;
+            if (page != null && documentTabs.TryGetValue(page, out tab))
+                Close(tab, page);
         }
 
         void GoToLineToolStripMenuItemClick(object sender, EventArgs e)
@@ -1996,7 +2010,7 @@ namespace ScriptEditor
 
         void CloseAllButThisToolStripMenuItemClick(object sender, EventArgs e)
         {
-            TabInfo tabToKeep = GetDocumentTabAt((int)cmsTabControls.Tag);
+            TabInfo tabToKeep = GetContextDocumentTab();
             for (int i = tabs.Count - 1; i >= 0; i--)
             {
                 if (!object.ReferenceEquals(tabs[i], tabToKeep))
@@ -2405,7 +2419,7 @@ namespace ScriptEditor
 
         private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TabInfo tab = GetDocumentTabAt((int)cmsTabControls.Tag);
+            TabInfo tab = GetContextDocumentTab();
             if (tab != null && !String.IsNullOrEmpty(tab.filepath))
                 System.Diagnostics.Process.Start("explorer", "/n, /select, " + tab.filepath);
         }
@@ -2535,9 +2549,16 @@ namespace ScriptEditor
 
         private void openInExternalToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TabInfo tab = GetDocumentTabAt((int)cmsTabControls.Tag);
+            TabInfo tab = GetContextDocumentTab();
             if (tab != null && !String.IsNullOrEmpty(tab.filepath))
                 Settings.OpenInExternalEditor(tab.filepath);
+        }
+
+        private TabInfo GetContextDocumentTab()
+        {
+            TabPage page = cmsTabControls.Tag as TabPage;
+            TabInfo tab;
+            return page != null && documentTabs.TryGetValue(page, out tab) ? tab : null;
         }
 
         private void includeFileToCodeToolStripMenuItem_Click(object sender, EventArgs e)
