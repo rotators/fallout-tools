@@ -39,7 +39,7 @@ namespace SfallScriptEditor.Tests
             Run("dialog procedures are discovered from their content", DialogProceduresAreDiscoveredFromContent);
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
             Run("DPI metrics use 96-DPI logical units", DpiMetricsUseLogicalUnits);
-            Run("current sfall hooks are syntax highlighted", CurrentSfallHooksAreSyntaxHighlighted);
+            Run("current sfall API is syntax highlighted", CurrentSfallApiIsSyntaxHighlighted);
             Run("dark editor host surfaces do not expose light backgrounds", DarkEditorHostSurfacesDoNotExposeLightBackgrounds);
             Run("dark combo boxes keep stable native chrome", DarkComboBoxesKeepStableNativeChrome);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
@@ -211,12 +211,32 @@ namespace SfallScriptEditor.Tests
             }
         }
 
-        private static void CurrentSfallHooksAreSyntaxHighlighted()
+        private static void CurrentSfallApiIsSyntaxHighlighted()
         {
-            string[] hooks = {
+            string[] symbols = {
                 "HOOK_STDPROCEDURE_END", "HOOK_TARGETOBJECT", "HOOK_ENCOUNTER",
                 "HOOK_ADJUSTPOISON", "HOOK_ADJUSTRADS", "HOOK_ROLLCHECK",
-                "HOOK_BESTWEAPON", "HOOK_CANUSEWEAPON", "HOOK_BUILDSFXWEAPON"
+                "HOOK_BESTWEAPON", "HOOK_CANUSEWEAPON", "HOOK_BUILDSFXWEAPON",
+                "PAUSEWIN", "SPECIAL", "WINTYPE_INVENTORY", "WINTYPE_DIALOG",
+                "WINTYPE_PIPBOY", "WINTYPE_WORLDMAP", "WINTYPE_IFACEBAR",
+                "WINTYPE_CHARACTER", "WINTYPE_SKILLDEX", "WINTYPE_ESCMENU",
+                "WINTYPE_AUTOMAP", "ENCOUNTER_FLAG_NO_CAR", "ENCOUNTER_FLAG_LOCK",
+                "ENCOUNTER_FLAG_NO_ICON", "ENCOUNTER_FLAG_ICON_SP", "ENCOUNTER_FLAG_FADEOUT",
+                "VALTYPE_NONE", "VALTYPE_INT", "VALTYPE_FLOAT", "VALTYPE_STR",
+                "GAME_MSG_EDITOR", "RESTMODE_DISABLED", "RESTMODE_STRICT",
+                "RESTMODE_NO_HEALING", "ADD_PERK_MODE_TRAIT", "ADD_PERK_MODE_PERK",
+                "ADD_PERK_MODE_REMOVE", "weapon_attack_mode1", "weapon_attack_mode2",
+                "get_tile_fid_ext", "clear_window", "get_interface_rect",
+                "get_pc_stat_max", "get_pc_stat_min", "get_npc_stat_max", "get_npc_stat_min",
+                "interface_art_draw_frame", "interface_art_draw_ex", "interface_print_width",
+                "interface_redraw_all", "interface_redraw_win", "message_box1", "message_box2",
+                "message_box3", "message_box4", "overlay_create", "overlay_clear",
+                "overlay_clear_rectangle", "overlay_destroy", "string_find_from",
+                "string_format1", "string_format2", "string_format3", "string_format4",
+                "string_format5", "string_format6", "string_format7", "unset_scr_name",
+                "set_horrigan_days", "clear_keyboard_buffer", "get_current_save_slot",
+                "set_current_save_slot", "get_current_quick_save_page",
+                "get_current_quick_save_slot", "set_current_quick_save_slot"
             };
             string[] syntaxFiles = {
                 "ssl_SyntaxRules.xshd", "ssl+_SyntaxRules.xshd", "ssld_SyntaxRules.xshd"
@@ -224,9 +244,9 @@ namespace SfallScriptEditor.Tests
             foreach (string syntaxFile in syntaxFiles) {
                 string path = Path.Combine("ScriptEditor", "SyntaxRules", syntaxFile);
                 string definition = File.ReadAllText(path);
-                foreach (string hook in hooks)
-                    True(definition.Contains("word = \"" + hook + "\""),
-                        hook + " must be present in " + syntaxFile + ".");
+                foreach (string symbol in symbols)
+                    True(definition.Contains("word = \"" + symbol + "\""),
+                        symbol + " must be present in " + syntaxFile + ".");
             }
         }
 
