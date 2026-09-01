@@ -211,7 +211,7 @@ namespace ScriptEditor
                     if (Settings.autoOpenMsgs && ti.filepath != null)
                         AssociateMsg(ti, false);
                 }
-                ti.FileTime = File.GetLastWriteTime(ti.filepath);
+                ti.CaptureFileState();
             }
             te.OptionsChanged();
             // TE events
@@ -246,7 +246,7 @@ namespace ScriptEditor
 
                     File.Copy(file, ti.filepath, true);
                     File.Delete(file);
-                    ti.FileTime = File.GetLastWriteTime(ti.filepath);
+                    ti.CaptureFileState();
 
                     UpdateDocumentTab(ti.index);
                     this.Text = SSE + ti.filepath + ((pDefineStripComboBox.SelectedIndex > 0) ? " [" + pDefineStripComboBox.Text + "]" : "");
@@ -319,7 +319,7 @@ namespace ScriptEditor
                 if (!File.Exists(currentTab.filepath)) {
                     ScriptEditor.ThemedMessageBox.Show(currentTab.filepath + "\nThe file was deleted outside the editor.\nSave this tab to recreate it.",
                         "File deleted", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    currentTab.FileTime = File.GetLastWriteTime(currentTab.filepath);
+                    currentTab.CaptureFileState();
                     currentTab.externallyChanged = false;
                     UpdateDocumentTab(currentTab.index);
                     return;
@@ -332,7 +332,7 @@ namespace ScriptEditor
                 DialogResult result = ScriptEditor.ThemedMessageBox.Show(warning + "\nDo you want to reload it?",
                     "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (result != DialogResult.Yes) {
-                    currentTab.FileTime = File.GetLastWriteTime(currentTab.filepath);
+                    currentTab.CaptureFileState();
                     currentTab.externallyChanged = false;
                     UpdateDocumentTab(currentTab.index);
                     return;
@@ -349,7 +349,7 @@ namespace ScriptEditor
                     currentTab.textEditor.EndUpdate();
                 }
 
-                currentTab.FileTime = File.GetLastWriteTime(currentTab.filepath);
+                currentTab.CaptureFileState();
                 currentTab.changed = false;
                 currentTab.externallyChanged = false;
                 SetTabTextChange(currentTab.index);

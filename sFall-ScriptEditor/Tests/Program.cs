@@ -33,6 +33,8 @@ namespace SfallScriptEditor.Tests
             Run("stale single-instance arguments are ignored", StaleCommandLineArgumentsAreIgnored);
             Run("invalid parser line ranges are rejected", InvalidParserRangesAreRejected);
             Run("atomic document save replaces content", AtomicDocumentSaveReplacesContent);
+            Run("metadata-only file changes are ignored", MetadataOnlyFileChangesAreIgnored);
+            Run("content file changes are detected", ContentFileChangesAreDetected);
             Run("procedure folding commands affect member bodies", ProcedureFoldingCommandsAffectMemberBodies);
             Run("dialog procedures are discovered from their content", DialogProceduresAreDiscoveredFromContent);
             Run("multiline object macros retain their identifier", MultilineObjectMacrosRetainTheirIdentifier);
@@ -176,6 +178,44 @@ namespace SfallScriptEditor.Tests
             True(args.IsCurrent, "A new parser request should match its document revision.");
             tab.MarkTextChanged();
             True(!args.IsCurrent, "An edit must invalidate an in-flight parser request.");
+        }
+
+        private static void MetadataOnlyFileChangesAreIgnored()
+        {
+            WithTempDirectory(directory => {
+                string path = Path.Combine(directory, "unchanged.h");
+                File.WriteAllText(path, "#define VALUE 1\r\n", Encoding.ASCII);
+                var tab = new TabInfo { filepath = path };
+                tab.CaptureFileState();
+
+                File.SetLastWriteTimeUtc(path, File.GetLastWriteTimeUtc(path).AddMinutes(1));
+
+                True(tab.CheckFileTime(),
+                    "Changing only the timestamp must not be reported as an external content edit.");
+                True(tab.CheckFileTime(), "Accepted metadata should become the new baseline.");
+            });
+        }
+
+        private static void ContentFileChangesAreDetected()
+        {
+            WithTempDirectory(directory => {
+                string path = Path.Combine(directory, "changed.h");
+                File.WriteAllText(path, "#define VALUE 1\r\n", Encoding.ASCII);
+                var tab = new TabInfo { filepath = path };
+                tab.CaptureFileState();
+
+                File.WriteAllText(path, "#define VALUE 200\r\n", Encoding.ASCII);
+                File.SetLastWriteTimeUtc(path, File.GetLastWriteTimeUtc(path).AddMinutes(1));
+
+                True(!tab.CheckFileTime(), "Changed file bytes must still be reported.");
+                tab.CaptureFileState();
+                True(tab.CheckFileTime(), "An acknowledged content change should become the new baseline.");
+
+                File.Delete(path);
+                True(!tab.CheckFileTime(), "Deleting an open file must still be reported.");
+                tab.CaptureFileState();
+                True(tab.CheckFileTime(), "An acknowledged deletion should not prompt repeatedly.");
+            });
         }
 
         private static void TabCloseRetainsPressedPageIdentity()

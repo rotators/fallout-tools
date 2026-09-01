@@ -400,7 +400,7 @@ namespace ScriptEditor.TextEditorUtilities
 
                 if (tab != null) {
                     Utilities.ReplaceIDocumentText(s_regex, tab.textEditor.Document, newName, differ);
-                    tab.FileTime = File.GetLastWriteTime(proc.fstart);
+                    tab.CaptureFileState();
                 }
             }
             TextEditor.currentHighlightProc = null;

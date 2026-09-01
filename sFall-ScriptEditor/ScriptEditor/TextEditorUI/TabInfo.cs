@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 
 using ICSharpCode.TextEditor;
@@ -55,24 +56,112 @@ namespace ScriptEditor.TextEditorUI
 
         public bool DisableParseAndStatusChange { get; set; }
 
-        private DateTime fileTime;
-        public DateTime FileTime
+        private bool hasFileState;
+        private bool fileExists;
+        private DateTime fileTimeUtc;
+        private long fileLength;
+        private string fileHash;
+
+        internal void CaptureFileState()
         {
-            set { fileTime = value; }
+            bool currentExists;
+            DateTime currentTimeUtc;
+            long currentLength;
+            if (!TryReadFileMetadata(out currentExists, out currentTimeUtc, out currentLength))
+                return;
+            string currentHash = null;
+            if (currentExists && !TryReadFileHash(out currentHash))
+                return;
+            StoreFileState(currentExists, currentTimeUtc, currentLength, currentHash);
         }
 
         public bool CheckFileTime()
         {
-            DateTime time = File.GetLastWriteTime(filepath);
-            return (time == fileTime);
+            bool currentExists;
+            DateTime currentTimeUtc;
+            long currentLength;
+            if (!TryReadFileMetadata(out currentExists, out currentTimeUtc, out currentLength))
+                return true; // A transient read failure is not proof of an external edit.
+
+            if (!hasFileState) {
+                CaptureFileState();
+                return true;
+            }
+            if (currentExists != fileExists)
+                return false;
+            if (!currentExists)
+                return true;
+            if (currentTimeUtc == fileTimeUtc && currentLength == fileLength)
+                return true;
+            string currentHash;
+            if (!TryReadFileHash(out currentHash))
+                return true;
+            if (!String.Equals(currentHash, fileHash, StringComparison.Ordinal))
+                return false;
+
+            // Timestamp-only changes are harmless. Adopt the current metadata so the
+            // same unchanged file is not reconsidered on every activation.
+            StoreFileState(true, currentTimeUtc, currentLength, currentHash);
+            return true;
+        }
+
+        private bool TryReadFileMetadata(out bool exists, out DateTime timeUtc, out long length)
+        {
+            exists = false;
+            timeUtc = DateTime.MinValue;
+            length = 0;
+            if (String.IsNullOrWhiteSpace(filepath))
+                return true;
+
+            try {
+                FileInfo info = new FileInfo(filepath);
+                info.Refresh();
+                exists = info.Exists;
+                if (!exists)
+                    return true;
+                timeUtc = info.LastWriteTimeUtc;
+                length = info.Length;
+                return true;
+            } catch (IOException) {
+                return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
+            }
+        }
+
+        private bool TryReadFileHash(out string hash)
+        {
+            hash = null;
+            try {
+                byte[] digest;
+                using (FileStream stream = new FileStream(filepath, FileMode.Open, FileAccess.Read,
+                    FileShare.ReadWrite | FileShare.Delete))
+                using (SHA256 algorithm = SHA256.Create())
+                    digest = algorithm.ComputeHash(stream);
+                hash = Convert.ToBase64String(digest);
+                return true;
+            } catch (IOException) {
+                return false;
+            } catch (UnauthorizedAccessException) {
+                return false;
+            }
+        }
+
+        private void StoreFileState(bool exists, DateTime timeUtc, long length, string hash)
+        {
+            hasFileState = true;
+            fileExists = exists;
+            fileTimeUtc = timeUtc;
+            fileLength = length;
+            fileHash = hash;
         }
 
         internal void SaveInternal(string saveText, System.Text.Encoding encFile, bool isMsg = false, bool isClose = false, bool isScript = true)
         {
             WriteAllTextAtomic(filepath, saveText, (isMsg) ? Settings.EncCodePage
                                                             : (isScript && Settings.saveScriptUTF8) ? new UTF8Encoding(false)
-                                                                                                    : encFile);
-            if (!isClose) fileTime = File.GetLastWriteTime(filepath);
+                                                                                                     : encFile);
+            if (!isClose) CaptureFileState();
         }
 
         internal static void WriteAllTextAtomic(string path, string contents, Encoding encoding)
