@@ -42,6 +42,7 @@ namespace SfallScriptEditor.Tests
             Run("current sfall API is syntax highlighted", CurrentSfallApiIsSyntaxHighlighted);
             Run("dark editor host surfaces do not expose light backgrounds", DarkEditorHostSurfacesDoNotExposeLightBackgrounds);
             Run("dark combo boxes keep stable native chrome", DarkComboBoxesKeepStableNativeChrome);
+            Run("dark theme preserves designer control properties", DarkThemePreservesDesignerControlProperties);
             Run("previous tab session preserves order and selection", PreviousTabSessionPreservesOrderAndSelection);
             Run("tab close retains pressed page identity", TabCloseRetainsPressedPageIdentity);
             Run("managed tab arrows preserve selection and order", ManagedTabArrowsPreserveSelectionAndOrder);
@@ -270,6 +271,75 @@ namespace SfallScriptEditor.Tests
                     Equal(FlatStyle.Standard, comboBox.FlatStyle);
                     Equal(DrawMode.Normal, comboBox.DrawMode);
                     Equal(themedBounds, comboBox.Bounds);
+                }
+            } finally {
+                Settings.interfaceTheme = originalTheme;
+            }
+        }
+
+        private static void DarkThemePreservesDesignerControlProperties()
+        {
+            InterfaceThemeMode originalTheme = Settings.interfaceTheme;
+            try {
+                Settings.interfaceTheme = InterfaceThemeMode.Dark;
+                using (var uiFont = new Font("Segoe UI", 9F))
+                using (var host = new Panel { Font = uiFont })
+                using (var textBox = new TextBox { BorderStyle = BorderStyle.Fixed3D })
+                using (var numeric = new NumericUpDown {
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Bounds = new Rectangle(8, 32, 80, 23)
+                })
+                using (var checkBox = new CheckBox {
+                    FlatStyle = FlatStyle.Standard,
+                    Padding = new Padding(2, 1, 4, 3),
+                    Bounds = new Rectangle(8, 64, 140, 24)
+                })
+                using (var radioButton = new RadioButton {
+                    FlatStyle = FlatStyle.Standard,
+                    Padding = new Padding(3, 2, 1, 4),
+                    Bounds = new Rectangle(8, 96, 140, 24)
+                })
+                using (var listView = new ListView {
+                    BorderStyle = BorderStyle.FixedSingle,
+                    GridLines = true,
+                    View = View.Details,
+                    Bounds = new Rectangle(160, 8, 180, 120)
+                }) {
+                    textBox.Bounds = new Rectangle(8, 8, 140, 23);
+                    listView.Columns.Add("Value", 150);
+                    listView.Items.Add("First");
+                    host.Controls.AddRange(new Control[] { textBox, numeric, checkBox, radioButton, listView });
+                    IntPtr handle = host.Handle;
+                    IntPtr textHandle = textBox.Handle;
+                    IntPtr numericHandle = numeric.Handle;
+                    IntPtr checkHandle = checkBox.Handle;
+                    IntPtr radioHandle = radioButton.Handle;
+                    IntPtr listHandle = listView.Handle;
+
+                    Rectangle textBounds = textBox.Bounds;
+                    Rectangle numericBounds = numeric.Bounds;
+                    Rectangle checkBounds = checkBox.Bounds;
+                    Rectangle radioBounds = radioButton.Bounds;
+                    Rectangle listBounds = listView.Bounds;
+                    Padding checkPadding = checkBox.Padding;
+                    Padding radioPadding = radioButton.Padding;
+
+                    InterfaceTheme.Apply(host);
+                    InterfaceTheme.Apply(host);
+
+                    Equal(BorderStyle.Fixed3D, textBox.BorderStyle);
+                    Equal(BorderStyle.FixedSingle, numeric.BorderStyle);
+                    Equal(FlatStyle.Standard, checkBox.FlatStyle);
+                    Equal(FlatStyle.Standard, radioButton.FlatStyle);
+                    Equal(checkPadding, checkBox.Padding);
+                    Equal(radioPadding, radioButton.Padding);
+                    Equal(BorderStyle.FixedSingle, listView.BorderStyle);
+                    True(listView.GridLines, "The Designer GridLines setting must remain enabled.");
+                    Equal(textBounds, textBox.Bounds);
+                    Equal(numericBounds, numeric.Bounds);
+                    Equal(checkBounds, checkBox.Bounds);
+                    Equal(radioBounds, radioButton.Bounds);
+                    Equal(listBounds, listView.Bounds);
                 }
             } finally {
                 Settings.interfaceTheme = originalTheme;

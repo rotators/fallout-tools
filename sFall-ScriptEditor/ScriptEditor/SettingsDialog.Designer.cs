@@ -573,6 +573,7 @@ namespace ScriptEditor {
             // 
             // tbTabSize
             // 
+            this.tbTabSize.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.tbTabSize.Location = new System.Drawing.Point(532, 75);
             this.tbTabSize.Maximum = new decimal(new int[] {
             30,
