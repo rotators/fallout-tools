@@ -779,7 +779,6 @@ namespace ScriptEditor
             InterfaceTheme.Apply(this);
             ColorTheme.ApplyRightPanelTheme();
             Refresh();
-            Opacity = 1D;
             if (Settings.IsWindowMaximized(SavedWindows.Main)) {
                 WindowState = FormWindowState.Maximized;
                 if (Settings.editorSplitterPosition2 != -1)
@@ -820,14 +819,33 @@ namespace ScriptEditor
                         Open(file, TextEditor.OpenType.File, commandline: true, fcdOpen: fcd);
                 }
                 startupRestorationInProgress = false;
-                tabControl1.Visible = tabControl1.TabPages.Count > 0;
-                BeginInvoke(new MethodInvoker(delegate {
-                    if (IsDisposed || tabControl1.TabPages.Count == 0)
-                        return;
-                    Split_button.Visible = !startupRestorationInProgress;
-                    PositionEditorCornerButtons();
-                }));
+                PrepareAndRevealStartupInterface();
             });
+        }
+
+        private void PrepareAndRevealStartupInterface()
+        {
+            if (IsDisposed || isClosing)
+                return;
+
+            // Make every restored editor surface paintable while the top-level window
+            // is still transparent. This creates lazy child handles and completes one
+            // dark frame before Windows can present any default light backgrounds.
+            tabControl1.Visible = tabControl1.TabPages.Count > 0;
+            InterfaceTheme.Apply(tabControl1);
+            PerformLayout();
+            Update();
+
+            BeginInvoke(new MethodInvoker(delegate {
+                if (IsDisposed || isClosing)
+                    return;
+                InterfaceTheme.Apply(tabControl1);
+                PerformLayout();
+                Update();
+                Split_button.Visible = tabControl1.TabPages.Count > 0;
+                PositionEditorCornerButtons();
+                Opacity = 1D;
+            }));
         }
         private void TextEditor_Resize(object sender, EventArgs e)
         {
