@@ -279,7 +279,6 @@ namespace ScriptEditor
             this.Text = AppTitle;
             tbOutput.Text = "***** " +  AboutBox.appName + " v." + AboutBox.appVersion + AboutBox.appDescription + " *****";
             InterfaceTheme.Apply(this);
-            ColorTheme.ApplyRightPanelTheme();
         }
 
         internal void RefreshDescriptionLanguage()
@@ -782,7 +781,6 @@ namespace ScriptEditor
             this.Deactivate += TextEditor_Deactivate;
             SingleInstanceManager.SendEditorOpenMessage();
             InterfaceTheme.Apply(this);
-            ColorTheme.ApplyRightPanelTheme();
             Refresh();
             if (Settings.IsWindowMaximized(SavedWindows.Main)) {
                 WindowState = FormWindowState.Maximized;
