@@ -55,11 +55,6 @@ namespace ScriptEditor
             searchToolTip.SetToolTip(cbFileMask,
                 "File type filter. Available for folder searches only.");
 
-            this.KeyUp += delegate(object a1, KeyEventArgs a2)
-            {
-                if (a2.KeyCode == Keys.Escape) this.bHide.PerformClick();
-            };
-
             rbCurrent.CheckedChanged += SearchScope_CheckedChanged;
             rbAll.CheckedChanged += SearchScope_CheckedChanged;
             rbFolder.CheckedChanged += SearchScope_CheckedChanged;
@@ -98,6 +93,15 @@ namespace ScriptEditor
 
             InterfaceTheme.Apply((Control)this);
             PerformLayout();
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == Keys.Escape) {
+                bHide.PerformClick();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
         protected override void OnLoad(EventArgs e)

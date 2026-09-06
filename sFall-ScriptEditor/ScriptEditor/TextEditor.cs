@@ -788,16 +788,6 @@ namespace ScriptEditor
                     splitContainer2.SplitterDistance = Settings.editorSplitterPosition2;
             }
 
-            // Let native Search & Replace controls complete their first paint while
-            // invisible. The reusable dialog can then appear without a light-theme
-            // frame when the user presses Ctrl+F for the first time.
-            BeginInvoke(new MethodInvoker(delegate {
-                if (!IsDisposed && !isClosing) {
-                    EnsureSearchForm();
-                    sf.Prewarm();
-                }
-            }));
-
             // Give Windows one complete painted frame before restoring documents.
             // Session tabs are useful startup state, but they must not delay the shell.
             var startupDocumentsTimer = new Timer { Interval = 50 };
@@ -848,6 +838,20 @@ namespace ScriptEditor
                 Split_button.Visible = tabControl1.TabPages.Count > 0;
                 PositionEditorCornerButtons();
                 Opacity = 1D;
+
+                // Prewarm search only after revealing the editor. A timer lets pending
+                // paint and input messages run first; immediate Ctrl+F still uses the
+                // dialog's normal first-show theming and makes Prewarm a no-op.
+                var searchPrewarmTimer = new Timer(components) { Interval = 100 };
+                searchPrewarmTimer.Tick += delegate {
+                    searchPrewarmTimer.Stop();
+                    searchPrewarmTimer.Dispose();
+                    if (IsDisposed || isClosing)
+                        return;
+                    EnsureSearchForm();
+                    sf.Prewarm();
+                };
+                searchPrewarmTimer.Start();
             }));
         }
         private void TextEditor_Resize(object sender, EventArgs e)
