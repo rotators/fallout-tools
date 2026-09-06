@@ -1059,34 +1059,46 @@ namespace ScriptEditor
 
             // Restore one document per UI turn. Individual files still receive their normal
             // initialization, but the shell can repaint and accept input between files.
+            // Keep the timer running between documents so each one does not incur
+            // a fresh timer delay. Disposing it below stops restoration.
             var restoreTimer = new Timer { Interval = 1 };
+            bool restoringDocument = false;
             restoreTimer.Tick += delegate {
-                restoreTimer.Stop();
-                if (IsDisposed || isClosing) {
+                // A file-open dialog can pump messages while this tick is still active.
+                if (restoringDocument)
+                    return;
+                restoringDocument = true;
+                try {
+                    if (IsDisposed || isClosing) {
+                        restoreTimer.Dispose();
+                        return;
+                    }
+
+                    while (pathIndex < paths.Length && (!File.Exists(paths[pathIndex]) || IsTemporaryUnsavedFile(paths[pathIndex])))
+                        pathIndex++;
+
+                    if (pathIndex < paths.Length) {
+                        int restoringIndex = pathIndex;
+                        TabInfo restored = Open(paths[pathIndex++], OpenType.File, addToMRU: false, seltab: false);
+                        restoredAny |= restored != null;
+                        if (restoringIndex == selectedIndex)
+                            selectedTab = restored;
+                    }
+
+                    if (pathIndex < paths.Length) {
+                        return;
+                    }
+
                     restoreTimer.Dispose();
-                    return;
+                    if (selectedTab != null && selectedTab.index >= 0 && selectedTab.index < tabControl1.TabCount)
+                        tabControl1.SelectTab(selectedTab.index);
+                    completed(restoredAny);
+                } catch {
+                    restoreTimer.Dispose();
+                    throw;
+                } finally {
+                    restoringDocument = false;
                 }
-
-                while (pathIndex < paths.Length && (!File.Exists(paths[pathIndex]) || IsTemporaryUnsavedFile(paths[pathIndex])))
-                    pathIndex++;
-
-                if (pathIndex < paths.Length) {
-                    int restoringIndex = pathIndex;
-                    TabInfo restored = Open(paths[pathIndex++], OpenType.File, addToMRU: false, seltab: false);
-                    restoredAny |= restored != null;
-                    if (restoringIndex == selectedIndex)
-                        selectedTab = restored;
-                }
-
-                if (pathIndex < paths.Length) {
-                    restoreTimer.Start();
-                    return;
-                }
-
-                restoreTimer.Dispose();
-                if (selectedTab != null && selectedTab.index >= 0 && selectedTab.index < tabControl1.TabCount)
-                    tabControl1.SelectTab(selectedTab.index);
-                completed(restoredAny);
             };
             restoreTimer.Start();
         }
@@ -1647,7 +1659,7 @@ namespace ScriptEditor
                 ofdScripts.InitialDirectory = Settings.solutionProjectFolder;
 
             ofdScripts.FileName = String.Empty;
-            if (ofdScripts.ShowDialog() == DialogResult.OK) {
+            if (InterfaceTheme.ShowOpenFileDialog(ofdScripts, this) == DialogResult.OK) {
                 string selectedFolder = Path.GetDirectoryName(ofdScripts.FileNames[0]);
                 if (Directory.Exists(selectedFolder)) {
                     Settings.lastOpenScriptsFolder = selectedFolder;

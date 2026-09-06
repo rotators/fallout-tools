@@ -126,6 +126,194 @@ namespace ScriptEditor
             form.Invalidate(true);
         }
 
+        internal static DialogResult ShowOpenFileDialog(OpenFileDialog dialog, Form owner)
+        {
+            if (!IsDark)
+                return dialog.ShowDialog(owner);
+            using (var firstPaint = new NativeDialogFirstPaint(owner.Handle))
+                return dialog.ShowDialog(owner);
+        }
+
+        // The shell file picker paints its light surface before its dark children.
+        // Keep that initial native paint transparent, without changing its controls.
+        private sealed class NativeDialogFirstPaint : IDisposable
+        {
+            private const int ExtendedStyle = -20;
+            private const int LayeredStyle = 0x80000;
+            private readonly IntPtr owner;
+            private readonly HookProc callback;
+            private readonly HookProc popupCallback;
+            private IntPtr popupHook;
+            private bool applyingPopupTheme;
+            private readonly Timer revealTimer;
+            private IntPtr hook;
+            private IntPtr dialog;
+            private bool captured;
+            private bool transparent;
+
+            internal NativeDialogFirstPaint(IntPtr owner)
+            {
+                this.owner = owner;
+                // The captured 60 fps recording shows about 130 ms of initial light
+                // paint. Allow a short settling period in the native modal loop.
+                revealTimer = new Timer { Interval = 180 };
+                revealTimer.Tick += delegate { Reveal(); };
+                popupCallback = ObservePopup;
+                popupHook = SetWindowsHookEx(12, popupCallback, IntPtr.Zero, GetCurrentThreadId());
+                callback = ObserveDialog;
+                hook = SetWindowsHookEx(5, callback, IntPtr.Zero, GetCurrentThreadId());
+            }
+
+            private IntPtr ObserveDialog(int code, IntPtr window, IntPtr data)
+            {
+                try {
+                    if (code == 4 && window == dialog) {
+                        revealTimer.Stop();
+                        dialog = IntPtr.Zero;
+                        transparent = false;
+                    }
+                    if (code == 5 && !captured && GetWindow(window, 4) == owner) {
+                        var className = new System.Text.StringBuilder(64);
+                        GetClassName(window, className, className.Capacity);
+                        if (className.ToString() == "#32770") {
+                            captured = true;
+                            int style = GetWindowLong(window, ExtendedStyle);
+                            // Do not overwrite transparency owned by the shell.
+                            if ((style & LayeredStyle) == 0) {
+                                dialog = window;
+                                SetWindowLong(window, ExtendedStyle, style | LayeredStyle);
+                                transparent = SetLayeredWindowAttributes(window, 0, 0, 2);
+                                if (transparent)
+                                    revealTimer.Start();
+                                else
+                                    SetWindowLong(window, ExtendedStyle, style);
+                            }
+                        }
+                    }
+                } catch {
+                    // A failed hook must never leave an invisible modal dialog.
+                    Reveal();
+                }
+                return CallNextHookEx(hook, code, window, data);
+            }
+
+            private IntPtr ObservePopup(int code, IntPtr unused, IntPtr data)
+            {
+                if (code >= 0 && dialog != IntPtr.Zero && !applyingPopupTheme) {
+                    try {
+                        var message = (NativeCallMessage)Marshal.PtrToStructure(data, typeof(NativeCallMessage));
+                        bool showing = message.Message == 0x18 && message.WParam != IntPtr.Zero;
+                        if (message.Message == 0x47 && message.LParam != IntPtr.Zero) {
+                            var position = (NativeWindowPosition)Marshal.PtrToStructure(message.LParam, typeof(NativeWindowPosition));
+                            showing = (position.Flags & 0x40) != 0;
+                        }
+                        if (showing) {
+                            var name = new System.Text.StringBuilder(64);
+                            GetClassName(message.Window, name, name.Capacity);
+                            if (name.ToString() == "ComboLBox" && IsDialogComboList(message.Window)) {
+                                applyingPopupTheme = true;
+                                // History and file-type lists are separate native windows.
+                                // Apply after the shell initializes each popup, before painting.
+                                ApplyNativeComboBoxPopupTheme(message.Window, true);
+                            }
+                        }
+                    } catch {
+                        // Preserve normal file-dialog behavior if native theming fails.
+                    } finally {
+                        applyingPopupTheme = false;
+                    }
+                }
+                return CallNextHookEx(popupHook, code, unused, data);
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct NativeCallMessage
+            {
+                internal IntPtr Result;
+                internal IntPtr LParam;
+                internal IntPtr WParam;
+                internal uint Message;
+                internal IntPtr Window;
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct NativeWindowPosition
+            {
+                internal IntPtr Window;
+                internal IntPtr InsertAfter;
+                internal int X, Y, Width, Height;
+                internal uint Flags;
+            }
+
+            private bool IsDialogComboList(IntPtr list)
+            {
+                bool found = false;
+                EnumChildWindows(dialog, delegate(IntPtr child, IntPtr unused) {
+                    var info = new ComboBoxInfo();
+                    info.cbSize = Marshal.SizeOf(typeof(ComboBoxInfo));
+                    if (GetComboBoxInfo(child, ref info) && info.hwndList == list)
+                        found = true;
+                    return !found;
+                }, IntPtr.Zero);
+                return found;
+            }
+
+            private void Reveal()
+            {
+                revealTimer.Stop();
+                if (!transparent || dialog == IntPtr.Zero)
+                    return;
+                if (IsWindow(dialog)) {
+                    RedrawWindow(dialog, IntPtr.Zero, IntPtr.Zero, 0x185);
+                    if (!SetLayeredWindowAttributes(dialog, 0, 255, 2))
+                        SetWindowLong(dialog, ExtendedStyle, GetWindowLong(dialog, ExtendedStyle) & ~LayeredStyle);
+                }
+                transparent = false;
+            }
+
+            public void Dispose()
+            {
+                Reveal();
+                revealTimer.Dispose();
+                if (hook != IntPtr.Zero) {
+                    UnhookWindowsHookEx(hook);
+                    hook = IntPtr.Zero;
+                }
+                if (dialog != IntPtr.Zero && IsWindow(dialog))
+                    SetWindowLong(dialog, ExtendedStyle, GetWindowLong(dialog, ExtendedStyle) & ~LayeredStyle);
+                if (popupHook != IntPtr.Zero) {
+                    UnhookWindowsHookEx(popupHook);
+                    popupHook = IntPtr.Zero;
+                }
+                GC.KeepAlive(popupCallback);
+                GC.KeepAlive(callback);
+            }
+
+            private delegate IntPtr HookProc(int code, IntPtr window, IntPtr data);
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+            private static extern IntPtr SetWindowsHookEx(int id, HookProc callback, IntPtr module, uint thread);
+            [DllImport("user32.dll")]
+            private static extern IntPtr CallNextHookEx(IntPtr hook, int code, IntPtr window, IntPtr data);
+            [DllImport("user32.dll")]
+            private static extern bool UnhookWindowsHookEx(IntPtr hook);
+            [DllImport("kernel32.dll")]
+            private static extern uint GetCurrentThreadId();
+            [DllImport("user32.dll")]
+            private static extern IntPtr GetWindow(IntPtr window, uint command);
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+            private static extern int GetClassName(IntPtr window, System.Text.StringBuilder name, int count);
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+            private static extern int GetWindowLong(IntPtr window, int index);
+            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+            private static extern int SetWindowLong(IntPtr window, int index, int value);
+            [DllImport("user32.dll")]
+            private static extern bool SetLayeredWindowAttributes(IntPtr window, uint key, byte alpha, uint flags);
+            [DllImport("user32.dll")]
+            private static extern bool IsWindow(IntPtr window);
+            [DllImport("user32.dll")]
+            private static extern bool RedrawWindow(IntPtr window, IntPtr rect, IntPtr region, uint flags);
+        }
+
         internal static void ApplyOnLoad(Form form)
         {
             bool deferFirstPaint = IsDark && form.Opacity > 0D;
@@ -997,20 +1185,24 @@ namespace ScriptEditor
             if (!GetComboBoxInfo(comboBox.Handle, ref info) || info.hwndList == System.IntPtr.Zero)
                 return;
 
-            bool dark = IsDark;
+            ApplyNativeComboBoxPopupTheme(info.hwndList, IsDark);
+        }
+
+        private static void ApplyNativeComboBoxPopupTheme(IntPtr listWindow, bool dark)
+        {
             string theme = dark ? "DarkMode_Explorer" : "Explorer";
             if (SupportsDarkMode) {
                 try {
-                    AllowDarkModeForWindow(info.hwndList, dark);
-                    EnumChildWindows(info.hwndList, delegate(System.IntPtr hwnd, System.IntPtr param) {
+                    AllowDarkModeForWindow(listWindow, dark);
+                    EnumChildWindows(listWindow, delegate(System.IntPtr hwnd, System.IntPtr param) {
                         AllowDarkModeForWindow(hwnd, dark);
                         SetWindowTheme(hwnd, theme, null);
                         return true;
                     }, System.IntPtr.Zero);
                 } catch { }
             }
-            SetWindowTheme(info.hwndList, theme, null);
-            InvalidateRect(info.hwndList, System.IntPtr.Zero, true);
+            SetWindowTheme(listWindow, theme, null);
+            InvalidateRect(listWindow, System.IntPtr.Zero, true);
         }
         private sealed class ListViewGridWindow : NativeWindow
         {
