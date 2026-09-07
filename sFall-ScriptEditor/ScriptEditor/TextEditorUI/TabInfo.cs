@@ -160,7 +160,7 @@ namespace ScriptEditor.TextEditorUI
         {
             WriteAllTextAtomic(filepath, saveText, (isMsg) ? Settings.EncCodePage
                                                             : (isScript && Settings.saveScriptUTF8) ? new UTF8Encoding(false)
-                                                                                                     : encFile);
+                                                                                                    : encFile);
             if (!isClose) CaptureFileState();
         }
 

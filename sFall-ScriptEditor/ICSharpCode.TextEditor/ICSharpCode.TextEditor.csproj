@@ -66,8 +66,8 @@
     <OutputPath>bin\Release\</OutputPath>
     <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
     <RegisterForComInterop>false</RegisterForComInterop>
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
     <DefineConstants>
     </DefineConstants>
     <ErrorReport>none</ErrorReport>
