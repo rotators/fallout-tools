@@ -523,11 +523,37 @@ namespace ScriptEditor
             SelectLine(target.Key, line);
         }
 
+        private sealed class SingleColumnToolStripOverflow : ToolStripOverflow
+        {
+            public SingleColumnToolStripOverflow(ToolStripItem parentItem) : base(parentItem) { }
+
+            protected override ToolStripItemCollection DisplayedItems
+            {
+                get {
+                    // Framework ToolStrip layout can add overflow items in both alignment passes.
+                    // Keep their first occurrence so rows follow toolbar order without empty space.
+                    ToolStripItemCollection items = base.DisplayedItems;
+                    HashSet<ToolStripItem> seen = new HashSet<ToolStripItem>();
+                    for (int i = 0; i < items.Count; ) {
+                        if (seen.Add(items[i]))
+                            i++;
+                        else
+                            items.RemoveAt(i);
+                    }
+                    return items;
+                }
+            }
+        }
         private void ConfigureMainToolbar()
         {
             ToolStripMain.GripStyle = ToolStripGripStyle.Hidden;
             ToolStripMain.ShowItemToolTips = true;
 
+            ToolStripMain.OverflowButton.DropDown = new SingleColumnToolStripOverflow(ToolStripMain.OverflowButton);
+            // Keep one toolbar item per overflow row, including during preferred-size measurement.
+            FlowLayoutSettings overflowLayout = (FlowLayoutSettings)ToolStripMain.OverflowButton.DropDown.LayoutSettings;
+            foreach (ToolStripItem item in ToolStripMain.Items)
+                overflowLayout.SetFlowBreak(item, true);
             ApplyDpiMetrics();
             HandleCreated += delegate { ApplyDpiMetrics(); };
             DpiChanged += delegate { ApplyDpiMetrics(); }; // comment out for .NET 4.0 build
@@ -687,6 +713,12 @@ namespace ScriptEditor
         }
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
+            // WinForms can lose submenu shortcuts after the owner moves into overflow.
+            // Dispatch Compile from the form regardless of the toolbar item's placement.
+            if (keyData == Keys.F8 && qCompile_toolStripSplitButton.Enabled && Compile_ToolStripMenuItem.Enabled) {
+                Compile_ToolStripMenuItem.PerformClick();
+                return true;
+            }
             if (keyData == (Keys.Control | Keys.Tab) && previousTab != null &&
                 previousTab.index >= 0 && previousTab.index < tabControl1.TabPages.Count &&
                 previousTab.index != tabControl1.SelectedIndex) {

@@ -27,4 +27,6 @@ if errorlevel 1 exit /b 1
 if errorlevel 1 exit /b 1
 
 "%TEST_EXE%"
+if errorlevel 1 exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%Tests\Test-Toolbar.ps1"
 exit /b %errorlevel%
