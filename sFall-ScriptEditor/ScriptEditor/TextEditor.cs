@@ -548,6 +548,8 @@ namespace ScriptEditor
         {
             ToolStripMain.GripStyle = ToolStripGripStyle.Hidden;
             ToolStripMain.ShowItemToolTips = true;
+            ToolStripMain.OverflowButton.Paint += PaintMainToolbarOverflow;
+            ToolStripMain.OverflowButton.ToolTipText = "More commands";
 
             ToolStripMain.OverflowButton.DropDown = new SingleColumnToolStripOverflow(ToolStripMain.OverflowButton);
             // Keep one toolbar item per overflow row, including during preferred-size measurement.
@@ -572,6 +574,59 @@ namespace ScriptEditor
             GotoProc_StripButton.ToolTipText = "Go to the procedure under the cursor (Alt+P).";
         }
 
+        private static readonly System.Reflection.MethodInfo SetToolbarItemBounds = typeof(ToolStripItem).GetMethod(
+            "SetBounds", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+            null, new Type[] { typeof(Rectangle) }, null);
+
+        private void PositionMainToolbarOverflow(object sender, EventArgs e)
+        {
+            if (parserLabel == null) return;
+            ToolStripOverflowButton overflow = ToolStripMain.OverflowButton;
+            // Reserve space on the label's left without changing its right-aligned position.
+            int gap = DpiHelper.Scale(this, 3);
+            Padding margin = parserLabel.Margin;
+            int leftMargin = overflow.Visible ? overflow.Width + gap : 0;
+            if (margin.Left != leftMargin) {
+                margin.Left = leftMargin;
+                parserLabel.Margin = margin;
+            }
+            if (!overflow.Visible) return;
+
+            Rectangle bounds = overflow.Bounds;
+            bounds.X = parserLabel.Bounds.Left - gap - bounds.Width;
+            // WinForms exposes no public position setter for its built-in overflow button.
+            // Move that same button, retaining native hit testing and dropdown ownership.
+            SetToolbarItemBounds.Invoke(overflow, new object[] { bounds });
+        }
+        private void PaintMainToolbarOverflow(object sender, PaintEventArgs e)
+        {
+            ToolStripItem button = (ToolStripItem)sender;
+            bool highlighted = button.Selected || button.Pressed;
+            Color background = highlighted ? SystemColors.Highlight : ToolStripMain.BackColor;
+            Color foreground = highlighted ? SystemColors.HighlightText
+                : (InterfaceTheme.IsDark ? Color.FromArgb(240, 240, 245) : SystemColors.ControlText);
+            Rectangle bounds = new Rectangle(Point.Empty, button.Size);
+            using (Brush brush = new SolidBrush(background))
+                e.Graphics.FillRectangle(brush, bounds);
+
+            float scale = DpiHelper.GetDpi(e.Graphics) / 96F;
+            float centerX = bounds.Width / 2F;
+            float centerY = bounds.Height / 2F;
+            System.Drawing.Drawing2D.GraphicsState state = e.Graphics.Save();
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            using (Pen pen = new Pen(foreground, 2F * scale)) {
+                pen.StartCap = pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                for (int row = 0; row < 2; row++) {
+                    float y = centerY + (row * 5 - 5) * scale;
+                    e.Graphics.DrawLines(pen, new PointF[] {
+                        new PointF(centerX - 4 * scale, y),
+                        new PointF(centerX, y + 3 * scale),
+                        new PointF(centerX + 4 * scale, y)
+                    });
+                }
+            }
+            e.Graphics.Restore(state);
+        }
         private void ApplyDpiMetrics()
         {
             ToolStripMain.ImageScalingSize = DpiHelper.Scale(this, new Size(18, 18));
@@ -1241,6 +1296,8 @@ namespace ScriptEditor
                 parserLabel.ForeColor = InterfaceTheme.IsDark ? Color.Gainsboro : SystemColors.ControlText;
             };
             ToolStripMain.Items.Add(parserLabel);
+            ToolStripMain.LayoutCompleted += PositionMainToolbarOverflow;
+            ToolStripMain.PerformLayout();
 
             // Parser timer
             extParserTimer = new Timer();

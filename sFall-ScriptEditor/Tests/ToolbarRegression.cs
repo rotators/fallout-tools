@@ -46,6 +46,27 @@ class ToolbarRegression
                     host.Width = width;
                     toolbar.PerformLayout();
                     Check(compile.Placement == ToolStripItemPlacement.Overflow, "Compile must overflow at " + width);
+                    ToolStripLabel parserStatus = (ToolStripLabel)Field(editor, "parserLabel");
+                    EventHandler positionOverflow = (EventHandler)Delegate.CreateDelegate(typeof(EventHandler), editor,
+                        type.GetMethod("PositionMainToolbarOverflow", Private));
+                    foreach (string text in new string[] { "Parser: Complete", "Parser: Parsing...", "Parser: Off" }) {
+                        toolbar.LayoutCompleted -= positionOverflow;
+                        parserStatus.Margin = new Padding(0, 1, 0, 2);
+                        parserStatus.Text = text;
+                        toolbar.PerformLayout();
+                        Rectangle originalStatusBounds = parserStatus.Bounds;
+                        toolbar.LayoutCompleted += positionOverflow;
+                        toolbar.PerformLayout();
+                        Check(parserStatus.Owner == toolbar, "Parser must remain in its original toolbar");
+                        Check(parserStatus.Bounds == originalStatusBounds, "Parser status must retain its original position");
+                        Check(toolbar.OverflowButton.Bounds.Right <= parserStatus.Bounds.Left, "Move only the overflow arrow before parser status");
+                    }
+                    using (Bitmap image = new Bitmap(toolbar.Width, toolbar.Height)) {
+                        toolbar.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+                        Rectangle crop = new Rectangle(Math.Max(0, image.Width - 320), 0, Math.Min(320, image.Width), image.Height);
+                        using (Bitmap preview = image.Clone(crop, image.PixelFormat))
+                            preview.Save(Path.Combine(Application.StartupPath, "toolbar-" + width + ".png"));
+                    }
                     toolbar.OverflowButton.ShowDropDown();
                     Application.DoEvents();
                     ToolStripDropDown overflow = toolbar.OverflowButton.DropDown;
